@@ -195,7 +195,7 @@ markdown: CommonMarkGhPages
 markdown: kramdown
 kramdown:
   input:            kramdown
-  math_engine:      katex
+  math_engine:      mathjax
   math_engine_opts: {}
 
 plugins:

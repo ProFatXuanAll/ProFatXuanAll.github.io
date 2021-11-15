@@ -1,0 +1,79 @@
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',                // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/mathtools',          // Equivalent to `\usepackage{mathtools}`.
+      ]
+    },
+    tex: {
+      packages: { '[+]': ['ams', 'mathtools'] },        // Extensions to use.
+      inlineMath: [              // Start/end delimiter pairs for in-line math.
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      displayMath: [             // Start/end delimiter pairs for display math.
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      processEscapes: true,      // Use \$ to produce a literal dollar sign.
+      processEnvironments: true, // Process \begin{xxx}...\end{xxx} outside math mode.
+      processRefs: true,         // Process \ref{...} outside of math mode.
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',              // Or 'ams' or 'all'.
+      useLabelIds: false,         // Use label name rather than tag for ids.
+      maxMacros: 1000,           // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024,       // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbf{#1}}$
+  <!-- Natural number field. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer field. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}$
+</p>

@@ -3,6 +3,8 @@ layout: post
 title: Test
 ---
 
+{% include tools/math.html %}
+
 - [Paper Link](https://ieeexplore.ieee.org/abstract/document/6795963)
 - [Book Link](https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4)
 - 時間：1997
