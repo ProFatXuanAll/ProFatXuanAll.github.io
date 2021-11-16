@@ -8,7 +8,7 @@ Only work in Unix-like OS.
 
 ```sh
 sudo apt-get install texlive-full
-gem install bundle jekyll kramdown-math-katex
+gem install bundle jekyll
 bundle update
 ```
 

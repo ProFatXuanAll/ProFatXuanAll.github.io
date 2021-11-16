@@ -18,6 +18,14 @@ author: [
 ]
 ---
 
+|-|-|
+|論文連結|<https://ieeexplore.ieee.org/abstract/document/6795963>|
+|書本連結|<https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4>|
+|期刊/會議名稱|Neural Computation|
+|發表時間|1997|
+|作者|Sepp Hochreiter, Jürgen Schmidhuber|
+|目標|提出 RNN 使用 BPTT 進行最佳化時遇到的問題，並提出 LSTM 架構進行修正|
+
 <!--
   Define LaTeX command which will be used through out the writing.
 
@@ -29,27 +37,63 @@ author: [
 {% include tools/math.html %}
 
 <p style="display: none;">
+
+  <!-- Operator in. -->
+  $\providecommand{\opnet}{}$
+  $\renewcommand{\opnet}{\operatorname{net}}$
+  <!-- Operator in. -->
+  $\providecommand{\opin}{}$
+  $\renewcommand{\opin}{\operatorname{in}}$
+  <!-- Operator out. -->
+  $\providecommand{\opout}{}$
+  $\renewcommand{\opout}{\operatorname{out}}$
+  <!-- Operator hid. -->
+  $\providecommand{\ophid}{}$
+  $\renewcommand{\ophid}{\operatorname{hid}}$
+  <!-- Operator cell. -->
+  $\providecommand{\opcell}{}$
+  $\renewcommand{\opcell}{\operatorname{cell}}$
+  <!-- Operator cell multiplicative input gate. -->
+  $\providecommand{\opig}{}$
+  $\renewcommand{\opig}{\operatorname{ig}}$
+  <!-- Operator cell multiplicative output gate. -->
+  $\providecommand{\opog}{}$
+  $\renewcommand{\opog}{\operatorname{og}}$
+
   <!-- Total loss. -->
   $\providecommand{\Loss}{}$
   $\renewcommand{\Loss}[1]{\operatorname{loss}(#1)}$
   <!-- Partial loss. -->
   $\providecommand{\loss}{}$
   $\renewcommand{\loss}[2]{\operatorname{loss}_{#1}(#2)}$
+
   <!-- Net input. -->
   $\providecommand{\net}{}$
-  $\renewcommand{\net}[2]{\operatorname{net}_{#1}(#2)}$
-  <!-- Net input with activatiton. -->
+  $\renewcommand{\net}[2]{\opnet_{#1}(#2)}$
+  <!-- Net input with activatiton f. -->
   $\providecommand{\fnet}{}$
-  $\renewcommand{\fnet}[2]{f_{#1}\big(\operatorname{net}_{#1}(#2)\big)}$
-  <!-- Derivative of with respect to net input. -->
+  $\renewcommand{\fnet}[2]{f_{#1}\big(\net{#1}{#2}\big)}$
+  <!-- Derivative of f with respect to net input. -->
   $\providecommand{\dfnet}{}$
-  $\renewcommand{\dfnet}[2]{f_{#1}'\big(\operatorname{net}_{#1}(#2)\big)}$
+  $\renewcommand{\dfnet}[2]{f_{#1}'\big(\net{#1}{#2}\big)}$
+
   <!-- Input dimension. -->
   $\providecommand{\din}{}$
-  $\renewcommand{\din}{d_{\operatorname{in}}}$
+  $\renewcommand{\din}{d_{\opin}}$
   <!-- Output dimension. -->
   $\providecommand{\dout}{}$
-  $\renewcommand{\dout}{d_{\operatorname{out}}}$
+  $\renewcommand{\dout}{d_{\opout}}$
+  <!-- Hidden dimension. -->
+  $\providecommand{\dhid}{}$
+  $\renewcommand{\dhid}{d_{\ophid}}$
+  <!-- Cell dimension. -->
+  $\providecommand{\dcell}{}$
+  $\renewcommand{\dcell}{d_{\opcell}}$
+
+  <!-- Number of cells. -->
+  $\providecommand{\ncell}{}$
+  $\renewcommand{\ncell}{n_{\opcell}}$
+
   <!-- Past and Future time -->
   $\providecommand{\tp}{}$
   $\renewcommand{\tp}{t_{\operatorname{past}}}$
@@ -58,17 +102,95 @@ author: [
   <!-- Graident of loss(t_2) with respect to net k_0 at time t_1. -->
   $\providecommand{\dv}{}$
   $\renewcommand{\dv}[3]{\vartheta_{#1}^{#2}[#3]}$
+
+  <!-- Cell block k. -->
+  $\providecommand{\cell}{}$
+  $\renewcommand{\cell}[1]{\opcell^{#1}}$
+
+  <!-- Weight of multiplicative input gate. -->
+  $\providecommand{\wig}{}$
+  $\renewcommand{\wig}{w^{\opig}}$
+  <!-- Weight of multiplicative output gate. -->
+  $\providecommand{\wog}{}$
+  $\renewcommand{\wog}{w^{\opog}}$
+  <!-- Weight of hidden units. -->
+  $\providecommand{\whid}{}$
+  $\renewcommand{\whid}{w^{\ophid}}$
+  <!-- Weight of cell units. -->
+  $\providecommand{\wcell}{}$
+  $\renewcommand{\wcell}[1]{w^{\cell{#1}}}$
+  <!-- Weight of output units. -->
+  $\providecommand{\wout}{}$
+  $\renewcommand{\wout}{w^{\opout}}$
+
+  <!-- Net input of multiplicative input gate. -->
+  $\providecommand{\netig}{}$
+  $\renewcommand{\netig}[2]{\opnet_{#1}^{\opig}(#2)}$
+  <!-- Net input of multiplicative input gate with activatiton f. -->
+  $\providecommand{\fnetig}{}$
+  $\renewcommand{\fnetig}[2]{f_{#1}^{\opig}\big(\netig{#1}{#2}\big)}$
+  <!-- Net input of multiplicative output gate. -->
+  $\providecommand{\netog}{}$
+  $\renewcommand{\netog}[2]{\opnet_{#1}^{\opog}(#2)}$
+  <!-- Net input of multiplicative output gate with activatiton f. -->
+  $\providecommand{\fnetog}{}$
+  $\renewcommand{\fnetog}[2]{f_{#1}^{\opog}\big(\netog{#1}{#2}\big)}$
+  <!-- Net input of hidden unit. -->
+  $\providecommand{\nethid}{}$
+  $\renewcommand{\nethid}[2]{\opnet_{#1}^{\ophid}(#2)}$
+  <!-- Net input of hidden unit with activatiton f. -->
+  $\providecommand{\fnethid}{}$
+  $\renewcommand{\fnethid}[2]{f_{#1}^{\ophid}\big(\nethid{#1}{#2}\big)}$
+  <!-- Net input of output units. -->
+  $\providecommand{\netout}{}$
+  $\renewcommand{\netout}[2]{\opnet_{#1}^{\opout}(#2)}$
+  <!-- Net input of output units with activatiton f. -->
+  $\providecommand{\fnetout}{}$
+  $\renewcommand{\fnetout}[2]{f_{#1}^{\opout}\big(\netout{#1}{#2}\big)}$
+
+  <!-- Net input of cell unit. -->
+  $\providecommand{\netcell}{}$
+  $\renewcommand{\netcell}[3]{\opnet_{#1}^{\cell{#2}}(#3)}$
+  <!-- Net input of cell unit with activatiton g. -->
+  $\providecommand{\gnetcell}{}$
+  $\renewcommand{\gnetcell}[3]{g_{#1}^{\cell{#2}}\big(\netcell{#1}{#2}{#3}\big)}$
+  <!-- Cell unit with activatiton h. -->
+  $\providecommand{\hcell}{}$
+  $\renewcommand{\hcell}[3]{h_{#1}\big(\cell{#2}_{#1}(#3)\big)}$
+
+  <!-- Weight of input gate. -->
+  <!-- $\providecommand{\win}{}$ -->
+  <!-- $\renewcommand{\win}{w^{\opin}}$ -->
+  <!-- Weight of output gate. -->
+  <!-- $\providecommand{\wout}{}$ -->
+  <!-- $\renewcommand{\wout}{w^{\opout}}$ -->
+  <!-- Weight of centeral linear unite. -->
+  <!-- $\providecommand{\wc}{}$ -->
+  <!-- $\renewcommand{\wc}{w^{\operatorname{c}}}$ -->
+  <!-- Net input for input gate. -->
+  <!-- $\providecommand{\netin}{}$ -->
+  <!-- $\renewcommand{\netin}[2]{\operatorname{net}_{#1}^{\opin}(#2)}$ -->
+  <!-- Net input for input gate with activatiton f. -->
+  <!-- $\providecommand{\fnetin}{}$ -->
+  <!-- $\renewcommand{\fnetin}[2]{f_{#1}^{\opin}\big(\netin{#1}{#2}\big)}$ -->
+  <!-- Net input for memory cell. -->
+  <!-- $\providecommand{\netc}{}$ -->
+  <!-- $\renewcommand{\netc}[2]{\operatorname{net}_{#1}^{c}(#2)}$ -->
+  <!-- Net input for memory cell with activatiton g. -->
+  <!-- $\providecommand{\gnetc}{}$ -->
+  <!-- $\renewcommand{\gnetc}[2]{g_{#1}\big(\netc{#1}{#2}\big)}$ -->
+  <!-- Net output for memory cell with activatiton h. -->
+  <!-- $\providecommand{\hc}{}$ -->
+  <!-- $\renewcommand{\hc}[2]{h_{#1}\big(c_{#1}(#2)\big)}$ -->
+  <!-- Net input for output gate. -->
+  <!-- $\providecommand{\netout}{}$ -->
+  <!-- $\renewcommand{\netout}[2]{\operatorname{net}_{#1}^{\opout}(#2)}$ -->
+  <!-- Net input for output gate with activatiton f. -->
+  <!-- $\providecommand{\fnetout}{}$ -->
+  <!-- $\renewcommand{\fnetout}[2]{f_{#1}^{\opout}\big(\netout{#1}{#2}\big)}$ -->
 </p>
 
 <!-- End LaTeX command define section. -->
-
-|-|-|
-|論文連結|<https://ieeexplore.ieee.org/abstract/document/6795963>|
-|書本連結|<https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4>|
-|期刊/會議名稱|Neural Computation|
-|發表時間|1997|
-|作者|Sepp Hochreiter, Jürgen Schmidhuber|
-|目標|提出 RNN 使用 BPTT 進行最佳化時遇到的問題，並提出 LSTM 架構進行修正|
 
 ## 重點
 
@@ -78,13 +200,16 @@ author: [
     - 梯度爆炸造成神經網路的**權重劇烈振盪**
     - 梯度消失造成**訓練時間慢長**
   - 無法解決輸入與輸出訊號**間隔較長**（long time lag）的問題
-- LSTM 能夠解決上述問題
+- 論文提出 **LSTM + RTRL** 能夠解決上述問題
   - 能夠處理 time lag 間隔為 $1000$ 的問題
   - 甚至輸入訊號含有雜訊時也能處理
   - 同時能夠保有處理 short time lag 問題的能力
 - 使用 mulitplicative gate 學習開啟與關閉記憶 hidden state 的機制
   - Forward pass 演算法複雜度為 $O(1)$
   - Backward pass 演算法複雜度為 $O(w)$，$w$ 代表權重
+- 與 [Pytorch](https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html?highlight=lstm#torch.nn.LSTM) 實作的 LSTM 完全不同
+  - 本篇論文的架構定義更為**廣義**
+  - 本篇論文只有**輸入閘門（input gate）**跟**輸出閘門（output gate）**，並沒有使用**失憶閘門（forget gate）**
 
 ## 傳統的 RNN
 
@@ -93,10 +218,10 @@ author: [
 BPTT = **B**ack **P**ropagation **T**hrough **T**ime，是專門用來計算 RNN 神經網路模型的**梯度反向傳播演算法**。
 一個 RNN 模型的**輸入**來源共有兩種：
 
-- **外部輸入** $x(t)$
+- **外部輸入（external input）** $x(t)$
   - 輸入維度為 $\din$
   - 使用下標 $x_{j}(t)$ 代表不同的輸入訊號，$j = 1, \dots, \din$
-- **前一次**的**輸出** $y(t)$
+- **前次輸出（previous output）** $y(t)$
   - 輸出維度為 $\dout$
   - 使用下標 $y_{j}(t)$ 代表不同的輸入訊號，$j = \din + 1, \dots, \dout$
   - 注意這裡是使用 $t$ 不是 $t - 1$
@@ -104,16 +229,16 @@ BPTT = **B**ack **P**ropagation **T**hrough **T**ime，是專門用來計算 RNN
   - 時間為離散狀態
   - 方便起見令 $y(0) = 0$
 
-令 RNN 模型的參數為 $w \in \R^{\dout \times (\din + \dout)}$，則我們可以定義第 $i$ 個外部節點
+令 RNN 模型的參數為 $w \in \R^{\dout \times (\din + \dout)}$，如果我們已經取得 $t$ 時間點的**外部輸入** $x(t)$ 與**前次輸出** $y(t)$，則我們可以定義 $t + 1$ 時間點的第 $i$ 個**模型內部節點** $\net{i}{t}$
 
 $$
 \begin{align*}
-  \net{i}{t + 1} & = \sum_{j = 1}^{\din} w_{i j} x_{j}(t) + \sum_{j = \din + 1}^{\dout} w_{i j} y_{j}(t) \\
-  & = \sum_{j = 1}^{\din + \dout} w_{i j} [x ; y]_{j}(t)
+  \net{i}{t + 1} & = \sum_{j = 1}^{\din} w_{i j} \cdot x_{j}(t) + \sum_{j = \din + 1}^{\dout} w_{i j} \cdot y_{j}(t) \\
+  & = \sum_{j = 1}^{\din + \dout} w_{i j} \cdot [x ; y]_{j}(t)
 \end{align*} \tag{1}\label{eq:1}
 $$
 
-- $\net{i}{t + 1}$ 代表第 $t + 1$ 時間的**模型內部節點** $i$ 所收到的**總輸入**（net input）
+- $\net{i}{t + 1}$ 代表第 $t + 1$ 時間的**模型內部節點** $i$ 所收到的**淨輸入（total input）**
   - 注意 $t$ 時間點的輸入訊號變成 $t + 1$ 時間點的輸出結果
   - 這是早年常見的 RNN 公式表達法
 - $w_{i j}$ 代表**輸入節點** $j$與**模型內部節點** $i$ 所連接的權重
@@ -449,14 +574,14 @@ $$
 
 由於**每個項次**都能遭遇**梯度消失**，因此**總和**也會遭遇**梯度消失**。
 
-## 梯度常數 (Constant Error Flow)
+## 梯度常數
 
-將**部份梯度**定為**常數**
+**梯度常數（Constant Error Flow）**的概念是控制**部份梯度**為**常數**。
 
-- 想法有點矛盾：
-  - 梯度應該隨著最佳化 (梯度下降) 的過程逐漸縮小數值
-  - 但遇到了梯度消失的問題，因此要求梯度維持常數
-  - 需要讓梯度隨著時間變小，卻又要求梯度維持常數，看起來互相**矛盾**
+- 透過 $\eqref{eq:31}$ 的想法讓梯度的**連乘積項**為 $1.0$
+  - 不會像 $\eqref{eq:23}$ 導致梯度**爆炸**
+  - 不會像 $\eqref{eq:24}$ 導致梯度**消失**
+- 要達成 $\eqref{eq:31}$，就必須讓 $f_j$ 是**線性函數**
 
 ### 情境 1：模型輸出與內部節點 1-1 對應
 
@@ -548,3 +673,319 @@ $$
 5. 解決需要短期資訊 $t_{1} \sim t_{2}$ 的任務 (需要讀取功能)
 6. 忘記短期資訊 $t_{1} \sim t_{2}$ (需要忽略功能)
 7. 為了解決與短期資訊 $t_{0} \sim t_{1}$ 相關的任務，突然又需要回憶起短期資訊 $t_{0} \sim t_{1}$ (需要寫入 + 讀取功能)
+
+## LSTM 架構
+
+<a name="paper-fig-1"></a>
+![paper-fig:1](https://i.imgur.com/uhS4AgH.png)
+
+<a name="paper-fig-2"></a>
+![paper-fig:2](https://i.imgur.com/UQ5LAu8.png)
+
+為了解決**梯度爆炸 / 消失**問題，作者決定以 Constant Error Carousel 為出發點（見 $\eqref{eq:33}$），提出 **3** 個主要的機制，並將這些機制的合體稱為**記憶單元（Memory Cell）**（見[圖 1](#paper-fig-1)）：
+
+- **乘法輸入閘門（Multiplicative Input Gate）**
+  - 用於決定是否**更新**記憶單元的**內部狀態** $\cell{k}(t + 1)$
+  - 細節請見 $\eqref{eq:36} \eqref{eq:38}$
+- **乘法輸出閘門（Multiplicative Output Gate）**
+  - 用於決定是否**輸出**記憶單元的**輸出訊號** $\hcell{i}{k}{t + 1}$
+  - 細節請見 $\eqref{eq:40} \eqref{eq:41}$
+- **自連接線性單元（Central Linear Unit with Fixed Self-connection）**
+  - 概念來自於 $\eqref{eq:33}$，希望能夠讓 $\cell{k}(t)$ 與 $\cell{k}(t + 1)$ 相同，藉此保障**梯度不會消失**
+  - 如果 $\cell{k}(t)$ 與 $\cell{k}(t + 1)$ 相同，則我們可以確保達成 $\eqref{eq:31}$
+  - 細節請見 $\eqref{eq:39}$
+
+### 初始狀態
+
+我們將 $\eqref{eq:1}$ 中的計算重新定義，並新增幾個符號：
+
+|符號|意義|數值範圍|
+|-|-|-|
+|$\dhid$|**隱藏單元**的維度|$\N_{\geq 0}$|
+|$\dcell$|**記憶單元**的**維度**|$\N_{\geq 1}$|
+|$\ncell$|**記憶單元**的**個數**|$\N_{\geq 1}$|
+
+- 因為論文 4.3 節有提到可以完全沒有**隱藏單元**，因此隱藏單元的維度可以為 $0$。
+- 根據論文 4.4 節，可以**同時**擁有 $\ncell$ 個不同的**記憶單元**，因此 $\ncell$ 可以大於 $1$
+
+接著我們定義 $t$ 時間點的模型計算狀態：
+
+|符號|意義|數值範圍|
+|-|-|-|
+|$y^{\ophid}(t)$|**隱藏單元（Hidden Units）**|$\R^{\dhid}$|
+|$y^{\opig}(t)$|**輸入閘門單元（Input Gate Units）**|$\R^{\dcell}$|
+|$y^{\opog}(t)$|**輸出閘門單元（Output Gate Units）**|$\R^{\dcell}$|
+|$y^{\cell{k}}(t)$|**記憶單元** $k$ 的**輸出**|$\R^{\dcell}$|
+|$\cell{k}(t)$|**記憶單元** $k$ 的**內部狀態**|$\R^{\dcell}$|
+|$y(t)$|**模型總輸出**|$\R^{\dout}$|
+
+- 以上所有向量全部都**初始化**成各自維度的**零向量**，也就是 $t = 0$ 時模型**所有節點**（除了**輸入**）都是 $0$
+- 根據論文 4.4 節，可以**同時**擁有 $\ncell$ 個不同的**記憶單元**
+  - [圖 2](#paper-fig-2)模型共有 $2$ 個不同的記憶單元
+  - **記憶單元**上標 $k$ 的數值範圍為 $k = 1, \dots, \ncell$
+  - **所有**記憶單元**共享閘門單元**
+- 根據論文 4.3 節，**記憶單元**、**閘門單元**與**隱藏單元**都算是**隱藏層（Hidden Layer）**的一部份
+
+### 輸入閘門單元
+
+當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時，我們使用如同 $\eqref{eq:1} \eqref{eq:2}$ 的方式計算模型 $t + 1$ 時間點的**輸入閘門單元（Input Gate Units）** $y_i^{\opig}(t + 1)$
+
+$$
+\begin{align*}
+\netig{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wig_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\dout} \wig_{i j} \cdot y_j(t)\bigg] + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \wig_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dout + \dhid + 1}^{\dcell} \wig_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dout + \dhid + \dcell + 1}^{\dcell} \wig_{i j} \cdot y_j^{\opog}(t)\bigg] \\
+& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 2\dcell + 1}^{\dcell} \wig_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
+y_i^{\opig}(t + 1) & = \fnetig{i}{t + 1}
+\end{align*} \tag{36}\label{eq:36}
+$$
+
+- **所有** $t$ 時間點的**模型節點**都參與了**輸入閘門單元**的計算
+- 因為有 $k$ 個**不同**的**記憶單元內部狀態**，所以 $\eqref{eq:36}$ 中加法的最後一個項次必須有兩個 $\sum$
+- $\wig$ 為**連接輸入閘門單元**的**參數**
+  - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
+  - $\wig$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
+  - $\wig$ 的輸出維度為 $\dcell$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dcell$
+  - $\wig$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $\cell{k}(t + 1)$ 會**共享**輸入閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\eqref{eq:38}$
+- $f_i^{\opig} : \R \to [0, 1]$ 必須要是**可微分函數**，具有**數值範圍限制**
+- 之後我們會將 $y_i^{\opig}(t + 1)$ 用來決定是否**更新** $t + 1$ 時間點的**記憶單元內部狀態** $\cell{k}(t + 1)$，請見 $\eqref{eq:38} \eqref{eq:39}$
+
+### 乘法輸入閘門
+
+首先我們使用與 $\eqref{eq:36}$ 相同想法，在得到 $t$ 時間點的外部輸入 $x(t)$ 時計算模型 $t + 1$ 時間點 $k$ 個**不同**的**記憶單元淨輸入** $\netcell{i}{k}{t + 1}$
+
+$$
+\begin{align*}
+\netcell{i}{k}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wcell{k}_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\dout} \wcell{k}_{i j} \cdot y_j(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \wcell{k}_{i j} \cdot y_j^{\ophid}(t)\bigg] + \bigg[\sum_{j = \din + \dout + \dhid + 1}^{\dcell} \wcell{k}_{i j} \cdot y_j^{\opig}(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dout + \dhid + \dcell + 1}^{\dcell} \wcell{k}_{i j} \cdot y_j^{\opog}(t)\bigg] \\
+& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 2\dcell + 1}^{\dcell} \wcell{k}_{i j} \cdot y_j^{\cell{k}}(t)\bigg]
+\end{align*} \tag{37}\label{eq:37}
+$$
+
+- 運算架構與 $\eqref{eq:36}$ **完全相同**
+  - **所有** $t$ 時間點的**模型節點**都參與了**記憶單元淨輸入**的計算
+  - $k$ 個**不同**的**記憶單元內部狀態**導致 $\eqref{eq:37}$ 中加法的最後一個項次必須有兩個 $\sum$
+- 共有 $k$ 個**不同**的**參數** $\wcell{k}$
+  - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
+  - $\wcell{k}$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
+  - $\wcell{k}$ 的輸出維度事先定義的 $\dcell$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dcell$
+  - 計算總共得出 $\ncell \times \dcell$ 個數字
+
+定義**可微分**啟發函數 $g_i^{\cell{k}} : \R \to \R$，我們將 $\eqref{eq:37}$ 轉換成第 $k$ 個**記憶單元內部狀態** $\cell{k}$ 在 $t + 1$ 時間點可以收到的**輸入訊號** $\gnetcell{i}{k}{t + 1}$。
+
+接著我們將 $\eqref{eq:36}$ 所得**輸入閘門單元** $y_i^{\opig}(t + 1)$ 與 $\gnetcell{i}{k}{t + 1}$ 進行**相乘**
+
+$$
+y_i^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tag{38}\label{eq:38}
+$$
+
+- $y_i^{\opig}(t + 1)$ 扮演**輸入閘門**的角色
+  - 由於**記憶單元內部狀態**的**輸入訊號**與 $\eqref{eq:36}$ 是以**相乘**進行結合，因此被稱為**乘法輸入閘門（Multiplicative Input Gate）**
+  - 當模型認為**輸入訊號** $\gnetcell{i}{k}{t + 1}$ **不重要**時，模型應該要**關閉輸入閘門**，即 $y_i^{\opig}(t + 1) \approx 0$
+    - 丟棄**當前**輸入訊號
+    - 只以**過去資訊**進行決策
+  - 當模型認為**輸入訊號** $\gnetcell{i}{k}{t + 1}$ **重要**時，模型應該要**開啟輸入閘門**，即 $y_i^{\opig}(t + 1) \approx 1$
+    - 同時考慮**過去**與**當前**資訊
+    - 但以**當前**資訊為主
+- 不論**輸入訊號** $\gnetcell{i}{k}{t + 1}$ 的大小，只要 $y_i^{\opig}(t + 1) \approx 0$，則輸入訊號**完全無法影響**接下來的所有計算
+  - 以此設計避免 $\eqref{eq:34}$ 所遇到的困境
+  - 由 $\wcell{k}$ 決定**寫入**的**數值**，函數 $g$ 可以**沒有數值範圍限制**
+  - 由 $\wig$ 根據**當前模型計算狀態**控制**寫入**（Context-Sensitive）
+- 所有的 $\cell{k}$ 都**共享**相同的乘法輸入閘門 $y_i^{\opig}(t + 1)$
+  - 有時候只需要寫入**部份**維度，不需要**同時寫入** $\dcell$ 個數值
+  - 一旦需要寫入維度 $i$，則**必須同時**寫入 $\ncell$ 個數值
+- 此設計有點**瑕疵**，邏輯應該修正成像是**圖靈機（Turing Machine）**的概念
+  - 有時候只需要寫入**部份記憶單元**中的**部份維度**，不需要**同時寫入** $\ncell \times \dcell$ 個數值
+  - 應該要有 $\ncell$ 個不同的 $\dcell$ 維度乘法輸入閘門
+
+### 自連接線性單元
+
+接著我們將 $\eqref{eq:38}$ 的計算結果用來計算 $t + 1$ 時間點的**記憶單元內部狀態** $\cell{k}(t + 1)$
+
+$$
+\cell{k}(t + 1) = \cell{k}(t) + y_i^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tag{39}\label{eq:39}
+$$
+
+- 根據 $\eqref{eq:38}$ 我們知道 $y_i^{\opig}(t + 1)$ 能夠**控制輸入訊號的開關**
+  - 當輸入訊號**完全關閉**時，$t + 1$ 時間點的**記憶單元內部狀態**與 $t$ 時間點**完全相同**，即 $\cell{k}(t + 1) = \cell{k}(t)$，達成 $\eqref{eq:31}$
+  - 當輸入訊號開啟時，$t + 1$ 時間點的**記憶單元內部狀態**會被**更新**
+- 由於 $t + 1$ 時間點的資訊有加上 $t$ 時間點的資訊，因此稱為**自連接線性單元（Central Linear Unit with Fixed Self-connection）**
+  - **加法**是**線性**運算
+  - **加上自己**是**自連接**
+  - 概念與 $\eqref{eq:33}$ 相同，藉此保障**梯度不會消失**
+
+### 輸出閘門單元
+
+想法同 $\eqref{eq:36}$，當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時便可以計算模型 $t + 1$ 時間點的**輸出閘門單元（Output Gate Units）** $y_i^{\opog}(t + 1)$
+
+$$
+\begin{align*}
+\netog{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wog_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\dout} \wog_{i j} \cdot y_j(t)\bigg] + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \wog_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dout + \dhid + 1}^{\dcell} \wog_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dout + \dhid + \dcell + 1}^{\dcell} \wog_{i j} \cdot y_j^{\opog}(t)\bigg] \\
+& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 2\dcell + 1}^{\dcell} \wog_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
+y_i^{\opog}(t + 1) & = \fnetog{i}{t + 1} \tag{40}\label{eq:40}
+\end{align*}
+$$
+
+- 運算架構與 $\eqref{eq:36}$ **完全相同**
+  - **所有** $t$ 時間點的**模型節點**都參與了**輸出閘門單元**的計算
+  - $k$ 個**不同**的**記憶單元內部狀態**導致 $\eqref{eq:40}$ 中加法的最後一個項次必須有兩個 $\sum$
+- $\wog$ 為**連接輸出閘門單元**的**參數**
+  - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
+  - $\wog$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
+  - $\wog$ 的輸出維度為 $\dcell$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dcell$
+  - $\wog$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $\cell{k}(t + 1)$ 會**共享**輸出閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\eqref{eq:41}$
+- $f_i^{\opog} : \R \to [0, 1]$ 必須要是**可微分函數**，具有**數值範圍限制**
+- 之後我們會將 $y_i^{\opog}(t + 1)$ 用來決定是否**輸出** $t + 1$ 時間點的**記憶單元啟發值** $\hcell{i}{k}{t + 1}$
+
+### 乘法輸出閘門
+
+定義**可微分**啟發函數 $h_i^{\cell{k}} : \R \to \R$，我們將 $\eqref{eq:40}$ 轉換成第 $k$ 個**記憶單元內部狀態** $\cell{k}$ 在 $t + 1$ 時間點的**輸出訊號** $\hcell{i}{k}{t + 1}$。
+注意不是 $\netcell{i}{k}{t + 1}$ 而是使用 $\cell{k}_i(t + 1)$。
+接著我們將 $\eqref{eq:40}$ 所得**輸出閘門單元** $y_i^{\opog}(t + 1)$ 與 $\hcell{i}{k}{t + 1}$ 進行**相乘**得到記憶單元 $k$ 的**輸出訊號** $y_i^{\cell{k}}(t + 1)$
+
+$$
+y_i^{\cell{k}}(t + 1) = y_i^{\opog}(t + 1) \cdot \hcell{i}{k}{t + 1} \tag{41}\label{eq:41}
+$$
+
+- $y_i^{\opog}(t + 1)$ 扮演**輸出閘門**的角色
+  - 由於**記憶單元內部狀態**的**輸出訊號**與 $\eqref{eq:40}$ 是以**相乘**進行結合，因此被稱為**乘法輸出閘門（Multiplicative Output Gate）**
+  - 當模型認為**輸出訊號** $\hcell{i}{k}{t + 1}$ 會導致**當前計算錯誤**時，模型應該**關閉輸出閘門**，即 $y_i^{\opog}(t + 1) \approx 0$
+    - 在**輸入**閘門**開啟**的狀況下，**關閉輸出**閘門代表不讓**現在**時間點的資訊影響當前計算
+    - 在**輸入**閘門**關閉**的狀況下，**關閉輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
+  - 當模型認為**輸出訊號** $\hcell{i}{k}{t + 1}$ **包含重要資訊**時，模型應該要開啟**輸出閘門**，即 $y_i^{\opog}(t + 1) \approx 1$
+    - 在**輸入**閘門**開啟**的狀況下，**開啟輸出**閘門代表讓**現在**時間點的資訊影響當前計算
+    - 在**輸入**閘門**關閉**的狀況下，**開啟輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
+- 不論**輸出訊號** $\hcell{i}{k}{t + 1}$ 的大小，只要 $y_i^{\opog}(t + 1) \approx 0$，則輸出訊號**完全無法影響**接下來的所有計算
+  - 以此設計避免 $\eqref{eq:34} \eqref{eq:35}$ 所遇到的困境
+  - 由 $\cell{k}(t + 1)$ 決定**讀取**的**數值**，函數 $h$ 可以**沒有數值範圍限制**
+  - 由 $\wog$ 根據**當前模型計算狀態**控制**輸出**（Context-sensitive）
+- 所有的 $\cell{k}$ 都**共享**相同的乘法輸出閘門 $y_i^{\opog}(t + 1)$
+  - 有時候只需要讀取**部份**維度，不需要**同時讀取** $\dcell$ 個數值
+  - 一旦需要讀取維度 $i$，則**必須同時**讀取 $\ncell$ 個數值
+- 此設計有點**瑕疵**，邏輯應該修正成像是**圖靈機（Turing Machine）**的概念
+  - 有時候只需要讀取**部份記憶單元**中的**部份維度**，不需要**同時讀取** $\ncell \times \dcell$ 個數值
+  - 應該要有 $\ncell$ 個不同的 $\dcell$ 維度乘法輸出閘門
+
+### 總輸出
+
+經過 $\eqref{eq:36} \eqref{eq:37} \eqref{eq:39} \eqref{eq:40} \eqref{eq:41}$ 後我們可以計算 $t + 1$ 時間點的**總輸出** $y_i(t + 1)$。
+
+但是！！！
+
+$t + 1$ 時間點的**總輸出**只與 $t$ 時間點的**模型狀態**（**不含閘門**）有關係，所以 $\eqref{eq:36} \eqref{eq:37} \eqref{eq:39} \eqref{eq:40} \eqref{eq:41}$ 的所有計算都只是在幫助 $t + 2$ 時間點的計算狀態**鋪陳**。
+
+$$
+\begin{align*}
+\netout{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wout_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\dout} \wout_{i j} \cdot y_j(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \wout_{i j} \cdot y_j^{\ophid}(t)\bigg] + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 1}^{\dcell} \wout_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
+y_i(t + 1) & = \fnetout{i}{t + 1}
+\end{align*} \tag{42}\label{eq:42}
+$$
+
+- $\wout$ 為**連接總輸出**的**參數**
+  - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
+  - $\wout$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
+  - $\wout$ 的輸出維度為 $\dout$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dout$
+- $f_i^{\opout} : \R \to \R$ 必須要是**可微分函數**，可以**沒有數值範圍限制**
+- 注意 $y_i(t + 1)$ 與 $y_i^{\opog}$ 不同
+  - $y_i(t + 1)$ 是**總輸出**，我的 $y_i(t + 1)$ 是論文中的 $y^k(t + 1)$
+  - $y_i^{\opog}(t + 1)$ 是**記憶單元**的**輸出閘門**，我的 $y_i^{\opog}(t + 1)$ 是論文中的 $y^{\opout_i}(t + 1)$
+- 接著就可以拿 $y_i(t + 1)$ 去做 $\eqref{eq:3} \eqref{eq:4}$ 的誤差計算，取得梯度並進行模型最佳化
+
+### 隱藏單元
+
+論文 4.3 節有提到可以完全沒有**隱藏單元**，因此這個段落可以完全不存在。
+但如果**允許隱藏單元**出現，這就跟論文的出發點有點**矛盾**。
+我會說矛盾是因為作者提出新架構的同時又保留原始架構，而且讓新舊架構**平行執行**。
+可是從數學上來看**平行執行舊架構**應該會遭遇**梯度爆炸**的問題，就如 $\eqref{eq:23} \eqref{eq:24}$。
+
+想法與 $\eqref{eq:36} \eqref{eq:37} \eqref{eq:40}$ 完全相同，以 $t$ 時間點的外部輸入 $x(t)$ 計算模型 $t + 1$ 時間點的**隱藏單元** $y_i^{\ophid}(t + 1)$
+
+$$
+\begin{align*}
+\nethid{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \whid_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\dout} \whid_{i j} \cdot y_j(t)\bigg] + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \whid_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dout + \dhid + 1}^{\dcell} \whid_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dout + \dhid + \dcell + 1}^{\dcell} \whid_{i j} \cdot y_j^{\opog}(t)\bigg] \\
+& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 2\dcell + 1}^{\dcell} \whid_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
+y_i^{\ophid}(t + 1) & = \fnethid{i}{t + 1} \tag{43}\label{eq:43}
+\end{align*}
+$$
+
+- **所有** $t$ 時間點的**模型節點**都參與了**隱藏單元**的計算
+- 因為有 $k$ 個**不同**的**記憶單元內部狀態**，所以 $\eqref{eq:43}$ 中加法的最後一個項次必須有兩個 $\sum$
+- $\whid$ 為**連接隱藏單元**的**參數**
+  - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
+  - $\whid$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
+  - $\whid$ 得輸出維度為 $\dhid$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dhid$
+- $f_i^{\ophid} : \R \to \R$ 必須要是**可微分函數**，可以**沒有數值範圍限制**
+- 之後我們會將 $y_i^{\opig}(t + 1)$ 用於計算**所有** $t + 2$ 時間點的**模型計算狀態**
+
+<!--
+### 更新模型參數
+
+只針對來自記憶單元 $c_i(t + 1)$ 的梯度進行跟新
+
+$$
+\pd{c_i(t + 1)}{w_{j k}}
+$$
+
+- local in space: if update complexity per time stemp and weight does not depend on network size
+- local in time: if its storage requirements do not depend on input sequeqnce length
+- RTRL is local in time but not in space
+- BPTT is local in space but not in time
+- LSTM local in space and time
+  - there is no need to store activation values observed during sequence processing in a stack with potentially unlimited size
+
+### 訓練早期發生異常
+
+在訓練的早期，LSTM 模型可能會學到維持輸出閘門開啟，使得
+
+- sequential network construction
+- output gate bias
+
+### Internal state drift
+
+輸入維持正或維持負
+
+$h'(c_i(t))$ 得到較小的值，造成梯度消失
+
+- 挑比較好的 $h$
+- 但如果 $h(c_i(t)) = c_i(t)$，則輸出範為可能不受限制
+- 解決方法為 at the beginning of learning is inititally to bias the input gate toward zero
+  - 這個方法等同於改變 $y^{\opin}$ 的數值範圍
+  - 雖然對計算有影響，但 internal state drift 影響更大，因此值得
+- 根據實驗，採用 sigmoid 函數就不需要進行 bias 的調整
+
+## 實驗
+
+- 要測試較長的時間差
+- 資料集不可以出現短時間差
+- 任務要夠難
+  - 不可以只靠 random weight guessing 解決
+  - 需要比較多的參數或是高計算精度 (sparse in weight space)
+
+### 實驗設計
+
+- 使用 online learning
+- 使用 sigmoid 作為啟發函數
+- 參數初始化範圍為 $[-0.1, 0.1]$
+  - 只有實驗 1 與 2 的初始化範圍為 $[-0.2, 0.2]$
+- 資料的訓練順序為隨機
+- 在每個時間點 $t$ 的計算順序為
+  1. 將外部輸入 $x(t)$ 丟入模型
+  2. 計算輸入閘門、輸出閘門、記憶單元
+  3. 計算淨輸出
+
+$h : \R \to [-1, 1]$ 函數的定義為
+
+$$
+h(x) = \frac{2}{1 + \exp(-x)} - 1 = 2 \sigma(x) - 1
+$$
+
+$g : \R \to [-2, 2]$ 函數的定義為
+
+$$
+g(x) = \frac{4}{1 + \exp(-x)} - 2 = 4 \sigma(x) - 2
+$$
+
+-->
