@@ -235,7 +235,7 @@ $$
 \begin{align*}
   \net{i}{t + 1} & = \sum_{j = 1}^{\din} w_{i j} \cdot x_{j}(t) + \sum_{j = \din + 1}^{\dout} w_{i j} \cdot y_{j}(t) \\
   & = \sum_{j = 1}^{\din + \dout} w_{i j} \cdot [x ; y]_{j}(t)
-\end{align*} \tag{1}\label{eq:1}
+\end{align*} \tgl{1}
 $$
 
 - $\net{i}{t + 1}$ 代表第 $t + 1$ 時間的**模型內部節點** $i$ 所收到的**淨輸入（total input）**
@@ -250,7 +250,7 @@ $$
 令模型使用的**啟發函數**（activation function）為 $f : \R^{\dout} \to \R^{\dout}$，並且內部節點之間無法直接溝通（elementwise activation function），則我們可以得到 $t + 1$ 時間的輸出
 
 $$
-y_{i}(t + 1) = \fnet{i}{t + 1} \tag{2}\label{eq:2}
+y_{i}(t + 1) = \fnet{i}{t + 1} \tgl{2}
 $$
 
 - 使用下標 $f_{i}$ 是因為每個維度所使用的啟發函數可以**不同**
@@ -260,72 +260,72 @@ $$
 如果 $t + 1$ 時間點的**輸出目標**為 $\hat{y}(t + 1) \in \R^{\dout}$，則**目標函數**為**最小平方差**（Mean Square Error）：
 
 $$
-\loss{i}{t + 1} = \frac{1}{2} \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)^2 \tag{3}\label{eq:3}
+\loss{i}{t + 1} = \frac{1}{2} \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)^2 \tgl{3}
 $$
 
 因此 $t + 1$ 時間點的總體目標函數（總誤差）為
 
 $$
-\Loss{t + 1} = \sum_{i = 1}^{\dout} \loss{i}{t + 1} \tag{4}\label{eq:4}
+\Loss{t + 1} = \sum_{i = 1}^{\dout} \loss{i}{t + 1} \tgl{4}
 $$
 
-根據 $\eqref{eq:3} \eqref{eq:4}$ 我們可以輕易的計算 $\loss{i}{t + 1}$ 對 $\Loss{t + 1}$ 所得梯度
+根據 $\rtgl{3} \rtgl{4}$ 我們可以輕易的計算 $\loss{i}{t + 1}$ 對 $\Loss{t + 1}$ 所得梯度
 
 $$
-\pd{\Loss{t + 1}}{\loss{i}{t + 1}} = 1 \tag{5}\label{eq:5}
+\pd{\Loss{t + 1}}{\loss{i}{t + 1}} = 1 \tgl{5}
 $$
 
-而透過 $\eqref{eq:3}$ 我們知道 $y_{i}(t + 1)$ 對 $\Loss{t + 1}$ 所得梯度為
+而透過 $\rtgl{3}$ 我們知道 $y_{i}(t + 1)$ 對 $\Loss{t + 1}$ 所得梯度為
 
 $$
-\pd{\loss{i}{t + 1}}{y_{i}(t + 1)} = y_{i}(t + 1) - \hat{y}_{i}(t + 1) \tag{6}\label{eq:6}
+\pd{\loss{i}{t + 1}}{y_{i}(t + 1)} = y_{i}(t + 1) - \hat{y}_{i}(t + 1) \tgl{6}
 $$
 
-根據 $\eqref{eq:5} \eqref{eq:6}$ 我們可以推得
+根據 $\rtgl{5} \rtgl{6}$ 我們可以推得
 
 $$
 \begin{align*}
 \pd{\Loss{t + 1}}{y_{i}(t + 1)} & = \pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_{i}(t + 1)} \\
 & = 1 \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \\
 & = y_{i}(t + 1) - \hat{y}_{i}(t + 1)
-\end{align*} \tag{7}\label{eq:7}
+\end{align*} \tgl{7}
 $$
 
-根據 $\eqref{eq:2}$ 我們知道 $\net{i}{t + 1}$ 對 $y_{i}(t + 1)$ 所得梯度為
+根據 $\rtgl{2}$ 我們知道 $\net{i}{t + 1}$ 對 $y_{i}(t + 1)$ 所得梯度為
 
 $$
-\pd{y_{i}(t + 1)}{\net{i}{t + 1}} = \dfnet{i}{t + 1} \tag{8}\label{eq:8}
+\pd{y_{i}(t + 1)}{\net{i}{t + 1}} = \dfnet{i}{t + 1} \tgl{8}
 $$
 
-根據 $\eqref{eq:7} \eqref{eq:8}$ 我們可以推得 $\net{i}{t + 1}$ 對 $\Loss{t + 1}$ 所得梯度
+根據 $\rtgl{7} \rtgl{8}$ 我們可以推得 $\net{i}{t + 1}$ 對 $\Loss{t + 1}$ 所得梯度
 
 $$
 \begin{align*}
 \pd{\Loss{t + 1}}{\net{i}{t + 1}} & = \pd{\Loss{t + 1}}{y_{i}(t + 1)} \cdot \pd{y_{i}(t + 1)}{\net{i}{t + 1}} \\
 & = \dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)
-\end{align*} \tag{9}\label{eq:9}
+\end{align*} \tgl{9}
 $$
 
-式子 $\eqref{eq:9}$ 就是論文 3.1.1 節的第一條公式。
-根據 $\eqref{eq:9}$ 我們可以推得 $x_{j}(t)$ 對 $\Loss{t + 1}$ 所得梯度
+式子 $\rtgl{9}$ 就是論文 3.1.1 節的第一條公式。
+根據 $\rtgl{9}$ 我們可以推得 $x_{j}(t)$ 對 $\Loss{t + 1}$ 所得梯度
 
 $$
 \begin{align*}
 \pd{\Loss{t + 1}}{x_{j}(t)} & = \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{x_{j}(t)}\bigg] \\
 & = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i j}\bigg]
-\end{align*} \tag{10}\label{eq:10}
+\end{align*} \tgl{10}
 $$
 
-同樣的根據 $\eqref{eq:9}$ 我們可以推得 $y_{j}(t)$ 對 $\Loss{t + 1}$ 所得梯度為
+同樣的根據 $\rtgl{9}$ 我們可以推得 $y_{j}(t)$ 對 $\Loss{t + 1}$ 所得梯度為
 
 $$
 \begin{align*}
 \pd{\Loss{t + 1}}{y_{j}(t)} & = \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{y_{j}(t)}\bigg] \\
 & = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i j}\bigg]
-\end{align*} \tag{11}\label{eq:11}
+\end{align*} \tgl{11}
 $$
 
-由於第 $t$ 時間點的輸出 $y_{j}(t)$ 的計算是由 $\net{j}{t}$ 而來（請見 $\eqref{eq:2}$），所以我們也利用 $\eqref{eq:8} \eqref{eq:11}$ 計算 $\net{j}{t}$ 對 $\Loss{t + 1}$ 所得梯度（注意是 $t$ 不是 $t + 1$）
+由於第 $t$ 時間點的輸出 $y_{j}(t)$ 的計算是由 $\net{j}{t}$ 而來（請見 $\rtgl{2}$），所以我們也利用 $\rtgl{8} \rtgl{11}$ 計算 $\net{j}{t}$ 對 $\Loss{t + 1}$ 所得梯度（注意是 $t$ 不是 $t + 1$）
 
 $$
 \begin{align*}
@@ -334,63 +334,63 @@ $$
 & = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i j} \cdot \dfnet{j}{t}\bigg] \\
 & = \dfnet{j}{t} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i j} \cdot \dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)\bigg] \\
 & = \dfnet{j}{t} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i j} \cdot \pd{\Loss{t + 1}}{\net{i}{t + 1}}\bigg]
-\end{align*} \tag{12}\label{eq:12}
+\end{align*} \tgl{12}
 $$
 
-式子 $\eqref{eq:12}$ 就是論文 3.1.1 節的最後一條公式。
+式子 $\rtgl{12}$ 就是論文 3.1.1 節的最後一條公式。
 模型參數 $w_{i j}$ 對於 $\Loss{t + 1}$ 所得梯度為
 
 $$
 \begin{align*}
 & \pd{\Loss{t + 1}}{w_{i j}} \\
 & = \pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{w_{i j}} \\
-& = \dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot [x ; y]_{j}(t) && \text{(by \eqref{eq:9})}
-\end{align*} \tag{13}\label{eq:13}
+& = \dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot [x ; y]_{j}(t) && \text{(by \rtgl{9})}
+\end{align*} \tgl{13}
 $$
 
-注意 $\eqref{eq:13}$ 中最後一行等式取決於 $w_{i j}$ 與哪個輸入相接。
+注意 $\rtgl{13}$ 中最後一行等式取決於 $w_{i j}$ 與哪個輸入相接。
 而在時間點 $t + 1$ 進行參數更新的方法為
 
 $$
-w_{i j} \leftarrow w_{i j} - \alpha \pd{\Loss{t + 1}}{w_{i j}} \tag{14}\label{eq:14}
+w_{i j} \leftarrow w_{i j} - \alpha \pd{\Loss{t + 1}}{w_{i j}} \tgl{14}
 $$
 
-$\eqref{eq:14}$ 就是最常用來最佳化神經網路的**梯度下降演算法**（Gradient Descent），$\alpha$ 代表**學習率**（Learning Rate）。
+$\rtgl{14}$ 就是最常用來最佳化神經網路的**梯度下降演算法**（Gradient Descent），$\alpha$ 代表**學習率**（Learning Rate）。
 
 ### 梯度爆炸 / 消失
 
-從 $\eqref{eq:12}$ 式我們可以進一步推得 $t$ 時間點造成的梯度與前次時間點 ($t - 1, t - 2, \dots$) 所得的梯度**變化關係**。
+從 $\rtgl{12}$ 式我們可以進一步推得 $t$ 時間點造成的梯度與前次時間點 ($t - 1, t - 2, \dots$) 所得的梯度**變化關係**。
 注意這裡的變化關係指的是梯度與梯度之間的**變化率**，意即用時間點 $t - 1$ 的梯度對時間點 $t$ 的梯度算微分。
 
 為了方便計算，我們定義新的符號
 
 $$
-\dv{k}{\tf}{\tp} \tag{15}\label{eq:15}
+\dv{k}{\tf}{\tp} \tgl{15}
 $$
 
 意思是從**未來**時間點 $\tf$ 開始往回走到**過去**時間點 $\tp$，在**過去**時間點 $\tp$ 的第 $k$ 個**模型內部節點** $\net{k}{\tp}$ 對於**未來**時間點 $\tf$ 貢獻的**總誤差** $\Loss{\tf}$ 計算所得之**梯度**。
 
 - 注意是貢獻總誤差所得之**梯度**
 - 根據時間的限制我們有不等式 $0 \leq \tp \leq \tf$
-- 節點 $k$ 的數值範圍為 $k = 1, \dots, \dout$，見式子 $\eqref{eq:1}$
+- 節點 $k$ 的數值範圍為 $k = 1, \dots, \dout$，見式子 $\rtgl{1}$
 
-因此下式如同 $\eqref{eq:9}$ 式
+因此下式如同 $\rtgl{9}$ 式
 
 $$
-\dv{k_{0}}{t}{t} = \pd{\Loss{t}}{\net{k_{0}}{t}} = \dfnet{k_{0}}{t} \cdot \big(y_{k_{0}}(t) - \hat{y}_{k_{0}}(t)\big) \tag{16}\label{eq:16}
+\dv{k_{0}}{t}{t} = \pd{\Loss{t}}{\net{k_{0}}{t}} = \dfnet{k_{0}}{t} \cdot \big(y_{k_{0}}(t) - \hat{y}_{k_{0}}(t)\big) \tgl{16}
 $$
 
-由 $\eqref{eq:12}$ 與 $\eqref{eq:16}$ 我們可以往回推 1 個時間點
+由 $\rtgl{12}$ 與 $\rtgl{16}$ 我們可以往回推 1 個時間點
 
 $$
 \begin{align*}
 \dv{k_{1}}{t}{t - 1} & = \pd{\Loss{t}}{\net{k_{1}}{t - 1}} \\
 & = \dfnet{k_{1}}{t - 1} \cdot \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot \pd{\Loss{t}}{\net{k_{0}}{t}}\bigg] \\
 & = \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot \dfnet{k_{1}}{t - 1} \cdot \dv{k_{0}}{t}{t}\bigg]
-\end{align*} \tag{17}\label{eq:17}
+\end{align*} \tgl{17}
 $$
 
-由 $\eqref{eq:17}$ 我們可以往回推 2 個時間點
+由 $\rtgl{17}$ 我們可以往回推 2 個時間點
 
 $$
 \begin{align*}
@@ -401,10 +401,10 @@ $$
 & = \sum_{k_{1} = 1}^{\dout} \bigg[\dv{k_{1}}{t}{t - 1} \cdot w_{k_{1} k_{2}} \cdot \dfnet{k_{2}}{t - 2}\bigg] \\
 & = \sum_{k_{1} = 1}^{\dout} \Bigg[\dfnet{k_{1}}{t - 1} \cdot \sum_{k_{0} = 1}^{\dout} \bigg(w_{k_{0} k_{1}} \cdot \dv{k_{0}}{t}{t}\bigg) \cdot w_{k_{1} k_{2}} \cdot \dfnet{k_{2}}{t - 2}\Bigg] \\
 & = \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot w_{k_{1} k_{2}} \cdot \dfnet{k_{1}}{t - 1} \cdot \dfnet{k_{2}}{t - 2} \cdot \dv{k_{0}}{t}{t}\bigg]
-\end{align*} \tag{18}\label{eq:18}
+\end{align*} \tgl{18}
 $$
 
-由 $\eqref{eq:18}$ 我們可以往回推 3 個時間點
+由 $\rtgl{18}$ 我們可以往回推 3 個時間點
 
 $$
 \begin{align*}
@@ -418,40 +418,40 @@ $$
 & = \sum_{k_{2} = 1}^{\dout} \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot w_{k_{1} k_{2}} \cdot w_{k_{2} k_{3}} \cdot \\
 & \quad \dfnet{k_{1}}{t - 1} \cdot \dfnet{k_{2}}{t - 2} \cdot \dfnet{k_{3}}{t - 3} \cdot \dv{k_{0}}{t}{t}\bigg] \\
 & = \sum_{k_{2} = 1}^{\dout} \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \Bigg[\bigg[\prod_{q = 1}^{3} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \cdot \dv{k_{0}}{t}{t}\Bigg]
-\end{align*} \tag{19}\label{eq:19}
+\end{align*} \tgl{19}
 $$
 
-由 $\eqref{eq:17} \eqref{eq:18} \eqref{eq:19}$ 我們可以歸納以下結論：
+由 $\rtgl{17} \rtgl{18} \rtgl{19}$ 我們可以歸納以下結論：
 若 $n \geq 1$，則往回推 $n$ 個時間點的公式為
 
 $$
-\dv{k_{n}}{t}{t - n} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{0} = 1}^{\dout} \Bigg[\bigg[\prod_{q = 1}^{n} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \cdot \dv{k_{0}}{t}{t}\Bigg] \tag{20}\label{eq:20}
+\dv{k_{n}}{t}{t - n} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{0} = 1}^{\dout} \Bigg[\bigg[\prod_{q = 1}^{n} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \cdot \dv{k_{0}}{t}{t}\Bigg] \tgl{20}
 $$
 
-由 $\eqref{eq:20}$ 我們可以看出所有的 $\dv{k_{n}}{t}{t - n}$ 都與 $\dv{k_{0}}{t}{t}$ 相關，因此我們將 $\dv{k_{n}}{t}{t - n}$ 想成由 $\dv{k_{0}}{t}{t}$ 構成的函數。
+由 $\rtgl{20}$ 我們可以看出所有的 $\dv{k_{n}}{t}{t - n}$ 都與 $\dv{k_{0}}{t}{t}$ 相關，因此我們將 $\dv{k_{n}}{t}{t - n}$ 想成由 $\dv{k_{0}}{t}{t}$ 構成的函數。
 
 現在讓我們固定 $k_{0}^* \in \set{1, \dots, \dout}$，我們可以計算 $\dv{k_{0}^*}{t}{t}$ 對於 $\dv{k_{n}}{t}{t - n}$ 的微分
 
-- 當 $n = 1$ 時，根據 $\eqref{eq:17}$ 我們可以推得論文中的 (3.1) 式
+- 當 $n = 1$ 時，根據 $\rtgl{17}$ 我們可以推得論文中的 (3.1) 式
 
   $$
-  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = w_{k_{0}^* k_{1}} \cdot \dfnet{k_{1}}{t - 1} \tag{21}\label{eq:21}
+  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = w_{k_{0}^* k_{1}} \cdot \dfnet{k_{1}}{t - 1} \tgl{21}
   $$
 
-- 當 $n > 1$ 時，根據 $\eqref{eq:20}$ 我們可以推得論文中的 (3.2) 式
+- 當 $n > 1$ 時，根據 $\rtgl{20}$ 我們可以推得論文中的 (3.2) 式
 
   $$
-  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^*}} \bigg[\prod_{q = 1}^{n} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \tag{22}\label{eq:22}
+  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^*}} \bigg[\prod_{q = 1}^{n} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \tgl{22}
   $$
 
 **注意錯誤**：論文中的 (3.2) 式不小心把 $w_{l_{m - 1} l_{m}}$ 寫成 $w_{l_{m} l_{m - 1}}$。
 
-因此根據 $\eqref{eq:22}$，共有 $(\dout)^{n - 1}$ 個連乘積項次進行加總，所得結果會以 $\eqref{eq:13} \eqref{eq:14}$ 直接影響權種更新 $w$。
+因此根據 $\rtgl{22}$，共有 $(\dout)^{n - 1}$ 個連乘積項次進行加總，所得結果會以 $\rtgl{13} \rtgl{14}$ 直接影響權種更新 $w$。
 
-根據 $\eqref{eq:21} \eqref{eq:22}$，如果
+根據 $\rtgl{21} \rtgl{22}$，如果
 
 $$
-\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} > 1.0 \quad \forall q = 1, \dots, n \tag{23}\label{eq:23}
+\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} > 1.0 \quad \forall q = 1, \dots, n \tgl{23}
 $$
 
 則 $w$ 的梯度會以指數 $n$ 增加，直接導致**梯度爆炸**，參數會進行**劇烈的振盪**，無法進行順利更新。
@@ -459,7 +459,7 @@ $$
 而如果
 
 $$
-\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} < 1.0 \quad \forall q = 1, \dots, n \tag{24}\label{eq:24}
+\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} < 1.0 \quad \forall q = 1, \dots, n \tgl{24}
 $$
 
 則 $w$ 的梯度會以指數 $n$ 縮小，直接導致**梯度消失**，誤差**收斂速度**會變得**非常緩慢**。
@@ -473,16 +473,16 @@ $$
 & = \frac{1}{1 + e^{-x}} \cdot \frac{1 + e^{-x} - 1}{1 + e^{-x}} = \sigma(x) \cdot \big(1 - \sigma(x)\big) \\
 \sigma(\R) & = (0, 1) \\
 \forall x \in \R, \max \sigma'(x) & = \sigma(0) * \big(1 - \sigma(0)\big) = 0.5 * 0.5 = 0.25
-\end{align*} \tag{25}\label{eq:25}
+\end{align*} \tgl{25}
 $$
 
 因此當 $\abs{w_{k_{q - 1} k_{q}}} < 4.0$ 時我們可以發現
 
 $$
-\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} < 4.0 * 0.25 = 1.0 \tag{26}\label{eq:26}
+\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} < 4.0 * 0.25 = 1.0 \tgl{26}
 $$
 
-所以 $\eqref{eq:26}$ 與 $\eqref{eq:24}$ 的結論相輔相成：當 $w_{k_{q - 1} k_{q}}$ 的絕對值小於 $4.0$ 會造成梯度消失。
+所以 $\rtgl{26}$ 與 $\rtgl{24}$ 的結論相輔相成：當 $w_{k_{q - 1} k_{q}}$ 的絕對值小於 $4.0$ 會造成梯度消失。
 
 而 $\abs{w_{k_{q - 1} k_{q}}} \to \infty$ 我們可以得到
 
@@ -493,9 +493,9 @@ $$
 \fnet{k_{q - 1}}{t - q - 1} \to 1 & \text{if } \net{k_{q - 1}}{t - q - 1} \to \infty \\
 \fnet{k_{q - 1}}{t - q - 1} \to 0 & \text{if } \net{k_{q - 1}}{t - q - 1} \to -\infty
 \end{cases} \\
-\implies & \abs{\dfnet{k_{q - 1}}{t - q - 1}} \to 0 && \text{(by \eqref{eq:25})} \\
+\implies & \abs{\dfnet{k_{q - 1}}{t - q - 1}} \to 0 && \text{(by \rtgl{25})} \\
 \implies & \abs{\prod_{q = 1}^{n} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0
-\end{align*} \tag{27}\label{eq:27}
+\end{align*} \tgl{27}
 $$
 
 **注意錯誤**：論文中的推論
@@ -504,7 +504,7 @@ $$
 \abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0
 $$
 
-是**錯誤**的，理由是 $w_{k_{q - 1} k_{q}}$ 無法對 $\net{k_{q}}{t - q}$ 造成影響，作者不小心把**時間順序寫反**了，但是**最後的邏輯仍然正確**，理由如 $\eqref{eq:27}$ 所示。
+是**錯誤**的，理由是 $w_{k_{q - 1} k_{q}}$ 無法對 $\net{k_{q}}{t - q}$ 造成影響，作者不小心把**時間順序寫反**了，但是**最後的邏輯仍然正確**，理由如 $\rtgl{27}$ 所示。
 
 **注意錯誤**：論文中進行了以下**函數最大值**的推論
 
@@ -564,12 +564,12 @@ $$
 \end{align*}
 $$
 
-但公式的前提不對，理由是 $w_{l_{m} l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_{m}}$（同 $\eqref{eq:22}$）。
+但公式的前提不對，理由是 $w_{l_{m} l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_{m}}$（同 $\rtgl{22}$）。
 
 接著我們推導時間點 $t - n$ 的節點 $\net{k_{n}}{t - n}$ 針對 $t$ 時間點造成的**總誤差**梯度**變化**：
 
 $$
-\sum_{k_{0}^* = 1}^{\dout} \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} \tag{28}\label{eq:28}
+\sum_{k_{0}^* = 1}^{\dout} \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} \tgl{28}
 $$
 
 由於**每個項次**都能遭遇**梯度消失**，因此**總和**也會遭遇**梯度消失**。
@@ -578,63 +578,63 @@ $$
 
 **梯度常數（Constant Error Flow）**的概念是控制**部份梯度**為**常數**。
 
-- 透過 $\eqref{eq:31}$ 的想法讓梯度的**連乘積項**為 $1.0$
-  - 不會像 $\eqref{eq:23}$ 導致梯度**爆炸**
-  - 不會像 $\eqref{eq:24}$ 導致梯度**消失**
-- 要達成 $\eqref{eq:31}$，就必須讓 $f_j$ 是**線性函數**
+- 透過 $\rtgl{31}$ 的想法讓梯度的**連乘積項**為 $1.0$
+  - 不會像 $\rtgl{23}$ 導致梯度**爆炸**
+  - 不會像 $\rtgl{24}$ 導致梯度**消失**
+- 要達成 $\rtgl{31}$，就必須讓 $f_j$ 是**線性函數**
 
 ### 情境 1：模型輸出與內部節點 1-1 對應
 
 假設模型輸出節點 $y_{j}(t - 1)$ 只與 $\net{j}{t}$ 相連，即
 
 $$
-\net{j}{t} = w_{j j} y_{j}(t - 1) \tag{29}\label{eq:29}
+\net{j}{t} = w_{j j} y_{j}(t - 1) \tgl{29}
 $$
 
-（$\eqref{eq:29}$ 假設實際上不可能發生）則根據式子 $\eqref{eq:17}$ 我們可以推得
+（$\rtgl{29}$ 假設實際上不可能發生）則根據式子 $\rtgl{17}$ 我們可以推得
 
 $$
-\dv{j}{t}{t - 1} = w_{j j} \cdot \dfnet{j}{t - 1} \cdot \dv{j}{t}{t} \tag{30}\label{eq:30}
+\dv{j}{t}{t - 1} = w_{j j} \cdot \dfnet{j}{t - 1} \cdot \dv{j}{t}{t} \tgl{30}
 $$
 
 為了強制讓梯度 $\dv{j}{t}{t}$ 不消失，作者認為需要強制達成
 
 $$
-w_{j j} \cdot \dfnet{j}{t - 1} = 1.0 \tag{31}\label{eq:31}
+w_{j j} \cdot \dfnet{j}{t - 1} = 1.0 \tgl{31}
 $$
 
-如果 $\eqref{eq:31}$ 能夠達成，則積分 $\eqref{eq:31}$ 可以得到
+如果 $\rtgl{31}$ 能夠達成，則積分 $\rtgl{31}$ 可以得到
 
 $$
 \begin{align*}
 & \int w_{j j} \cdot \dfnet{j}{t - 1} \; d \big[\net{j}{t - 1}\big] = \int 1.0 \; d \big[\net{j}{t - 1}\big] \\
 \implies & w_{j j} \cdot \fnet{j}{t - 1} = \net{j}{t - 1} \\
 \implies & y_{j}(t - 1) = \fnet{j}{t - 1} = \frac{\net{j}{t - 1}}{w_{j j}}
-\end{align*} \tag{32}\label{eq:32}
+\end{align*} \tgl{32}
 $$
 
-觀察 $\eqref{eq:32}$ 我們可以發現
+觀察 $\rtgl{32}$ 我們可以發現
 
 - 輸入 $\net{j}{t - 1}$ 與輸出 $\fnet{j}{t - 1}$ 之間的關係是乘上一個常數項 $w_{j j}$
 - 代表函數 $f_{j}$ 其實是一個**線性函數**
-- **每個時間點**的**輸出**居然**完全相同**，這個現象稱為 **Constant Error Carousel** (請見 $\eqref{eq:33}$)
+- **每個時間點**的**輸出**居然**完全相同**，這個現象稱為 **Constant Error Carousel** (請見 $\rtgl{33}$)
 
 $$
 \begin{align*}
 y_{j}(t) & = \fnet{j}{t} = f_{j}\big(w_{j j} y_{j}(t - 1)\big) \\
-& = f_{j}\big(w_{j j} \frac{\net{j}{t - 1}}{w_{j j}}\big) = \fnet{j}{t - 1} = y_{j}(t - 1) \tag{33}\label{eq:33}
+& = f_{j}\big(w_{j j} \frac{\net{j}{t - 1}}{w_{j j}}\big) = \fnet{j}{t - 1} = y_{j}(t - 1) \tgl{33}
 \end{align*}
 $$
 
 ### 情境 2：增加外部輸入
 
-將 $\eqref{eq:29}$ 的假設改成每個模型內部節點可以額外接收一個外部輸入
+將 $\rtgl{29}$ 的假設改成每個模型內部節點可以額外接收一個外部輸入
 
 $$
-\net{j}{t} = \sum_{i = 1}^{\din} w_{j i} x_{i}(t - 1) + w_{j j} y_{j}(t - 1) \tag{34}\label{eq:34}
+\net{j}{t} = \sum_{i = 1}^{\din} w_{j i} x_{i}(t - 1) + w_{j j} y_{j}(t - 1) \tgl{34}
 $$
 
-由於 $y_{j}(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{eq:34}$ 的假設中唯一能夠**更新**資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j i}$ 將新資訊合併進入 $\net{j}{t}$。
+由於 $y_{j}(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\rtgl{34}$ 的假設中唯一能夠**更新**資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j i}$ 將新資訊合併進入 $\net{j}{t}$。
 
 但作者認為，在計算的過程中，部份時間點的**輸入**資訊 $x_{i}(\cdot)$ 可以(甚至必須)被**忽略**，但這代表 $w_{j i}$ 需要**同時**達成**兩種**任務就必須要有**兩種不同的數值**：
 
@@ -645,16 +645,16 @@ $$
 
 ### 情境 3：輸出回饋到多個節點
 
-將 $\eqref{eq:29} \eqref{eq:34}$ 的假設改回正常的模型架構
+將 $\rtgl{29} \rtgl{34}$ 的假設改回正常的模型架構
 
 $$
 \begin{align*}
 \net{j}{t} & = \sum_{i = 1}^{\din} w_{j i} x_{i}(t - 1) + \sum_{i = 1}^{\dout} w_{j i} y_{i}(t - 1) \\
 & = \sum_{i = 1}^{\din} w_{j i} x_{i}(t - 1) + \sum_{i = 1}^{\dout} w_{j i} \fnet{i}{t - 1}
-\end{align*} \tag{35}\label{eq:35}
+\end{align*} \tgl{35}
 $$
 
-由於 $y_{j}(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{eq:35}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $y_{i}(t - 1)$ 配合 $w_{j i}$ 將新資訊合併進入 $\net{j}{t}$。
+由於 $y_{j}(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\rtgl{35}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $y_{i}(t - 1)$ 配合 $w_{j i}$ 將新資訊合併進入 $\net{j}{t}$。
 
 但作者認為，在計算的過程中，部份時間點的**輸出**資訊 $y_i(*)$ 可以(甚至必須)被**忽略**，但這代表 $w_{j i}$ 需要**同時**達成**兩種**任務就必須要有**兩種不同的數值**：
 
@@ -682,22 +682,22 @@ $$
 <a name="paper-fig-2"></a>
 ![paper-fig:2](https://i.imgur.com/UQ5LAu8.png)
 
-為了解決**梯度爆炸 / 消失**問題，作者決定以 Constant Error Carousel 為出發點（見 $\eqref{eq:33}$），提出 **3** 個主要的機制，並將這些機制的合體稱為**記憶單元（Memory Cell）**（見[圖 1](#paper-fig-1)）：
+為了解決**梯度爆炸 / 消失**問題，作者決定以 Constant Error Carousel 為出發點（見 $\rtgl{33}$），提出 **3** 個主要的機制，並將這些機制的合體稱為**記憶單元（Memory Cell）**（見[圖 1](#paper-fig-1)）：
 
 - **乘法輸入閘門（Multiplicative Input Gate）**
   - 用於決定是否**更新**記憶單元的**內部狀態** $\cell{k}(t + 1)$
-  - 細節請見 $\eqref{eq:36} \eqref{eq:38}$
+  - 細節請見 $\rtgl{36} \rtgl{38}$
 - **乘法輸出閘門（Multiplicative Output Gate）**
   - 用於決定是否**輸出**記憶單元的**輸出訊號** $\hcell{i}{k}{t + 1}$
-  - 細節請見 $\eqref{eq:40} \eqref{eq:41}$
+  - 細節請見 $\rtgl{40} \rtgl{41}$
 - **自連接線性單元（Central Linear Unit with Fixed Self-connection）**
-  - 概念來自於 $\eqref{eq:33}$，希望能夠讓 $\cell{k}(t)$ 與 $\cell{k}(t + 1)$ 相同，藉此保障**梯度不會消失**
-  - 如果 $\cell{k}(t)$ 與 $\cell{k}(t + 1)$ 相同，則我們可以確保達成 $\eqref{eq:31}$
-  - 細節請見 $\eqref{eq:39}$
+  - 概念來自於 $\rtgl{33}$，希望能夠讓 $\cell{k}(t)$ 與 $\cell{k}(t + 1)$ 相同，藉此保障**梯度不會消失**
+  - 如果 $\cell{k}(t)$ 與 $\cell{k}(t + 1)$ 相同，則我們可以確保達成 $\rtgl{31}$
+  - 細節請見 $\rtgl{39}$
 
 ### 初始狀態
 
-我們將 $\eqref{eq:1}$ 中的計算重新定義，並新增幾個符號：
+我們將 $\rtgl{1}$ 中的計算重新定義，並新增幾個符號：
 
 |符號|意義|數值範圍|
 |-|-|-|
@@ -728,7 +728,7 @@ $$
 
 ### 輸入閘門單元
 
-當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時，我們使用如同 $\eqref{eq:1} \eqref{eq:2}$ 的方式計算模型 $t + 1$ 時間點的**輸入閘門單元（Input Gate Units）** $y_i^{\opig}(t + 1)$
+當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時，我們使用如同 $\rtgl{1} \rtgl{2}$ 的方式計算模型 $t + 1$ 時間點的**輸入閘門單元（Input Gate Units）** $y_i^{\opig}(t + 1)$
 
 $$
 \begin{align*}
@@ -736,22 +736,22 @@ $$
 & \quad + \bigg[\sum_{j = \din + \dout + \dhid + 1}^{\dcell} \wig_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dout + \dhid + \dcell + 1}^{\dcell} \wig_{i j} \cdot y_j^{\opog}(t)\bigg] \\
 & \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 2\dcell + 1}^{\dcell} \wig_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
 y_i^{\opig}(t + 1) & = \fnetig{i}{t + 1}
-\end{align*} \tag{36}\label{eq:36}
+\end{align*} \tgl{36}
 $$
 
 - **所有** $t$ 時間點的**模型節點**都參與了**輸入閘門單元**的計算
-- 因為有 $k$ 個**不同**的**記憶單元內部狀態**，所以 $\eqref{eq:36}$ 中加法的最後一個項次必須有兩個 $\sum$
+- 因為有 $k$ 個**不同**的**記憶單元內部狀態**，所以 $\rtgl{36}$ 中加法的最後一個項次必須有兩個 $\sum$
 - $\wig$ 為**連接輸入閘門單元**的**參數**
   - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
   - $\wig$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
   - $\wig$ 的輸出維度為 $\dcell$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dcell$
-  - $\wig$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $\cell{k}(t + 1)$ 會**共享**輸入閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\eqref{eq:38}$
+  - $\wig$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $\cell{k}(t + 1)$ 會**共享**輸入閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\rtgl{38}$
 - $f_i^{\opig} : \R \to [0, 1]$ 必須要是**可微分函數**，具有**數值範圍限制**
-- 之後我們會將 $y_i^{\opig}(t + 1)$ 用來決定是否**更新** $t + 1$ 時間點的**記憶單元內部狀態** $\cell{k}(t + 1)$，請見 $\eqref{eq:38} \eqref{eq:39}$
+- 之後我們會將 $y_i^{\opig}(t + 1)$ 用來決定是否**更新** $t + 1$ 時間點的**記憶單元內部狀態** $\cell{k}(t + 1)$，請見 $\rtgl{38} \rtgl{39}$
 
 ### 乘法輸入閘門
 
-首先我們使用與 $\eqref{eq:36}$ 相同想法，在得到 $t$ 時間點的外部輸入 $x(t)$ 時計算模型 $t + 1$ 時間點 $k$ 個**不同**的**記憶單元淨輸入** $\netcell{i}{k}{t + 1}$
+首先我們使用與 $\rtgl{36}$ 相同想法，在得到 $t$ 時間點的外部輸入 $x(t)$ 時計算模型 $t + 1$ 時間點 $k$ 個**不同**的**記憶單元淨輸入** $\netcell{i}{k}{t + 1}$
 
 $$
 \begin{align*}
@@ -759,28 +759,28 @@ $$
 & \quad + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \wcell{k}_{i j} \cdot y_j^{\ophid}(t)\bigg] + \bigg[\sum_{j = \din + \dout + \dhid + 1}^{\dcell} \wcell{k}_{i j} \cdot y_j^{\opig}(t)\bigg] \\
 & \quad + \bigg[\sum_{j = \din + \dout + \dhid + \dcell + 1}^{\dcell} \wcell{k}_{i j} \cdot y_j^{\opog}(t)\bigg] \\
 & \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 2\dcell + 1}^{\dcell} \wcell{k}_{i j} \cdot y_j^{\cell{k}}(t)\bigg]
-\end{align*} \tag{37}\label{eq:37}
+\end{align*} \tgl{37}
 $$
 
-- 運算架構與 $\eqref{eq:36}$ **完全相同**
+- 運算架構與 $\rtgl{36}$ **完全相同**
   - **所有** $t$ 時間點的**模型節點**都參與了**記憶單元淨輸入**的計算
-  - $k$ 個**不同**的**記憶單元內部狀態**導致 $\eqref{eq:37}$ 中加法的最後一個項次必須有兩個 $\sum$
+  - $k$ 個**不同**的**記憶單元內部狀態**導致 $\rtgl{37}$ 中加法的最後一個項次必須有兩個 $\sum$
 - 共有 $k$ 個**不同**的**參數** $\wcell{k}$
   - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
   - $\wcell{k}$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
   - $\wcell{k}$ 的輸出維度事先定義的 $\dcell$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dcell$
   - 計算總共得出 $\ncell \times \dcell$ 個數字
 
-定義**可微分**啟發函數 $g_i^{\cell{k}} : \R \to \R$，我們將 $\eqref{eq:37}$ 轉換成第 $k$ 個**記憶單元內部狀態** $\cell{k}$ 在 $t + 1$ 時間點可以收到的**輸入訊號** $\gnetcell{i}{k}{t + 1}$。
+定義**可微分**啟發函數 $g_i^{\cell{k}} : \R \to \R$，我們將 $\rtgl{37}$ 轉換成第 $k$ 個**記憶單元內部狀態** $\cell{k}$ 在 $t + 1$ 時間點可以收到的**輸入訊號** $\gnetcell{i}{k}{t + 1}$。
 
-接著我們將 $\eqref{eq:36}$ 所得**輸入閘門單元** $y_i^{\opig}(t + 1)$ 與 $\gnetcell{i}{k}{t + 1}$ 進行**相乘**
+接著我們將 $\rtgl{36}$ 所得**輸入閘門單元** $y_i^{\opig}(t + 1)$ 與 $\gnetcell{i}{k}{t + 1}$ 進行**相乘**
 
 $$
-y_i^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tag{38}\label{eq:38}
+y_i^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tgl{38}
 $$
 
 - $y_i^{\opig}(t + 1)$ 扮演**輸入閘門**的角色
-  - 由於**記憶單元內部狀態**的**輸入訊號**與 $\eqref{eq:36}$ 是以**相乘**進行結合，因此被稱為**乘法輸入閘門（Multiplicative Input Gate）**
+  - 由於**記憶單元內部狀態**的**輸入訊號**與 $\rtgl{36}$ 是以**相乘**進行結合，因此被稱為**乘法輸入閘門（Multiplicative Input Gate）**
   - 當模型認為**輸入訊號** $\gnetcell{i}{k}{t + 1}$ **不重要**時，模型應該要**關閉輸入閘門**，即 $y_i^{\opig}(t + 1) \approx 0$
     - 丟棄**當前**輸入訊號
     - 只以**過去資訊**進行決策
@@ -788,7 +788,7 @@ $$
     - 同時考慮**過去**與**當前**資訊
     - 但以**當前**資訊為主
 - 不論**輸入訊號** $\gnetcell{i}{k}{t + 1}$ 的大小，只要 $y_i^{\opig}(t + 1) \approx 0$，則輸入訊號**完全無法影響**接下來的所有計算
-  - 以此設計避免 $\eqref{eq:34}$ 所遇到的困境
+  - 以此設計避免 $\rtgl{34}$ 所遇到的困境
   - 由 $\wcell{k}$ 決定**寫入**的**數值**，函數 $g$ 可以**沒有數值範圍限制**
   - 由 $\wig$ 根據**當前模型計算狀態**控制**寫入**（Context-Sensitive）
 - 所有的 $\cell{k}$ 都**共享**相同的乘法輸入閘門 $y_i^{\opig}(t + 1)$
@@ -800,56 +800,56 @@ $$
 
 ### 自連接線性單元
 
-接著我們將 $\eqref{eq:38}$ 的計算結果用來計算 $t + 1$ 時間點的**記憶單元內部狀態** $\cell{k}(t + 1)$
+接著我們將 $\rtgl{38}$ 的計算結果用來計算 $t + 1$ 時間點的**記憶單元內部狀態** $\cell{k}(t + 1)$
 
 $$
-\cell{k}(t + 1) = \cell{k}(t) + y_i^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tag{39}\label{eq:39}
+\cell{k}(t + 1) = \cell{k}(t) + y_i^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tgl{39}
 $$
 
-- 根據 $\eqref{eq:38}$ 我們知道 $y_i^{\opig}(t + 1)$ 能夠**控制輸入訊號的開關**
-  - 當輸入訊號**完全關閉**時，$t + 1$ 時間點的**記憶單元內部狀態**與 $t$ 時間點**完全相同**，即 $\cell{k}(t + 1) = \cell{k}(t)$，達成 $\eqref{eq:31}$
+- 根據 $\rtgl{38}$ 我們知道 $y_i^{\opig}(t + 1)$ 能夠**控制輸入訊號的開關**
+  - 當輸入訊號**完全關閉**時，$t + 1$ 時間點的**記憶單元內部狀態**與 $t$ 時間點**完全相同**，即 $\cell{k}(t + 1) = \cell{k}(t)$，達成 $\rtgl{31}$
   - 當輸入訊號開啟時，$t + 1$ 時間點的**記憶單元內部狀態**會被**更新**
 - 由於 $t + 1$ 時間點的資訊有加上 $t$ 時間點的資訊，因此稱為**自連接線性單元（Central Linear Unit with Fixed Self-connection）**
   - **加法**是**線性**運算
   - **加上自己**是**自連接**
-  - 概念與 $\eqref{eq:33}$ 相同，藉此保障**梯度不會消失**
+  - 概念與 $\rtgl{33}$ 相同，藉此保障**梯度不會消失**
 
 ### 輸出閘門單元
 
-想法同 $\eqref{eq:36}$，當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時便可以計算模型 $t + 1$ 時間點的**輸出閘門單元（Output Gate Units）** $y_i^{\opog}(t + 1)$
+想法同 $\rtgl{36}$，當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時便可以計算模型 $t + 1$ 時間點的**輸出閘門單元（Output Gate Units）** $y_i^{\opog}(t + 1)$
 
 $$
 \begin{align*}
 \netog{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wog_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\dout} \wog_{i j} \cdot y_j(t)\bigg] + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \wog_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
 & \quad + \bigg[\sum_{j = \din + \dout + \dhid + 1}^{\dcell} \wog_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dout + \dhid + \dcell + 1}^{\dcell} \wog_{i j} \cdot y_j^{\opog}(t)\bigg] \\
 & \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 2\dcell + 1}^{\dcell} \wog_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
-y_i^{\opog}(t + 1) & = \fnetog{i}{t + 1} \tag{40}\label{eq:40}
+y_i^{\opog}(t + 1) & = \fnetog{i}{t + 1} \tgl{40}
 \end{align*}
 $$
 
-- 運算架構與 $\eqref{eq:36}$ **完全相同**
+- 運算架構與 $\rtgl{36}$ **完全相同**
   - **所有** $t$ 時間點的**模型節點**都參與了**輸出閘門單元**的計算
-  - $k$ 個**不同**的**記憶單元內部狀態**導致 $\eqref{eq:40}$ 中加法的最後一個項次必須有兩個 $\sum$
+  - $k$ 個**不同**的**記憶單元內部狀態**導致 $\rtgl{40}$ 中加法的最後一個項次必須有兩個 $\sum$
 - $\wog$ 為**連接輸出閘門單元**的**參數**
   - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
   - $\wog$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
   - $\wog$ 的輸出維度為 $\dcell$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dcell$
-  - $\wog$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $\cell{k}(t + 1)$ 會**共享**輸出閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\eqref{eq:41}$
+  - $\wog$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $\cell{k}(t + 1)$ 會**共享**輸出閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\rtgl{41}$
 - $f_i^{\opog} : \R \to [0, 1]$ 必須要是**可微分函數**，具有**數值範圍限制**
 - 之後我們會將 $y_i^{\opog}(t + 1)$ 用來決定是否**輸出** $t + 1$ 時間點的**記憶單元啟發值** $\hcell{i}{k}{t + 1}$
 
 ### 乘法輸出閘門
 
-定義**可微分**啟發函數 $h_i^{\cell{k}} : \R \to \R$，我們將 $\eqref{eq:40}$ 轉換成第 $k$ 個**記憶單元內部狀態** $\cell{k}$ 在 $t + 1$ 時間點的**輸出訊號** $\hcell{i}{k}{t + 1}$。
+定義**可微分**啟發函數 $h_i^{\cell{k}} : \R \to \R$，我們將 $\rtgl{40}$ 轉換成第 $k$ 個**記憶單元內部狀態** $\cell{k}$ 在 $t + 1$ 時間點的**輸出訊號** $\hcell{i}{k}{t + 1}$。
 注意不是 $\netcell{i}{k}{t + 1}$ 而是使用 $\cell{k}_i(t + 1)$。
-接著我們將 $\eqref{eq:40}$ 所得**輸出閘門單元** $y_i^{\opog}(t + 1)$ 與 $\hcell{i}{k}{t + 1}$ 進行**相乘**得到記憶單元 $k$ 的**輸出訊號** $y_i^{\cell{k}}(t + 1)$
+接著我們將 $\rtgl{40}$ 所得**輸出閘門單元** $y_i^{\opog}(t + 1)$ 與 $\hcell{i}{k}{t + 1}$ 進行**相乘**得到記憶單元 $k$ 的**輸出訊號** $y_i^{\cell{k}}(t + 1)$
 
 $$
-y_i^{\cell{k}}(t + 1) = y_i^{\opog}(t + 1) \cdot \hcell{i}{k}{t + 1} \tag{41}\label{eq:41}
+y_i^{\cell{k}}(t + 1) = y_i^{\opog}(t + 1) \cdot \hcell{i}{k}{t + 1} \tgl{41}
 $$
 
 - $y_i^{\opog}(t + 1)$ 扮演**輸出閘門**的角色
-  - 由於**記憶單元內部狀態**的**輸出訊號**與 $\eqref{eq:40}$ 是以**相乘**進行結合，因此被稱為**乘法輸出閘門（Multiplicative Output Gate）**
+  - 由於**記憶單元內部狀態**的**輸出訊號**與 $\rtgl{40}$ 是以**相乘**進行結合，因此被稱為**乘法輸出閘門（Multiplicative Output Gate）**
   - 當模型認為**輸出訊號** $\hcell{i}{k}{t + 1}$ 會導致**當前計算錯誤**時，模型應該**關閉輸出閘門**，即 $y_i^{\opog}(t + 1) \approx 0$
     - 在**輸入**閘門**開啟**的狀況下，**關閉輸出**閘門代表不讓**現在**時間點的資訊影響當前計算
     - 在**輸入**閘門**關閉**的狀況下，**關閉輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
@@ -857,7 +857,7 @@ $$
     - 在**輸入**閘門**開啟**的狀況下，**開啟輸出**閘門代表讓**現在**時間點的資訊影響當前計算
     - 在**輸入**閘門**關閉**的狀況下，**開啟輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
 - 不論**輸出訊號** $\hcell{i}{k}{t + 1}$ 的大小，只要 $y_i^{\opog}(t + 1) \approx 0$，則輸出訊號**完全無法影響**接下來的所有計算
-  - 以此設計避免 $\eqref{eq:34} \eqref{eq:35}$ 所遇到的困境
+  - 以此設計避免 $\rtgl{34} \rtgl{35}$ 所遇到的困境
   - 由 $\cell{k}(t + 1)$ 決定**讀取**的**數值**，函數 $h$ 可以**沒有數值範圍限制**
   - 由 $\wog$ 根據**當前模型計算狀態**控制**輸出**（Context-sensitive）
 - 所有的 $\cell{k}$ 都**共享**相同的乘法輸出閘門 $y_i^{\opog}(t + 1)$
@@ -869,18 +869,18 @@ $$
 
 ### 總輸出
 
-經過 $\eqref{eq:36} \eqref{eq:37} \eqref{eq:39} \eqref{eq:40} \eqref{eq:41}$ 後我們可以計算 $t + 1$ 時間點的**總輸出** $y_i(t + 1)$。
+經過 $\rtgl{36} \rtgl{37} \rtgl{39} \rtgl{40} \rtgl{41}$ 後我們可以計算 $t + 1$ 時間點的**總輸出** $y_i(t + 1)$。
 
 但是！！！
 
-$t + 1$ 時間點的**總輸出**只與 $t$ 時間點的**模型狀態**（**不含閘門**）有關係，所以 $\eqref{eq:36} \eqref{eq:37} \eqref{eq:39} \eqref{eq:40} \eqref{eq:41}$ 的所有計算都只是在幫助 $t + 2$ 時間點的計算狀態**鋪陳**。
+$t + 1$ 時間點的**總輸出**只與 $t$ 時間點的**模型狀態**（**不含閘門**）有關係，所以 $\rtgl{36} \rtgl{37} \rtgl{39} \rtgl{40} \rtgl{41}$ 的所有計算都只是在幫助 $t + 2$ 時間點的計算狀態**鋪陳**。
 
 $$
 \begin{align*}
 \netout{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wout_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\dout} \wout_{i j} \cdot y_j(t)\bigg] \\
 & \quad + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \wout_{i j} \cdot y_j^{\ophid}(t)\bigg] + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 1}^{\dcell} \wout_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
 y_i(t + 1) & = \fnetout{i}{t + 1}
-\end{align*} \tag{42}\label{eq:42}
+\end{align*} \tgl{42}
 $$
 
 - $\wout$ 為**連接總輸出**的**參數**
@@ -891,28 +891,30 @@ $$
 - 注意 $y_i(t + 1)$ 與 $y_i^{\opog}$ 不同
   - $y_i(t + 1)$ 是**總輸出**，我的 $y_i(t + 1)$ 是論文中的 $y^k(t + 1)$
   - $y_i^{\opog}(t + 1)$ 是**記憶單元**的**輸出閘門**，我的 $y_i^{\opog}(t + 1)$ 是論文中的 $y^{\opout_i}(t + 1)$
-- 接著就可以拿 $y_i(t + 1)$ 去做 $\eqref{eq:3} \eqref{eq:4}$ 的誤差計算，取得梯度並進行模型最佳化
+- 接著就可以拿 $y_i(t + 1)$ 去做 $\rtgl{3} \rtgl{4}$ 的誤差計算，取得梯度並進行模型最佳化
 
 ### 隱藏單元
 
 論文 4.3 節有提到可以完全沒有**隱藏單元**，因此這個段落可以完全不存在。
 但如果**允許隱藏單元**出現，這就跟論文的出發點有點**矛盾**。
 我會說矛盾是因為作者提出新架構的同時又保留原始架構，而且讓新舊架構**平行執行**。
-可是從數學上來看**平行執行舊架構**應該會遭遇**梯度爆炸**的問題，就如 $\eqref{eq:23} \eqref{eq:24}$。
+可是從數學上來看**平行執行舊架構**應該會遭遇**梯度爆炸**的問題，就如 $\rtgl{23} \rtgl{24}$。
 
-想法與 $\eqref{eq:36} \eqref{eq:37} \eqref{eq:40}$ 完全相同，以 $t$ 時間點的外部輸入 $x(t)$ 計算模型 $t + 1$ 時間點的**隱藏單元** $y_i^{\ophid}(t + 1)$
+想法與 $\rtgl{36} \rtgl{37} \rtgl{40}$ 完全相同，以 $t$ 時間點的外部輸入 $x(t)$ 計算模型 $t + 1$ 時間點的**隱藏單元** $y_i^{\ophid}(t + 1)$
 
 $$
 \begin{align*}
 \nethid{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \whid_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\dout} \whid_{i j} \cdot y_j(t)\bigg] + \bigg[\sum_{j = \din + \dout + 1}^{\dhid} \whid_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
 & \quad + \bigg[\sum_{j = \din + \dout + \dhid + 1}^{\dcell} \whid_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dout + \dhid + \dcell + 1}^{\dcell} \whid_{i j} \cdot y_j^{\opog}(t)\bigg] \\
 & \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dout + \dhid + 2\dcell + 1}^{\dcell} \whid_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
-y_i^{\ophid}(t + 1) & = \fnethid{i}{t + 1} \tag{43}\label{eq:43}
+y_i^{\ophid}(t + 1) & = \fnethid{i}{t + 1} \tgl{43}
 \end{align*}
 $$
 
+$\rtgl{43}$
+
 - **所有** $t$ 時間點的**模型節點**都參與了**隱藏單元**的計算
-- 因為有 $k$ 個**不同**的**記憶單元內部狀態**，所以 $\eqref{eq:43}$ 中加法的最後一個項次必須有兩個 $\sum$
+- 因為有 $k$ 個**不同**的**記憶單元內部狀態**，所以 $\rtgl{43}$ 中加法的最後一個項次必須有兩個 $\sum$
 - $\whid$ 為**連接隱藏單元**的**參數**
   - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**
   - $\whid$ 的輸入維度為 $\din + \dout + \dhid + (2 + \ncell) \cdot \dcell$
