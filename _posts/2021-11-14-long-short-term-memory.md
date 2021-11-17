@@ -1003,7 +1003,9 @@ $$
 & \quad \sum_{j = \din + 1}^{\din + \dout + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wout_{p q}}\bigg]\Bigg) \\
 & = \dfnetout{i}{t + 1} \cdot \Bigg(\delta_{i p} \cdot [x ; y ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t) + \\
 & \quad \sum_{j = \din + 1}^{\din + \dout + \dhid + (2 + \ncell) \cdot \dcell} \Bigg[\wout_{i j} \cdot \\
-& \quad \sum_{t^{\star} = 1}^{t - 1} \bigg[\pd{[y ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{y_p(t^{\star})} \cdot \pd{y_p(t^{\star})}{\wout_{p q}}\bigg]\Bigg]\Bigg)
+& \quad \sum_{t^{\star} = 1}^{t - 1} \bigg[\pd{[y ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{y_p(t^{\star})} \cdot \pd{y_p(t^{\star})}{\wout_{p q}}\bigg]\Bigg]\Bigg) \\
+& \aptr \dfnetout{i}{t + 1} \cdot \Bigg(\delta_{i p} \cdot [x ; y ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t) + \\
+& \quad \sum_{j = \din + 1}^{\din + \dout + \dhid + (2 + \ncell) \cdot \dcell} \Bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^{t - 1} \bigg[\pd{[y ; y^{\ophid}]_j(t)}{y_p(t^{\star})} \cdot \pd{y_p(t^{\star})}{\wout_{p q}}\bigg]\Bigg]\Bigg)
 \end{align*} \tag{49}\label{eq:49}
 $$
 
