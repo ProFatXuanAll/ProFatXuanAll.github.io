@@ -171,10 +171,10 @@ author: [
   $\renewcommand{\dgnetcell}[3]{g_{#1}^{\cell{#2}}{'}\big(\netcell{#1}{#2}{#3}\big)}$
   <!-- Cell unit with activatiton h. -->
   $\providecommand{\hcell}{}$
-  $\renewcommand{\hcell}[3]{h_{#1}\big(\cell{#2}_{#1}(#3)\big)}$
+  $\renewcommand{\hcell}[3]{h_{#1}^{\cell{k}}\big(s_{#1}^{\cell{#2}}(#3)\big)}$
   <!-- Derivative of h with respect to cell unit. -->
   $\providecommand{\dhcell}{}$
-  $\renewcommand{\dhcell}[3]{h_{#1}'\big(\cell{#2}_{#1}(#3)\big)}$
+  $\renewcommand{\dhcell}[3]{h_{#1}^{\cell{k}}{'}\big(s_{#1}^{\cell{#2}}(#3)\big)}$
 
   <!-- Gradient approximation by truncating gradient. -->
   $\providecommand{\aptr}{}$
@@ -676,14 +676,14 @@ $$
 為了解決**梯度爆炸 / 消失**問題，作者決定以 Constant Error Carousel 為出發點（見 $\eqref{eq:33}$），提出 **3** 個主要的機制，並將這些機制的合體稱為**記憶單元（Memory Cell）**（見[圖 1](#paper-fig-1)）：
 
 - **乘法輸入閘門（Multiplicative Input Gate）**
-  - 用於決定是否**更新**記憶單元的**內部狀態** $\cell{k}(t + 1)$
+  - 用於決定是否**更新**記憶單元的**內部狀態** $s^{\cell{k}}(t + 1)$
   - 細節請見 $\eqref{eq:36} \eqref{eq:38}$
 - **乘法輸出閘門（Multiplicative Output Gate）**
   - 用於決定是否**輸出**記憶單元的**輸出訊號** $\hcell{i}{k}{t + 1}$
   - 細節請見 $\eqref{eq:40} \eqref{eq:41}$
 - **自連接線性單元（Central Linear Unit with Fixed Self-connection）**
-  - 概念來自於 $\eqref{eq:33}$，希望能夠讓 $\cell{k}(t)$ 與 $\cell{k}(t + 1)$ 相同，藉此保障**梯度不會消失**
-  - 如果 $\cell{k}(t)$ 與 $\cell{k}(t + 1)$ 相同，則我們可以確保達成 $\eqref{eq:31}$
+  - 概念來自於 $\eqref{eq:33}$，希望能夠讓 $s^{\cell{k}}(t)$ 與 $s^{\cell{k}}(t + 1)$ 相同，藉此保障**梯度不會消失**
+  - 如果 $s^{\cell{k}}(t)$ 與 $s^{\cell{k}}(t + 1)$ 相同，則我們可以確保達成 $\eqref{eq:31}$
   - 細節請見 $\eqref{eq:39}$
 
 ### 初始狀態
@@ -707,7 +707,7 @@ $$
 |$y^{\opig}(t)$|**輸入閘門單元（Input Gate Units）**|$\R^{\dcell}$|
 |$y^{\opog}(t)$|**輸出閘門單元（Output Gate Units）**|$\R^{\dcell}$|
 |$y^{\cell{k}}(t)$|**記憶單元** $k$ 的**輸出**|$\R^{\dcell}$|
-|$\cell{k}(t)$|**記憶單元** $k$ 的**內部狀態**|$\R^{\dcell}$|
+|$s^{\cell{k}}(t)$|**記憶單元** $k$ 的**內部狀態**|$\R^{\dcell}$|
 |$y(t)$|**模型總輸出**|$\R^{\dout}$|
 
 - 以上所有向量全部都**初始化**成各自維度的**零向量**，也就是 $t = 0$ 時模型**所有節點**（除了**輸入**）都是 $0$
@@ -741,9 +741,9 @@ $$
   - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**（如同$\eqref{eq:36}$ 中的第二個等式）
   - $\wig$ 的輸入維度為 $\din + \dhid + (2 + \ncell) \cdot \dcell$
   - $\wig$ 的輸出維度為 $\dcell$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dcell$
-  - $\wig$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $\cell{k}(t + 1)$ 會**共享**輸入閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\eqref{eq:38}$
+  - $\wig$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $s^{\cell{k}}(t + 1)$ 會**共享**輸入閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\eqref{eq:38}$
 - $f_i^{\opig} : \R \to [0, 1]$ 必須要是**可微分函數**，具有**數值範圍限制**
-- 之後我們會將 $y_i^{\opig}(t + 1)$ 用來決定是否**更新** $t + 1$ 時間點的**記憶單元內部狀態** $\cell{k}(t + 1)$，請見 $\eqref{eq:38} \eqref{eq:39}$
+- 之後我們會將 $y_i^{\opig}(t + 1)$ 用來決定是否**更新** $t + 1$ 時間點的**記憶單元內部狀態** $s^{\cell{k}}(t + 1)$，請見 $\eqref{eq:38} \eqref{eq:39}$
 
 ### 乘法輸入閘門
 
@@ -753,7 +753,7 @@ $$
 \begin{align*}
 \netcell{i}{k}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wcell{k}_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wcell{k}_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
 & \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \wcell{k}_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \wcell{k}_{i j} \cdot y_j^{\opog}(t)\bigg] \\
-& \quad + \bigg[\sum_{k' = 1}^{\ncell} \sum_{j = \din + \dhid + (1 + k') \cdot \dcell + 1}^{\din + \dhid + (2 + k') \cdot \dcell} \wcell{k}_{i j} \cdot y_j^{\cell{k'}}(t)\bigg] \\
+& \quad + \bigg[\sum_{k^{\star} = 1}^{\ncell} \sum_{j = \din + \dhid + (1 + k^{\star}) \cdot \dcell + 1}^{\din + \dhid + (2 + k^{\star}) \cdot \dcell} \wcell{k}_{i j} \cdot y_j^{\cell{k^{\star}}}(t)\bigg] \\
 & = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \wcell{k}_{i j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)
 \end{align*} \tag{37}\label{eq:37}
 $$
@@ -796,14 +796,14 @@ $$
 
 ### 自連接線性單元
 
-接著我們將 $\eqref{eq:38}$ 的計算結果用來計算 $t + 1$ 時間點的**記憶單元內部狀態** $\cell{k}(t + 1)$
+接著我們將 $\eqref{eq:38}$ 的計算結果用來計算 $t + 1$ 時間點的**記憶單元內部狀態** $s^{\cell{k}}(t + 1)$
 
 $$
-\cell{k}(t + 1) = \cell{k}(t) + y_i^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tag{39}\label{eq:39}
+s^{\cell{k}}(t + 1) = s^{\cell{k}}(t) + y_i^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tag{39}\label{eq:39}
 $$
 
 - 根據 $\eqref{eq:38}$ 我們知道 $y_i^{\opig}(t + 1)$ 能夠**控制輸入訊號的開關**
-  - 當輸入訊號**完全關閉**時，$t + 1$ 時間點的**記憶單元內部狀態**與 $t$ 時間點**完全相同**，即 $\cell{k}(t + 1) = \cell{k}(t)$，達成 $\eqref{eq:31}$
+  - 當輸入訊號**完全關閉**時，$t + 1$ 時間點的**記憶單元內部狀態**與 $t$ 時間點**完全相同**，即 $s^{\cell{k}}(t + 1) = s^{\cell{k}}(t)$，達成 $\eqref{eq:31}$
   - 當輸入訊號開啟時，$t + 1$ 時間點的**記憶單元內部狀態**會被**更新**
 - 由於 $t + 1$ 時間點的資訊有加上 $t$ 時間點的資訊，因此稱為**自連接線性單元（Central Linear Unit with Fixed Self-connection）**
   - **加法**是**線性**運算
@@ -831,7 +831,7 @@ $$
   - 我們可以將所有模型節點**串接**，**一次做完矩陣乘法**（如同$\eqref{eq:40}$ 中的第二個等式）
   - $\wog$ 的輸入維度為 $\din + \dhid + (2 + \ncell) \cdot \dcell$
   - $\wog$ 的輸出維度為 $\dcell$，因此 $i$ 的數值範圍為 $i = 1, \dots, \dcell$
-  - $\wog$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $\cell{k}(t + 1)$ 會**共享**輸出閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\eqref{eq:41}$
+  - $\wog$ 的輸出維度設計成 $\dcell$ 的理由是所有**記憶單元內部狀態** $s^{\cell{k}}(t + 1)$ 會**共享**輸出閘門單元，因此與**記憶單元內部狀態**的**維度相同**，細節請見 $\eqref{eq:41}$
 - $f_i^{\opog} : \R \to [0, 1]$ 必須要是**可微分函數**，具有**數值範圍限制**
 - 之後我們會將 $y_i^{\opog}(t + 1)$ 用來決定是否**輸出** $t + 1$ 時間點的**記憶單元啟發值** $\hcell{i}{k}{t + 1}$
 
@@ -855,7 +855,7 @@ $$
     - 在**輸入**閘門**關閉**的狀況下，**開啟輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
 - 不論**輸出訊號** $\hcell{i}{k}{t + 1}$ 的大小，只要 $y_i^{\opog}(t + 1) \approx 0$，則輸出訊號**完全無法影響**接下來的所有計算
   - 以此設計避免 $\eqref{eq:34} \eqref{eq:35}$ 所遇到的困境
-  - 由 $\cell{k}(t + 1)$ 決定**讀取**的**數值**，函數 $h$ 可以**沒有數值範圍限制**
+  - 由 $s^{\cell{k}}(t + 1)$ 決定**讀取**的**數值**，函數 $h$ 可以**沒有數值範圍限制**
   - 由 $\wog$ 根據**當前模型計算狀態**控制**輸出**（Context-sensitive）
 - 所有的 $\cell{k}$ 都**共享**相同的乘法輸出閘門 $y_i^{\opog}(t + 1)$
   - 有時候只需要讀取**部份**維度，不需要**同時讀取** $\dcell$ 個數值
@@ -968,13 +968,13 @@ $$
 
 $$
 \begin{align*}
-& \pd{[y^{\opig} ; y^{\opog} ; y^{\cell{k}}]_i(t + 1)}{\whid_{p q}} \\
-& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \Bigg[\cancelto{0}{\pd{[y^{\opig} ; y^{\opog} ; y^{\cell{k}}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
-& \quad \sum_{t^{\star} = 1}^t \bigg[\pd{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\nethid{p}{t^{\star}}} \cdot \pd{\nethid{p}{t^{\star}}}{\whid_{p q}}\bigg]\Bigg] \\
+& \pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{\whid_{p q}} \\
+& = \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\cancelto{0}{\pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
+& \quad \pd{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
 & \aptr 0 \\
-& \pd{[y^{\opig} ; y^{\opog} ; y^{\cell{k}}]_i(t + 1)}{\wout_{p q}} \\
-& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \Bigg[\cancelto{0}{\pd{[y^{\opig} ; y^{\opog} ; y^{\cell{k}}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
-& \quad \sum_{t^{\star} = 1}^t \bigg[\pd{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\netout{p}{t^{\star}}} \cdot \pd{\netout{p}{t^{\star}}}{\wout_{p q}}\bigg]\Bigg] \\
+& \pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{\wout_{p q}} \\
+& = \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\cancelto{0}{\pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
+& \quad \pd{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wout_{p q}}\bigg] \\
 & \aptr 0
 \end{align*} \tag{47}\label{eq:47}
 $$
@@ -993,37 +993,42 @@ $$
 \end{dcases} \tag{48}\label{eq:48}
 $$
 
-在 $\eqref{eq:44} \eqref{eq:45} \eqref{eq:46} \eqref{eq:47}$ 的作用下，我們可以求得 $\wout$ 的**丟棄**部份梯度後對於**總輸出**計算所得的**剩餘梯度**
+由於**總輸出**不會像是 $\eqref{eq:1} \eqref{eq:2}$ 的方式**回饋**到模型的計算狀態中，因此 $\wout$ 對 $t + 1$ 時間點的**總輸出**計算所得的**梯度**為
 
 $$
 \begin{align*}
-& \pd{y_i(t + 1)}{\wout_{p q}} \\
-& = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wout{p q}} \\
-& = \dfnetout{i}{t + 1} \cdot \Bigg(\delta_{i p} \cdot \pd{\netout{i}{t + 1}}{\wout_{i q}} + \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \\
-& \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wout_{p q}}\bigg]\Bigg) \\
-& = \dfnetout{i}{t + 1} \cdot \Bigg(\delta_{i p} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t) + \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wout_{p q}}\bigg]\Bigg) \\
-& = \dfnetout{i}{t + 1} \cdot \Bigg(\delta_{i p} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t) + \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \Bigg[ \\
-& \quad \wout_{i j} \cdot \sum_{t^{\star} = 1}^{t - 1} \bigg[\pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{y_p(t^{\star})} \cdot \pd{y_p(t^{\star})}{\wout_{p q}}\bigg]\Bigg]\Bigg) \\
-& \aptr \dfnetout{i}{t + 1} \cdot \Bigg(\delta_{i p} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t) + \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid} \Bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^{t - 1} \bigg[\pd{y_j^{\ophid}(t)}{y_p(t^{\star})} \cdot \pd{y_p(t^{\star})}{\wout_{p q}}\bigg]\Bigg]\Bigg)
+\pd{y_i(t + 1)}{\wout_{p q}} & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wout_{p q}} \\
+& = \dfnetout{i}{t + 1} \cdot \delta_{i p} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots, y^{\cell{\ncell}}]_q(t)
 \end{align*} \tag{49}\label{eq:49}
 $$
 
-- $\wout_{p q}$ 對於**總輸出** $y_i(t + 1)$ 的影響方法有兩種
-  - 這也是為什麼 $\eqref{eq:49}$ 中的第二個等式有**兩個加法**項次
-  - 當 $p = i$ 時，代表 $y_i(t + 1)$ 與 $\wout_{i q}$ **直接相連**
-    - 在此情況下**梯度**為與 $y_i(t + 1)$ **相連**的 $x_q(t)$、$y_q^{\ophid}(t)$、$y_q^{\cell{k}}(t)$，細節請見 $\eqref{eq:42}$
-    - 注意**輸入閘門**與**輸出閘門沒有**直接與**總輸出**相連接，細節請見第三個等式與 $\eqref{eq:42}$
-    - 但如果 $p \neq i$，則 $\wout_{p q}$ 無法直接影響 $y_i(t + 1)$，這也是為什麼需要**乘上** $\delta_{i p}$ 的原因
-  - 當 $p \neq i$ 時，$\wout_{p q}$ 只能透過**間接**的方式（過去時間點的計算結果）影響 $y_i(t + 1)$
-    - 根據論文 4.3 節，$t - 1$ 時間點的**總輸出**會影響 $t$ 時間點的**除了外部輸入**的**所有計算狀態**
-    - 這也是為什麼在第二個等式中**除了外部輸入**的**所有計算狀態**都要參與**梯度**的計算
-    - 細節請見 $\eqref{eq:36} \eqref{eq:37} \eqref{eq:40} \eqref{eq:41} \eqref{eq:42} \eqref{eq:43}$
-- $\eqref{eq:49}$ 最後的近似結果是來自 $\eqref{eq:45}$
-  - $\eqref{eq:49}$ 就是論文中 A.8 式的最後一個 case
+- 由於 $p$ 可以是**任意**的輸出節點，因此只有 $i = p$ 的時候計算 $\wout_{p q}$ 對於 $y_i(t + 1)$ 造成的梯度才有意義
+  - $i$ 的數值範圍為 $i = 1, \dots, \dout$
+  - $p$ 的數值範圍為 $p = 1, \dots, \dout$
+- 我們使用 $\delta_{i p}$ 確保梯度只有在 $i = p$ 才會造成作用
+  - 與 $y_i(t + 1)$ 透過 $\wout_{i q}$ 相連的節點只有**外部輸入** $x_q(t)$、**隱藏單元** $y_q^{\ophid}(t)$ 以及**記憶單元輸出** $y_q^{\cell{k}}(t)$
+
+在 $\eqref{eq:44} \eqref{eq:45} \eqref{eq:46} \eqref{eq:47}$ 的作用下，我們可以求得 $\whid$ 在**丟棄**部份梯度後對於 $t + 1$ 時間點**總輸出**計算所得的**剩餘梯度**
+
+$$
+\begin{align*}
+& \pd{y_i(t + 1)}{\whid_{p q}} \\
+& = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\whid{p q}} \\
+& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[ \\
+& \quad \pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
+& \\
+& = \dfnetout{i}{t + 1} \cdot \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \Bigg[ \\
+& \quad \wout_{i j} \cdot \sum_{t^{\star} = 1}^t \bigg[\pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{y_p^{\ophid}(t^{\star})} \cdot \pd{y_p^{\ophid}(t^{\star})}{\whid_{p q}}\bigg]\Bigg] \\
+& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \Bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^t \bigg[\pd{y_j^{\ophid}(t)}{y_p^{\ophid}(t^{\star})} \cdot \pd{y_p^{\ophid}(t^{\star})}{\whid_{p q}}\bigg]\Bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{p q}}\bigg]
+\end{align*} \tag{50}\label{eq:50}
+$$
+
+- $\eqref{eq:50}$ 的**近似**結果是來自 $\eqref{eq:45} \eqref{eq:46}$
+  - $\eqref{eq:50}$ 就是論文中 A.8 式的最後一個 case
+  - 根據近似， $\whid_{p q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $y^{\ophid}(t^{\star})$，其中 $t^{\star} = 1, \dots, t$
 
 <!--
 在 $\eqref{eq:44} \eqref{eq:45} \eqref{eq:46} \eqref{eq:47}$ 的作用下，我們可以求得 $\wout$ 的**丟棄**部份梯度後所**剩餘可取得**的梯度
