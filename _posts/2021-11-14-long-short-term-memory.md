@@ -964,17 +964,13 @@ $$
 \end{align*} \tag{46}\label{eq:46}
 $$
 
-由於**參數** $w^{\ophid}, w^{\opout}$ **沒有直接**與 $t + 1$ 時間點的 $y^{\opig}(t + 1), y^{\opog}(t + 1), \opnet^{\cell{k}}(t + 1)$ **相連**，因此 $w^{\ophid}, w^{\opout}$ 只能透過參與 $t$ 時間點**以前**的計算**間接**對 $t + 1$ 時間點計算造成影響（見 $\eqref{eq:42} \eqref{eq:43}$），這也代表在 $\eqref{eq:45} \eqref{eq:46}$ 作用的情況下 $w^{\ophid}, w^{\opout}$ **無法**從 $y^{\opig}(t + 1), y^{\opog}(t + 1), \opnet^{\cell{k}}(t + 1)$ 收到任何的**梯度**：
+由於 $w^{\ophid}$ **沒有直接**與 $t + 1$ 時間點的 $y^{\opig}(t + 1), y^{\opog}(t + 1), \opnet^{\cell{k}}(t + 1)$ **相連**，因此 $w^{\ophid}$ 只能透過參與 $t$ 時間點**以前**的計算**間接**對 $t + 1$ 時間點計算造成影響（見 $\eqref{eq:43}$），這也代表在 $\eqref{eq:45} \eqref{eq:46}$ 作用的情況下 $w^{\ophid}$ **無法**從 $y^{\opig}(t + 1), y^{\opog}(t + 1), \opnet^{\cell{k}}(t + 1)$ 收到任何的**梯度**：
 
 $$
 \begin{align*}
 & \pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{\whid_{p q}} \\
-& = \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\cancelto{0}{\pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
-& \quad \pd{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
-& \aptr 0 \\
-& \pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{\wout_{p q}} \\
-& = \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\cancelto{0}{\pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
-& \quad \pd{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wout_{p q}}\bigg] \\
+& = \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\cancelto{0}{\pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
+& \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
 & \aptr 0
 \end{align*} \tag{47}\label{eq:47}
 $$
@@ -1014,23 +1010,44 @@ $$
 \begin{align*}
 & \pd{y_i(t + 1)}{\whid_{p q}} \\
 & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\whid{p q}} \\
-& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[ \\
-& \quad \pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
-& \\
 & = \dfnetout{i}{t + 1} \cdot \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
-& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \Bigg[ \\
-& \quad \wout_{i j} \cdot \sum_{t^{\star} = 1}^t \bigg[\pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{y_p^{\ophid}(t^{\star})} \cdot \pd{y_p^{\ophid}(t^{\star})}{\whid_{p q}}\bigg]\Bigg] \\
-& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \Bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^t \bigg[\pd{y_j^{\ophid}(t)}{y_p^{\ophid}(t^{\star})} \cdot \pd{y_p^{\ophid}(t^{\star})}{\whid_{p q}}\bigg]\Bigg] \\
-& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{p q}}\bigg]
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
+& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{p q}}\bigg]
 \end{align*} \tag{50}\label{eq:50}
 $$
 
-- $\eqref{eq:50}$ 的**近似**結果是來自 $\eqref{eq:45} \eqref{eq:46}$
+- $\eqref{eq:50}$ 的第二個等式中只有**隱藏單元**與**記憶單元輸出**參與微分的理由請見 $\eqref{eq:42}$
+  - 沒有列出**外部輸入** $x(t)$ 的理由是 $x(t)$ 並不是**經由** $\whid$ **產生**，因此微分為 $0$
+  - 公式中的加法項次從 $\din + 1$ 開始代表**跳過** $x(t)$
+- $\eqref{eq:50}$ 的**近似**結果是來自 $\eqref{eq:47}$
   - $\eqref{eq:50}$ 就是論文中 A.8 式的最後一個 case
   - 根據近似， $\whid_{p q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $y^{\ophid}(t^{\star})$，其中 $t^{\star} = 1, \dots, t$
 
 <!--
+同 $\eqref{eq:50}$，我們可以計算 $\wig$ 對 $t + 1$ 時間點的**總輸出**計算所得的**剩餘梯度**
+
+$$
+\begin{align*}
+& \pd{y_i(t + 1)}{\wog_{p q}} \\
+& = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wog{p q}} \\
+& = \dfnetout{i}{t + 1} \cdot \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wog_{p q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wog_{p q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \\
+& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \pd{y_j^{\ophid}(t)}{\wog_{p q}}\bigg] + \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wog_{p q}}\bigg]\Bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \\
+& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^{t - 1} \bigg(\pd{y_j^{\ophid}(t)}{y_p^{\opog}(t^{\star})} \cdot \pd{y_p^{\opog}(t^{\star})}{\netog{p}{t^{\star}}} \cdot \pd{\netog{p}{t^{\star}}}{\wog_{p q}}\bigg)\bigg] \\
+& \quad + \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^{t} \bigg(\pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{y_p^{\opog}(t^{\star})} \cdot \pd{y_p^{\opog}(t^{\star})}{\wog_{p q}}\bigg)\bigg]\Bigg] \\
+& \aptr \dfnetout{i}{t + 1} \cdot \\
+& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^{t - 1} \bigg(\pd{y_j^{\ophid}(t)}{y_p^{\opog}(t^{\star})} \cdot \pd{y_p^{\opog}(t^{\star})}{\netog{p}{t^{\star}}} \cdot \pd{\netog{p}{t^{\star}}}{\wog_{p q}}\bigg)\bigg] \\
+& \quad + \sum_{k = 1}^{\ncell} \bigg[\wout_{i p} \cdot \hcell{p}{k}{t} \cdot \dfnetog{p}{t} \cdot \\
+& \quad [x ; y^{\ophid} ; y^{\opin} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t)\bigg]\Bigg] \\
+%& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \Bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^t \bigg[\pd{y_j^{\ophid}(t)}{y_p^{\opog}(t^{\star})} \cdot \pd{y_p^{\opog}(t^{\star})}{\wog_{p q}}\bigg]\Bigg] \\
+%& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \pd{y_j^{\ophid}(t)}{\wog_{p q}}\bigg]
+\end{align*} \tag{51}\label{eq:51}
+$$
+
 在 $\eqref{eq:44} \eqref{eq:45} \eqref{eq:46} \eqref{eq:47}$ 的作用下，我們可以求得 $\wout$ 的**丟棄**部份梯度後所**剩餘可取得**的梯度
 
 一但 $\eqref{eq:44}$ 中的梯度為 $0$，$t + 1$ 時間點**以後**與**輸入閘門**或**輸出閘門**有關的**所有**計算，其所得**梯度**便**無法**傳回 $t$ 時間點**以前**的**所有單元**與**所有參數**（見 $\eqref{eq:45}$）
