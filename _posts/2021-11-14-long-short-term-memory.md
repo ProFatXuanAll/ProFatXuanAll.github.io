@@ -212,31 +212,31 @@ BPTT = **B**ack **P**ropagation **T**hrough **T**ime，是專門用來計算 RNN
 - **外部輸入（external input）** $x(t)$
   - 輸入維度為 $\din$
   - 使用下標 $x_{j}(t)$ 代表不同的輸入訊號，$j = 1, \dots, \din$
-- **前次輸出（previous output）** $y(t)$
+- **總輸出（total output）** $y(t)$
   - 輸出維度為 $\dout$
-  - 使用下標 $y_{j}(t)$ 代表不同的輸入訊號，$j = \din + 1, \dots, \dout$
+  - 使用下標 $y_{j}(t)$ 代表不同的輸入訊號，$j = \din + 1, \dots, \din + \dout$
   - 注意這裡是使用 $t$ 不是 $t - 1$
 - $t$ 的起始值為 $0$，結束值為 $T$，每次遞增 $1$
   - 時間為離散狀態
   - 方便起見令 $y(0) = 0$
 
-令 RNN 模型的參數為 $w \in \R^{\dout \times (\din + \dout)}$，如果我們已經取得 $t$ 時間點的**外部輸入** $x(t)$ 與**前次輸出** $y(t)$，則我們可以定義 $t + 1$ 時間點的第 $i$ 個**模型內部節點** $\net{i}{t}$
+令 RNN 模型的參數為 $w \in \R^{\dout \times (\din + \dout)}$，如果我們已經取得 $t$ 時間點的**外部輸入** $x(t)$ 與**總輸出** $y(t)$，則我們可以定義 $t + 1$ 時間點的第 $i$ 個**模型內部節點** $\net{i}{t}$
 
 $$
 \begin{align*}
-  \net{i}{t + 1} & = \sum_{j = 1}^{\din} w_{i j} \cdot x_{j}(t) + \sum_{j = \din + 1}^{\din + \dout} w_{i j} \cdot y_{j}(t) \\
-  & = \sum_{j = 1}^{\din + \dout} w_{i j} \cdot [x ; y]_{j}(t)
+  \net{i}{t + 1} & = \sum_{j = 1}^{\din} w_{i, j} \cdot x_{j}(t) + \sum_{j = \din + 1}^{\din + \dout} w_{i, j} \cdot y_{j}(t) \\
+  & = \sum_{j = 1}^{\din + \dout} w_{i, j} \cdot [x ; y]_{j}(t)
 \end{align*} \tag{1}\label{eq:1}
 $$
 
 - $\net{i}{t + 1}$ 代表第 $t + 1$ 時間的**模型內部節點** $i$ 所收到的**淨輸入（total input）**
   - 注意 $t$ 時間點的輸入訊號變成 $t + 1$ 時間點的輸出結果
   - 這是早年常見的 RNN 公式表達法
-- $w_{i j}$ 代表**輸入節點** $j$與**模型內部節點** $i$ 所連接的權重
-  - 輸入節點可以是**外部輸入** $x_{j}(t)$ 或是**前次輸出** $y_{j}(t)$
+- $w_{i, j}$ 代表**輸入節點** $j$與**模型內部節點** $i$ 所連接的權重
+  - 輸入節點可以是**外部輸入** $x_{j}(t)$ 或是**總輸出** $y_{j}(t)$
   - 總共有 $\din + \dout$ 個輸入節點，因此 $1 \leq j \leq \din + \dout$
   - 總共有 $\dout$ 個內部節點，因此 $1 \leq i \leq \dout$
-- $[x ; y]$ 代表將外部輸入與前次輸出**串接**在一起
+- $[x ; y]$ 代表將外部輸入與總輸出**串接**在一起
 
 令模型使用的**啟發函數**（activation function）為 $f : \R^{\dout} \to \R^{\dout}$，並且內部節點之間無法直接溝通（elementwise activation function），則我們可以得到 $t + 1$ 時間的輸出
 
@@ -303,7 +303,7 @@ $$
 $$
 \begin{align*}
 \pd{\Loss{t + 1}}{x_{j}(t)} & = \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{x_{j}(t)}\bigg] \\
-& = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i j}\bigg]
+& = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i, j}\bigg]
 \end{align*} \tag{10}\label{eq:10}
 $$
 
@@ -312,7 +312,7 @@ $$
 $$
 \begin{align*}
 \pd{\Loss{t + 1}}{y_{j}(t)} & = \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{y_{j}(t)}\bigg] \\
-& = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i j}\bigg]
+& = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i, j}\bigg]
 \end{align*} \tag{11}\label{eq:11}
 $$
 
@@ -322,28 +322,28 @@ $$
 \begin{align*}
 & \pd{\Loss{t + 1}}{\net{j}{t}} \\
 & = \pd{\Loss{t + 1}}{y_{j}(t)} \cdot \pd{y_{j}(t)}{\net{j}{t}} \\
-& = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i j} \cdot \dfnet{j}{t}\bigg] \\
-& = \dfnet{j}{t} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i j} \cdot \dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)\bigg] \\
-& = \dfnet{j}{t} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i j} \cdot \pd{\Loss{t + 1}}{\net{i}{t + 1}}\bigg]
+& = \sum_{i = 1}^{\dout} \bigg[\dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i, j} \cdot \dfnet{j}{t}\bigg] \\
+& = \dfnet{j}{t} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i, j} \cdot \dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)\bigg] \\
+& = \dfnet{j}{t} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i, j} \cdot \pd{\Loss{t + 1}}{\net{i}{t + 1}}\bigg]
 \end{align*} \tag{12}\label{eq:12}
 $$
 
 式子 $\eqref{eq:12}$ 就是論文 3.1.1 節的最後一條公式。
-模型參數 $w_{i j}$ 對於 $\Loss{t + 1}$ 所得梯度為
+模型參數 $w_{i, j}$ 對於 $\Loss{t + 1}$ 所得梯度為
 
 $$
 \begin{align*}
-& \pd{\Loss{t + 1}}{w_{i j}} \\
-& = \pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{w_{i j}} \\
+& \pd{\Loss{t + 1}}{w_{i, j}} \\
+& = \pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{w_{i, j}} \\
 & = \dfnet{i}{t + 1} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot [x ; y]_{j}(t) && \text{(by \eqref{eq:9})}
 \end{align*} \tag{13}\label{eq:13}
 $$
 
-注意 $\eqref{eq:13}$ 中最後一行等式取決於 $w_{i j}$ 與哪個輸入相接。
+注意 $\eqref{eq:13}$ 中最後一行等式取決於 $w_{i, j}$ 與哪個輸入相接。
 而在時間點 $t + 1$ 進行參數更新的方法為
 
 $$
-w_{i j} \leftarrow w_{i j} - \alpha \pd{\Loss{t + 1}}{w_{i j}} \tag{14}\label{eq:14}
+w_{i, j} \leftarrow w_{i, j} - \alpha \pd{\Loss{t + 1}}{w_{i, j}} \tag{14}\label{eq:14}
 $$
 
 $\eqref{eq:14}$ 就是最常用來最佳化神經網路的**梯度下降演算法**（Gradient Descent），$\alpha$ 代表**學習率**（Learning Rate）。
@@ -376,8 +376,8 @@ $$
 $$
 \begin{align*}
 \dv{k_{1}}{t}{t - 1} & = \pd{\Loss{t}}{\net{k_{1}}{t - 1}} \\
-& = \dfnet{k_{1}}{t - 1} \cdot \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot \pd{\Loss{t}}{\net{k_{0}}{t}}\bigg] \\
-& = \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot \dfnet{k_{1}}{t - 1} \cdot \dv{k_{0}}{t}{t}\bigg]
+& = \dfnet{k_{1}}{t - 1} \cdot \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0}, k_{1}} \cdot \pd{\Loss{t}}{\net{k_{0}}{t}}\bigg] \\
+& = \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0}, k_{1}} \cdot \dfnet{k_{1}}{t - 1} \cdot \dv{k_{0}}{t}{t}\bigg]
 \end{align*} \tag{17}\label{eq:17}
 $$
 
@@ -389,9 +389,9 @@ $$
 & = \pd{\Loss{t}}{\net{k_{2}}{t - 2}} \\
 & = \sum_{k_{1} = 1}^{\dout} \bigg[\pd{\Loss{t}}{\net{k_{1}}{t - 1}} \cdot \pd{\net{k_{1}}{t - 1}}{\net{k_{2}}{t - 2}}\bigg] \\
 & = \sum_{k_{1} = 1}^{\dout} \bigg[\dv{k_{1}}{t}{t - 1} \cdot \pd{\net{k_{1}}{t - 1}}{y_{k_{2}}(t - 2)} \cdot \pd{y_{k_{2}}(t - 2)}{\net{k_{2}}{t - 2}}\bigg] \\
-& = \sum_{k_{1} = 1}^{\dout} \bigg[\dv{k_{1}}{t}{t - 1} \cdot w_{k_{1} k_{2}} \cdot \dfnet{k_{2}}{t - 2}\bigg] \\
-& = \sum_{k_{1} = 1}^{\dout} \Bigg[\dfnet{k_{1}}{t - 1} \cdot \sum_{k_{0} = 1}^{\dout} \bigg(w_{k_{0} k_{1}} \cdot \dv{k_{0}}{t}{t}\bigg) \cdot w_{k_{1} k_{2}} \cdot \dfnet{k_{2}}{t - 2}\Bigg] \\
-& = \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot w_{k_{1} k_{2}} \cdot \dfnet{k_{1}}{t - 1} \cdot \dfnet{k_{2}}{t - 2} \cdot \dv{k_{0}}{t}{t}\bigg]
+& = \sum_{k_{1} = 1}^{\dout} \bigg[\dv{k_{1}}{t}{t - 1} \cdot w_{k_{1}, k_{2}} \cdot \dfnet{k_{2}}{t - 2}\bigg] \\
+& = \sum_{k_{1} = 1}^{\dout} \Bigg[\dfnet{k_{1}}{t - 1} \cdot \sum_{k_{0} = 1}^{\dout} \bigg(w_{k_{0}, k_{1}} \cdot \dv{k_{0}}{t}{t}\bigg) \cdot w_{k_{1}, k_{2}} \cdot \dfnet{k_{2}}{t - 2}\Bigg] \\
+& = \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0}, k_{1}} \cdot w_{k_{1}, k_{2}} \cdot \dfnet{k_{1}}{t - 1} \cdot \dfnet{k_{2}}{t - 2} \cdot \dv{k_{0}}{t}{t}\bigg]
 \end{align*} \tag{18}\label{eq:18}
 $$
 
@@ -403,12 +403,12 @@ $$
 & = \pd{\Loss{t}}{\net{k_{3}}{t - 3}} \\
 & = \sum_{k_{2} = 1}^{\dout} \bigg[\pd{\Loss{t}}{\net{k_{2}}{t - 2}} \cdot \pd{\net{k_{2}}{t - 2}}{\net{k_{3}}{t - 3}}\bigg] \\
 & = \sum_{k_{2} = 1}^{\dout} \bigg[\dv{k_{2}}{t}{t - 2} \cdot \pd{\net{k_{2}}{t - 2}}{y_{k_{3}}(t - 3)} \cdot \pd{y_{k_{3}}(t - 3)}{\net{k_{3}}{t - 3}}\bigg] \\
-& = \sum_{k_{2} = 1}^{\dout} \bigg[\dv{k_{2}}{t}{t - 2} \cdot w_{k_{2} k_{3}} \cdot \dfnet{k_{3}}{t - 3}\bigg] \\
-& = \sum_{k_{2} = 1}^{\dout} \Bigg[\sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot w_{k_{1} k_{2}} \cdot \dfnet{k_{1}}{t - 1} \cdot \dfnet{k_{2}}{t - 2} \cdot \dv{k_{0}}{t}{t}\bigg] \\
-& \quad \cdot w_{k_{2} k_{3}} \cdot \dfnet{k_{3}}{t - 3}\Bigg] \\
-& = \sum_{k_{2} = 1}^{\dout} \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0} k_{1}} \cdot w_{k_{1} k_{2}} \cdot w_{k_{2} k_{3}} \cdot \\
+& = \sum_{k_{2} = 1}^{\dout} \bigg[\dv{k_{2}}{t}{t - 2} \cdot w_{k_{2}, k_{3}} \cdot \dfnet{k_{3}}{t - 3}\bigg] \\
+& = \sum_{k_{2} = 1}^{\dout} \Bigg[\sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0}, k_{1}} \cdot w_{k_{1}, k_{2}} \cdot \dfnet{k_{1}}{t - 1} \cdot \dfnet{k_{2}}{t - 2} \cdot \dv{k_{0}}{t}{t}\bigg] \\
+& \quad \cdot w_{k_{2}, k_{3}} \cdot \dfnet{k_{3}}{t - 3}\Bigg] \\
+& = \sum_{k_{2} = 1}^{\dout} \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \bigg[w_{k_{0}, k_{1}} \cdot w_{k_{1}, k_{2}} \cdot w_{k_{2}, k_{3}} \cdot \\
 & \quad \dfnet{k_{1}}{t - 1} \cdot \dfnet{k_{2}}{t - 2} \cdot \dfnet{k_{3}}{t - 3} \cdot \dv{k_{0}}{t}{t}\bigg] \\
-& = \sum_{k_{2} = 1}^{\dout} \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \Bigg[\bigg[\prod_{q = 1}^{3} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \cdot \dv{k_{0}}{t}{t}\Bigg]
+& = \sum_{k_{2} = 1}^{\dout} \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} = 1}^{\dout} \Bigg[\bigg[\prod_{q = 1}^{3} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \cdot \dv{k_{0}}{t}{t}\Bigg]
 \end{align*} \tag{19}\label{eq:19}
 $$
 
@@ -416,7 +416,7 @@ $$
 若 $n \geq 1$，則往回推 $n$ 個時間點的公式為
 
 $$
-\dv{k_{n}}{t}{t - n} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{0} = 1}^{\dout} \Bigg[\bigg[\prod_{q = 1}^{n} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \cdot \dv{k_{0}}{t}{t}\Bigg] \tag{20}\label{eq:20}
+\dv{k_{n}}{t}{t - n} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{0} = 1}^{\dout} \Bigg[\bigg[\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \cdot \dv{k_{0}}{t}{t}\Bigg] \tag{20}\label{eq:20}
 $$
 
 由 $\eqref{eq:20}$ 我們可以看出所有的 $\dv{k_{n}}{t}{t - n}$ 都與 $\dv{k_{0}}{t}{t}$ 相關，因此我們將 $\dv{k_{n}}{t}{t - n}$ 想成由 $\dv{k_{0}}{t}{t}$ 構成的函數。
@@ -426,13 +426,13 @@ $$
 - 當 $n = 1$ 時，根據 $\eqref{eq:17}$ 我們可以推得論文中的 (3.1) 式
 
   $$
-  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = w_{k_{0}^* k_{1}} \cdot \dfnet{k_{1}}{t - 1} \tag{21}\label{eq:21}
+  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = w_{k_{0}^*, k_{1}} \cdot \dfnet{k_{1}}{t - 1} \tag{21}\label{eq:21}
   $$
 
 - 當 $n > 1$ 時，根據 $\eqref{eq:20}$ 我們可以推得論文中的 (3.2) 式
 
   $$
-  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^*}} \bigg[\prod_{q = 1}^{n} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \tag{22}\label{eq:22}
+  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^*}} \bigg[\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \tag{22}\label{eq:22}
   $$
 
 **注意錯誤**：論文中的 (3.2) 式不小心把 $w_{l_{m - 1} l_{m}}$ 寫成 $w_{l_{m} l_{m - 1}}$。
@@ -442,7 +442,7 @@ $$
 根據 $\eqref{eq:21} \eqref{eq:22}$，如果
 
 $$
-\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} > 1.0 \quad \forall q = 1, \dots, n \tag{23}\label{eq:23}
+\abs{w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} > 1.0 \quad \forall q = 1, \dots, n \tag{23}\label{eq:23}
 $$
 
 則 $w$ 的梯度會以指數 $n$ 增加，直接導致**梯度爆炸**，參數會進行**劇烈的振盪**，無法進行順利更新。
@@ -450,7 +450,7 @@ $$
 而如果
 
 $$
-\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} < 1.0 \quad \forall q = 1, \dots, n \tag{24}\label{eq:24}
+\abs{w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} < 1.0 \quad \forall q = 1, \dots, n \tag{24}\label{eq:24}
 $$
 
 則 $w$ 的梯度會以指數 $n$ 縮小，直接導致**梯度消失**，誤差**收斂速度**會變得**非常緩慢**。
@@ -467,15 +467,15 @@ $$
 \end{align*} \tag{25}\label{eq:25}
 $$
 
-因此當 $\abs{w_{k_{q - 1} k_{q}}} < 4.0$ 時我們可以發現
+因此當 $\abs{w_{k_{q - 1}, k_{q}}} < 4.0$ 時我們可以發現
 
 $$
-\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} < 4.0 * 0.25 = 1.0 \tag{26}\label{eq:26}
+\abs{w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} < 4.0 * 0.25 = 1.0 \tag{26}\label{eq:26}
 $$
 
-所以 $\eqref{eq:26}$ 與 $\eqref{eq:24}$ 的結論相輔相成：當 $w_{k_{q - 1} k_{q}}$ 的絕對值小於 $4.0$ 會造成梯度消失。
+所以 $\eqref{eq:26}$ 與 $\eqref{eq:24}$ 的結論相輔相成：當 $w_{k_{q - 1}, k_{q}}$ 的絕對值小於 $4.0$ 會造成梯度消失。
 
-而 $\abs{w_{k_{q - 1} k_{q}}} \to \infty$ 我們可以得到
+而 $\abs{w_{k_{q - 1}, k_{q}}} \to \infty$ 我們可以得到
 
 $$
 \begin{align*}
@@ -485,40 +485,40 @@ $$
 \fnet{k_{q - 1}}{t - q - 1} \to 0 & \text{if } \net{k_{q - 1}}{t - q - 1} \to -\infty
 \end{cases} \\
 \implies & \abs{\dfnet{k_{q - 1}}{t - q - 1}} \to 0 && \text{(by \eqref{eq:25})} \\
-\implies & \abs{\prod_{q = 1}^{n} w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0
+\implies & \abs{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0
 \end{align*} \tag{27}\label{eq:27}
 $$
 
 **注意錯誤**：論文中的推論
 
 $$
-\abs{w_{k_{q - 1} k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0
+\abs{w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0
 $$
 
-是**錯誤**的，理由是 $w_{k_{q - 1} k_{q}}$ 無法對 $\net{k_{q}}{t - q}$ 造成影響，作者不小心把**時間順序寫反**了，但是**最後的邏輯仍然正確**，理由如 $\eqref{eq:27}$ 所示。
+是**錯誤**的，理由是 $w_{k_{q - 1}, k_{q}}$ 無法對 $\net{k_{q}}{t - q}$ 造成影響，作者不小心把**時間順序寫反**了，但是**最後的邏輯仍然正確**，理由如 $\eqref{eq:27}$ 所示。
 
 **注意錯誤**：論文中進行了以下**函數最大值**的推論
 
 $$
 \begin{align*}
 & \dfnet{l_{m}}{t - m}\big) \cdot w_{l_{m} l_{m - 1}} \\
-& = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l{m - l}}
+& = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}
 \end{align*}
 $$
 
 最大值發生於微分值為 $0$ 的點，即我們想求出滿足以下式子的 $w_{l_{m} l_{m - 1}}$
 
 $$
-\pd{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} = 0
+\pd{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} = 0
 $$
 
 拆解微分式可得
 
 $$
 \begin{align*}
-& \pd{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} \\
-& = \pd{\sigma\big(\net{l_{m}}{t - m}\big)}{\net{l_{m}}{t - m}} \cdot \pd{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l{m - l}} \\
-& \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \pd{\Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)}{\net{l_{m}}{t - m}} \cdot \pd{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot w_{l_{m} l{m - l}} \\
+& \pd{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} \\
+& = \pd{\sigma\big(\net{l_{m}}{t - m}\big)}{\net{l_{m}}{t - m}} \cdot \pd{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}} \\
+& \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \pd{\Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)}{\net{l_{m}}{t - m}} \cdot \pd{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot w_{l_{m} l_{m - l}} \\
 & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot \pd{w_{l_{m} l_{m - 1}}}{w_{l_{m} l_{m - 1}}} \\
 & = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
 & \quad - \Big(\sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
@@ -579,41 +579,41 @@ $$
 假設模型輸出節點 $y_{j}(t - 1)$ 只與 $\net{j}{t}$ 相連，即
 
 $$
-\net{j}{t} = w_{j j} y_{j}(t - 1) \tag{29}\label{eq:29}
+\net{j}{t} = w_{j, j} y_{j}(t - 1) \tag{29}\label{eq:29}
 $$
 
 （$\eqref{eq:29}$ 假設實際上不可能發生）則根據式子 $\eqref{eq:17}$ 我們可以推得
 
 $$
-\dv{j}{t}{t - 1} = w_{j j} \cdot \dfnet{j}{t - 1} \cdot \dv{j}{t}{t} \tag{30}\label{eq:30}
+\dv{j}{t}{t - 1} = w_{j, j} \cdot \dfnet{j}{t - 1} \cdot \dv{j}{t}{t} \tag{30}\label{eq:30}
 $$
 
 為了強制讓梯度 $\dv{j}{t}{t}$ 不消失，作者認為需要強制達成
 
 $$
-w_{j j} \cdot \dfnet{j}{t - 1} = 1.0 \tag{31}\label{eq:31}
+w_{j, j} \cdot \dfnet{j}{t - 1} = 1.0 \tag{31}\label{eq:31}
 $$
 
 如果 $\eqref{eq:31}$ 能夠達成，則積分 $\eqref{eq:31}$ 可以得到
 
 $$
 \begin{align*}
-& \int w_{j j} \cdot \dfnet{j}{t - 1} \; d \big[\net{j}{t - 1}\big] = \int 1.0 \; d \big[\net{j}{t - 1}\big] \\
-\implies & w_{j j} \cdot \fnet{j}{t - 1} = \net{j}{t - 1} \\
-\implies & y_{j}(t - 1) = \fnet{j}{t - 1} = \frac{\net{j}{t - 1}}{w_{j j}}
+& \int w_{j, j} \cdot \dfnet{j}{t - 1} \; d \big[\net{j}{t - 1}\big] = \int 1.0 \; d \big[\net{j}{t - 1}\big] \\
+\implies & w_{j, j} \cdot \fnet{j}{t - 1} = \net{j}{t - 1} \\
+\implies & y_{j}(t - 1) = \fnet{j}{t - 1} = \frac{\net{j}{t - 1}}{w_{j, j}}
 \end{align*} \tag{32}\label{eq:32}
 $$
 
 觀察 $\eqref{eq:32}$ 我們可以發現
 
-- 輸入 $\net{j}{t - 1}$ 與輸出 $\fnet{j}{t - 1}$ 之間的關係是乘上一個常數項 $w_{j j}$
+- 輸入 $\net{j}{t - 1}$ 與輸出 $\fnet{j}{t - 1}$ 之間的關係是乘上一個常數項 $w_{j, j}$
 - 代表函數 $f_{j}$ 其實是一個**線性函數**
 - **每個時間點**的**輸出**居然**完全相同**，這個現象稱為 **Constant Error Carousel** (請見 $\eqref{eq:33}$)
 
 $$
 \begin{align*}
-y_{j}(t) & = \fnet{j}{t} = f_{j}\big(w_{j j} y_{j}(t - 1)\big) \\
-& = f_{j}\big(w_{j j} \frac{\net{j}{t - 1}}{w_{j j}}\big) = \fnet{j}{t - 1} = y_{j}(t - 1) \tag{33}\label{eq:33}
+y_{j}(t) & = \fnet{j}{t} = f_{j}\big(w_{j, j} y_{j}(t - 1)\big) \\
+& = f_{j}\big(w_{j, j} \frac{\net{j}{t - 1}}{w_{j, j}}\big) = \fnet{j}{t - 1} = y_{j}(t - 1) \tag{33}\label{eq:33}
 \end{align*}
 $$
 
@@ -622,17 +622,17 @@ $$
 將 $\eqref{eq:29}$ 的假設改成每個模型內部節點可以額外接收一個外部輸入
 
 $$
-\net{j}{t} = \sum_{i = 1}^{\din} w_{j i} x_{i}(t - 1) + w_{j j} y_{j}(t - 1) \tag{34}\label{eq:34}
+\net{j}{t} = \sum_{i = 1}^{\din} w_{j, i} x_{i}(t - 1) + w_{j, j} y_{j}(t - 1) \tag{34}\label{eq:34}
 $$
 
-由於 $y_{j}(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{eq:34}$ 的假設中唯一能夠**更新**資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j i}$ 將新資訊合併進入 $\net{j}{t}$。
+由於 $y_{j}(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{eq:34}$ 的假設中唯一能夠**更新**資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j, i}$ 將新資訊合併進入 $\net{j}{t}$。
 
-但作者認為，在計算的過程中，部份時間點的**輸入**資訊 $x_{i}(\cdot)$ 可以(甚至必須)被**忽略**，但這代表 $w_{j i}$ 需要**同時**達成**兩種**任務就必須要有**兩種不同的數值**：
+但作者認為，在計算的過程中，部份時間點的**輸入**資訊 $x_{i}(\cdot)$ 可以(甚至必須)被**忽略**，但這代表 $w_{j, i}$ 需要**同時**達成**兩種**任務就必須要有**兩種不同的數值**：
 
-- **加入新資訊**：代表 $\abs{w_{j i}} \neq 0$
-- **忽略新資訊**：代表 $\abs{w_{j i}} \approx 0$
+- **加入新資訊**：代表 $\abs{w_{j, i}} \neq 0$
+- **忽略新資訊**：代表 $\abs{w_{j, i}} \approx 0$
 
-因此**無法只靠一個** $w_{j i}$ 決定**輸入**的影響，必須有**額外**能夠**理解當前內容 (context-sensitive)** 的功能模組幫忙**寫入** $x_{i}(\cdot)$
+因此**無法只靠一個** $w_{j, i}$ 決定**輸入**的影響，必須有**額外**能夠**理解當前內容 (context-sensitive)** 的功能模組幫忙**寫入** $x_{i}(\cdot)$
 
 ### 情境 3：輸出回饋到多個節點
 
@@ -640,19 +640,19 @@ $$
 
 $$
 \begin{align*}
-\net{j}{t} & = \sum_{i = 1}^{\din} w_{j i} x_{i}(t - 1) + \sum_{i = \din + 1}^{\din + \dout} w_{j i} y_{i}(t - 1) \\
-& = \sum_{i = 1}^{\din} w_{j i} x_{i}(t - 1) + \sum_{i = \din + 1}^{\din + \dout} w_{j i} \fnet{i}{t - 1}
+\net{j}{t} & = \sum_{i = 1}^{\din} w_{j, i} x_{i}(t - 1) + \sum_{i = \din + 1}^{\din + \dout} w_{j, i} y_{i}(t - 1) \\
+& = \sum_{i = 1}^{\din} w_{j, i} x_{i}(t - 1) + \sum_{i = \din + 1}^{\din + \dout} w_{j, i} \fnet{i}{t - 1}
 \end{align*} \tag{35}\label{eq:35}
 $$
 
-由於 $y_{j}(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{eq:35}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $y_{i}(t - 1)$ 配合 $w_{j i}$ 將新資訊合併進入 $\net{j}{t}$。
+由於 $y_{j}(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{eq:35}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $y_{i}(t - 1)$ 配合 $w_{j, i}$ 將新資訊合併進入 $\net{j}{t}$。
 
-但作者認為，在計算的過程中，部份時間點的**輸出**資訊 $y_i(*)$ 可以(甚至必須)被**忽略**，但這代表 $w_{j i}$ 需要**同時**達成**兩種**任務就必須要有**兩種不同的數值**：
+但作者認為，在計算的過程中，部份時間點的**輸出**資訊 $y_i(*)$ 可以(甚至必須)被**忽略**，但這代表 $w_{j, i}$ 需要**同時**達成**兩種**任務就必須要有**兩種不同的數值**：
 
-- **保留過去資訊**：代表 $\abs{w_{j i}} \neq 0$
-- **忽略過去資訊**：代表 $\abs{w_{j i}} \approx 0$
+- **保留過去資訊**：代表 $\abs{w_{j, i}} \neq 0$
+- **忽略過去資訊**：代表 $\abs{w_{j, i}} \approx 0$
 
-因此**無法只靠一個** $w_{j i}$ 決定**輸出**的影響，必須有**額外**能夠**理解當前內容 (context-sensitive)** 的功能模組幫忙**讀取** $y_i(*)$
+因此**無法只靠一個** $w_{j, i}$ 決定**輸出**的影響，必須有**額外**能夠**理解當前內容 (context-sensitive)** 的功能模組幫忙**讀取** $y_i(*)$
 
 值得一提的是，上述的假設是基於以下的事實觀察：
 已知 RNN 能夠學習解決多個記憶時間較短 (short-time-lag) 的任務，但如果要能夠同時解決記憶時間較長 (long-time-lag) 的任務，則模型應該依照以下順序執行：
@@ -727,10 +727,10 @@ $$
 
 $$
 \begin{align*}
-\netig{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wig_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wig_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
-& \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \wig_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \wig_{i j} \cdot y_j^{\opog}(t)\bigg] \\
-& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dhid + (1 + k) \cdot \dcell + 1}^{\din + \dhid + (2 + k) \cdot \dcell} \wig_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
-& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \wig_{i j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \\
+\netig{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wig_{i, j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wig_{i, j} \cdot y_j^{\ophid}(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \wig_{i, j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \wig_{i, j} \cdot y_j^{\opog}(t)\bigg] \\
+& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dhid + (1 + k) \cdot \dcell + 1}^{\din + \dhid + (2 + k) \cdot \dcell} \wig_{i, j} \cdot y_j^{\cell{k}}(t)\bigg] \\
+& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \wig_{i, j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \\
 y_i^{\opig}(t + 1) & = \fnetig{i}{t + 1}
 \end{align*} \tag{36}\label{eq:36}
 $$
@@ -751,10 +751,10 @@ $$
 
 $$
 \begin{align*}
-\netcell{i}{k}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wcell{k}_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wcell{k}_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
-& \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \wcell{k}_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \wcell{k}_{i j} \cdot y_j^{\opog}(t)\bigg] \\
-& \quad + \bigg[\sum_{k^{\star} = 1}^{\ncell} \sum_{j = \din + \dhid + (1 + k^{\star}) \cdot \dcell + 1}^{\din + \dhid + (2 + k^{\star}) \cdot \dcell} \wcell{k}_{i j} \cdot y_j^{\cell{k^{\star}}}(t)\bigg] \\
-& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \wcell{k}_{i j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)
+\netcell{i}{k}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wcell{k}_{i, j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wcell{k}_{i, j} \cdot y_j^{\ophid}(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \wcell{k}_{i, j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \wcell{k}_{i, j} \cdot y_j^{\opog}(t)\bigg] \\
+& \quad + \bigg[\sum_{k^{\star} = 1}^{\ncell} \sum_{j = \din + \dhid + (1 + k^{\star}) \cdot \dcell + 1}^{\din + \dhid + (2 + k^{\star}) \cdot \dcell} \wcell{k}_{i, j} \cdot y_j^{\cell{k^{\star}}}(t)\bigg] \\
+& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \wcell{k}_{i, j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)
 \end{align*} \tag{37}\label{eq:37}
 $$
 
@@ -816,10 +816,10 @@ $$
 
 $$
 \begin{align*}
-\netog{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wog_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wog_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
-& \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \wog_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \wog_{i j} \cdot y_j^{\opog}(t)\bigg] \\
-& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dhid + (1 + k) \cdot \dcell + 1}^{\din + \dhid + (2 + k) \cdot \dcell} \wog_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
-& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \wog_{i j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \\
+\netog{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wog_{i, j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wog_{i, j} \cdot y_j^{\ophid}(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \wog_{i, j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \wog_{i, j} \cdot y_j^{\opog}(t)\bigg] \\
+& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dhid + (1 + k) \cdot \dcell + 1}^{\din + \dhid + (2 + k) \cdot \dcell} \wog_{i, j} \cdot y_j^{\cell{k}}(t)\bigg] \\
+& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \wog_{i, j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \\
 y_i^{\opog}(t + 1) & = \fnetog{i}{t + 1} \tag{40}\label{eq:40}
 \end{align*}
 $$
@@ -874,9 +874,9 @@ $t + 1$ 時間點的**總輸出**只與 $t$ 時間點的**模型狀態**（**不
 
 $$
 \begin{align*}
-\netout{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wout_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wout_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
-& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dhid + (k - 1) \cdot \dcell + 1}^{\din + \dhid + k \dcell} \wout_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
-& = \sum_{j = 1}^{\din + \dhid + \ncell \cdot \dcell} \wout_{i j} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \\
+\netout{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \wout_{i, j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \wout_{i, j} \cdot y_j^{\ophid}(t)\bigg] \\
+& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dhid + (k - 1) \cdot \dcell + 1}^{\din + \dhid + k \dcell} \wout_{i, j} \cdot y_j^{\cell{k}}(t)\bigg] \\
+& = \sum_{j = 1}^{\din + \dhid + \ncell \cdot \dcell} \wout_{i, j} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \\
 y_i(t + 1) & = \fnetout{i}{t + 1}
 \end{align*} \tag{42}\label{eq:42}
 $$
@@ -902,10 +902,10 @@ $$
 
 $$
 \begin{align*}
-\nethid{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \whid_{i j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \whid_{i j} \cdot y_j^{\ophid}(t)\bigg] \\
-& \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \whid_{i j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \whid_{i j} \cdot y_j^{\opog}(t)\bigg] \\
-& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dhid + (k + 1) \cdot \dcell + 1}^{\din + \dhid + (k + 2) \cdot \dcell} \whid_{i j} \cdot y_j^{\cell{k}}(t)\bigg] \\
-& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \whid_{i j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \\
+\nethid{i}{t + 1} & = \bigg[\sum_{j = 1}^{\din} \whid_{i, j} \cdot x_j(t)\bigg] + \bigg[\sum_{j = \din + 1}^{\din + \dhid} \whid_{i, j} \cdot y_j^{\ophid}(t)\bigg] \\
+& \quad + \bigg[\sum_{j = \din + \dhid + 1}^{\din + \dhid + \dcell} \whid_{i, j} \cdot y_j^{\opig}(t)\bigg] + \bigg[\sum_{j = \din + \dhid + \dcell + 1}^{\din + \dhid + 2\dcell} \whid_{i, j} \cdot y_j^{\opog}(t)\bigg] \\
+& \quad + \bigg[\sum_{k = 1}^{\ncell} \sum_{j = \din + \dhid + (k + 1) \cdot \dcell + 1}^{\din + \dhid + (k + 2) \cdot \dcell} \whid_{i, j} \cdot y_j^{\cell{k}}(t)\bigg] \\
+& = \sum_{j = 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \whid_{i, j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \\
 y_i^{\ophid}(t + 1) & = \fnethid{i}{t + 1} \tag{43}\label{eq:43}
 \end{align*}
 $$
@@ -935,19 +935,24 @@ $$
 首先我們定義新的符號 $\aptr$，代表計算**梯度**的過程會有**部份梯度**故意被**丟棄**（設定為 $0$），並以丟棄結果**近似**最後**全微分**的概念。
 
 $$
-\pd{[\opnet^{\opig} ; \opnet^{\opog} ; \opnet^{\cell{1}} ; \dots ; \opnet^{\cell{\ncell}}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \aptr 0 \tag{44}\label{eq:44}
+\pd{[\opnet^{\ophid} ; \opnet^{\opig} ; \opnet^{\opog} ; \opnet^{\cell{1}} ; \dots ; \opnet^{\cell{\ncell}}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \aptr 0 \tag{44}\label{eq:44}
 $$
 
-- 所有與**輸入閘門** $\netig{i}{t + 1}$、**輸出閘門** $\netog{i}{t + 1}$、**記憶單元** $\netcell{i}{k}{t + 1}$ **直接相連**的 $t$ 時間點的**單元**，一律**丟棄梯度**
+- 所有與**隱藏單元** $\nethid{i}{t + 1}$、**輸入閘門** $\netig{i}{t + 1}$、**輸出閘門** $\netog{i}{t + 1}$、**記憶單元** $\netcell{i}{k}{t + 1}$ **直接相連**的 $t$ 時間點的**單元**，一律**丟棄梯度**
+  - 注意論文在 A.1.2 節的開頭只提到**輸入閘門**、**輸出閘門**、**記憶單元**要**丟棄梯度**
+  - 但論文在 A.9 式描述可以將**隱藏單元**的梯度一起**丟棄**，害我白白推敲公式好幾天
+
+> Here it would be possible to use the full gradient without affecting constant error flow through internal states of memory cells.
+
 - **丟棄梯度**的意思是，即使計算結果的梯度不為 $0$，仍然將梯度**手動設成** $0$
 - 直接相連的**單元**包含**外部輸入** $x(t)$、、**隱藏單元** $y^{\ophid}(t)$、**輸入閘門** $y^{\opig}(t)$、**輸出閘門** $y^{\opog}(t)$ 與**記憶單元** $y^{\cell{k}}$（見 $\eqref{eq:36}, \eqref{eq:37}, \eqref{eq:40}$）
 
-根據 $\eqref{eq:44}$ 結合 $\eqref{eq:36}, \eqref{eq:40}$，我們可以進一步推得
+根據 $\eqref{eq:44}$ 結合 $\eqref{eq:36} \eqref{eq:40} \eqref{eq:43}$，我們可以進一步推得
 
 $$
 \begin{align*}
-& \pd{[y^{\opig} ; y^{\opog}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \\
-& = \pd{[y^{\opig} ; y^{\opog}]_i(t + 1)}{[\opnet^{\opig} ; \opnet^{\opog}]_i(t + 1)} \cdot \cancelto{0}{\pd{[\opnet^{\opig} ; \opnet^{\opog}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \\
+& \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \\
+& = \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog}]_i(t + 1)}{[\opnet^{\ophid} ; \opnet^{\opig} ; \opnet^{\opog}]_i(t + 1)} \cdot \cancelto{0}{\pd{[\opnet^{\ophid} ; \opnet^{\opig} ; \opnet^{\opog}]_i(t + 1)}{[x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \\
 & \aptr 0
 \end{align*} \tag{45}\label{eq:45}
 $$
@@ -968,9 +973,9 @@ $$
 
 $$
 \begin{align*}
-& \pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{\whid_{p q}} \\
+& \pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{\whid_{p, q}} \\
 & = \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\cancelto{0}{\pd{[y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_i(t + 1)}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
-& \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
+& \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p, q}}\bigg] \\
 & \aptr 0
 \end{align*} \tag{47}\label{eq:47}
 $$
@@ -978,12 +983,12 @@ $$
 $t = 0$ 時模型的**計算狀態**與 $\wout$ **無關**，因此 $t^{\star}$ 從 $1$ 開始。
 不過從 $t^{\star}$ 從 $0$ 開始也沒差，反正前面的乘法項直接讓整個梯度 $\aptr 0$。
 
-### 剩餘梯度
+### 總輸出參數梯度
 
-令 $\delta_{a b}$ 為 **Kronecker delta**，i.e.，
+令 $\delta_{a, b}$ 為 **Kronecker delta**，i.e.，
 
 $$
-\delta_{a b} = \begin{dcases}
+\delta_{a, b} = \begin{dcases}
 1 & \text{if } a = b \\
 0 & \text{otherwise}
 \end{dcases} \tag{48}\label{eq:48}
@@ -993,27 +998,30 @@ $$
 
 $$
 \begin{align*}
-\pd{y_i(t + 1)}{\wout_{p q}} & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wout_{p q}} \\
-& = \dfnetout{i}{t + 1} \cdot \delta_{i p} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots, y^{\cell{\ncell}}]_q(t)
+\pd{y_i(t + 1)}{\wout_{p, q}} & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wout_{p, q}} \\
+& = \dfnetout{i}{t + 1} \cdot \delta_{i, p} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots, y^{\cell{\ncell}}]_q(t)
 \end{align*} \tag{49}\label{eq:49}
 $$
 
-- 由於 $p$ 可以是**任意**的輸出節點，因此只有 $i = p$ 的時候計算 $\wout_{p q}$ 對於 $y_i(t + 1)$ 造成的梯度才有意義
+- $\eqref{eq:49}$ 就是論文中 A.8 式的第一個 case
+- 由於 $p$ 可以是**任意**的輸出節點，因此只有 $i = p$ 的時候計算 $\wout_{p, q}$ 對於 $y_i(t + 1)$ 造成的梯度才有意義
   - $i$ 的數值範圍為 $i = 1, \dots, \dout$
   - $p$ 的數值範圍為 $p = 1, \dots, \dout$
 - 我們使用 $\delta_{i p}$ 確保梯度只有在 $i = p$ 才會造成作用
   - 與 $y_i(t + 1)$ 透過 $\wout_{i q}$ 相連的節點只有**外部輸入** $x_q(t)$、**隱藏單元** $y_q^{\ophid}(t)$ 以及**記憶單元輸出** $y_q^{\cell{k}}(t)$
 
+### 隱藏單元參數剩餘梯度
+
 在 $\eqref{eq:44} \eqref{eq:45} \eqref{eq:46} \eqref{eq:47}$ 的作用下，我們可以求得 $\whid$ 在**丟棄**部份梯度後對於 $t + 1$ 時間點**總輸出**計算所得的**剩餘梯度**
 
 $$
 \begin{align*}
-& \pd{y_i(t + 1)}{\whid_{p q}} \\
-& = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\whid{p q}} \\
+& \pd{y_i(t + 1)}{\whid_{p, q}} \\
+& = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\whid_{p, q}} \\
 & = \dfnetout{i}{t + 1} \cdot \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
-& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p q}}\bigg] \\
-& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{p q}}\bigg]
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p, q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p, q}}\bigg] \\
+& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{p, q}}\bigg]
 \end{align*} \tag{50}\label{eq:50}
 $$
 
@@ -1022,37 +1030,80 @@ $$
   - 公式中的加法項次從 $\din + 1$ 開始代表**跳過** $x(t)$
 - $\eqref{eq:50}$ 的**近似**結果是來自 $\eqref{eq:47}$
   - $\eqref{eq:50}$ 就是論文中 A.8 式的最後一個 case
-  - 根據近似， $\whid_{p q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $y^{\ophid}(t^{\star})$，其中 $t^{\star} = 1, \dots, t$
+  - 根據近似， $\whid_{p, q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $t$ 時間點的**隱藏單元** $y^{\ophid}(t)$
 
-<!--
-同 $\eqref{eq:50}$，我們可以計算 $\wig$ 對 $t + 1$ 時間點的**總輸出**計算所得的**剩餘梯度**
+### 閘門參數剩餘梯度
+
+同 $\eqref{eq:50}$，我們可以計算 $\wig, \wog$ 對 $t + 1$ 時間點的**總輸出**計算所得的**剩餘梯度**
 
 $$
 \begin{align*}
-& \pd{y_i(t + 1)}{\wog_{p q}} \\
-& = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wog{p q}} \\
+& \pd{y_i(t + 1)}{[\wig ; \wog]_{p, q}} \\
+& = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{[\wig ; \wog]_{p, q}} \\
 & = \dfnetout{i}{t + 1} \cdot \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wog_{p q}}\bigg] \\
-& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wog_{p q}}\bigg] \\
-& = \dfnetout{i}{t + 1} \cdot \\
-& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \pd{y_j^{\ophid}(t)}{\wog_{p q}}\bigg] + \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wog_{p q}}\bigg]\Bigg] \\
-& = \dfnetout{i}{t + 1} \cdot \\
-& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^{t - 1} \bigg(\pd{y_j^{\ophid}(t)}{y_p^{\opog}(t^{\star})} \cdot \pd{y_p^{\opog}(t^{\star})}{\netog{p}{t^{\star}}} \cdot \pd{\netog{p}{t^{\star}}}{\wog_{p q}}\bigg)\bigg] \\
-& \quad + \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^{t} \bigg(\pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{y_p^{\opog}(t^{\star})} \cdot \pd{y_p^{\opog}(t^{\star})}{\wog_{p q}}\bigg)\bigg]\Bigg] \\
-& \aptr \dfnetout{i}{t + 1} \cdot \\
-& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^{t - 1} \bigg(\pd{y_j^{\ophid}(t)}{y_p^{\opog}(t^{\star})} \cdot \pd{y_p^{\opog}(t^{\star})}{\netog{p}{t^{\star}}} \cdot \pd{\netog{p}{t^{\star}}}{\wog_{p q}}\bigg)\bigg] \\
-& \quad + \sum_{k = 1}^{\ncell} \bigg[\wout_{i p} \cdot \hcell{p}{k}{t} \cdot \dfnetog{p}{t} \cdot \\
-& \quad [x ; y^{\ophid} ; y^{\opin} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t)\bigg]\Bigg] \\
-%& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \Bigg[\wout_{i j} \cdot \sum_{t^{\star} = 1}^t \bigg[\pd{y_j^{\ophid}(t)}{y_p^{\opog}(t^{\star})} \cdot \pd{y_p^{\opog}(t^{\star})}{\wog_{p q}}\bigg]\Bigg] \\
-%& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i j} \cdot \pd{y_j^{\ophid}(t)}{\wog_{p q}}\bigg]
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{[\wig ; \wog]_{p, q}}\bigg] + \\
+& \quad \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]\Bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \Bigg[ \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \sum_{\ell = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg(\pd{y_j^{\ophid}(t)}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_{\ell}(t - 1)} \cdot \\
+& \quad \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_{\ell}(t - 1)}{[\wig ; \wog]_{p, q}}\bigg)\bigg] + \\
+& \quad \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]\Bigg] \\
+& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]
 \end{align*} \tag{51}\label{eq:51}
 $$
 
-在 $\eqref{eq:44} \eqref{eq:45} \eqref{eq:46} \eqref{eq:47}$ 的作用下，我們可以求得 $\wout$ 的**丟棄**部份梯度後所**剩餘可取得**的梯度
+- $\eqref{eq:51}$ 的第二個等式中只有**隱藏單元**與**記憶單元輸出**參與微分的理由請見 $\eqref{eq:42}$
+  - 沒有列出**外部輸入** $x(t)$ 的理由是 $x(t)$ 並不是**經由** $\wig, \wog$ **產生**，因此微分為 $0$
+  - 公式中的加法項次從 $\din + 1$ 開始代表**跳過** $x(t)$
+- $\eqref{eq:51}$ 的**近似**結果是來自 $\eqref{eq:45}$
+  - $\eqref{eq:51}$ 就是論文中 A.8 式的第三個 case
+  - 根據近似， $\wig_{p, q}, \wog_{p, q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $t$ 時間點的**記憶單元輸出** $y^{\cell{1}}(t), \dots, y^{\cell{\ncell}}(t)$
 
-一但 $\eqref{eq:44}$ 中的梯度為 $0$，$t + 1$ 時間點**以後**與**輸入閘門**或**輸出閘門**有關的**所有**計算，其所得**梯度**便**無法**傳回 $t$ 時間點**以前**的**所有單元**與**所有參數**（見 $\eqref{eq:45}$）
+### 記憶單元淨輸入參數剩餘梯度
 
-一但 $\eqref{eq:44}$ 中的梯度為 $0$，$t + 1$ 時間點**以後**來自**記憶單元**的**所有梯度**便**無法**傳回 $t$ 時間點**以前**的**所有單元**與**所有參數**（見 $\eqref{eq:45} \eqref{eq:46}$）
+$\wcell{k}$ 對 $t + 1$ 時間點的**總輸出**計算所得的**剩餘梯度**與 $\eqref{eq:51}$ 幾乎**相同**
+
+$$
+\begin{align*}
+& \pd{y_i(t + 1)}{\wcell{k}_{p, q}} \\
+& = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wcell{k}_{p, q}} \\
+& = \dfnetout{i}{t + 1} \cdot \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wcell{k}_{p, q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wcell{k}_{p, q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \\
+& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{\wcell{k}_{p, q}}\bigg] + \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wcell{k}_{p, q}}\bigg]\Bigg] \\
+& \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot \pd{y_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}
+\end{align*} \tag{52}\label{eq:52}
+$$
+
+- $\eqref{eq:52}$ 的第二個等式中只有**隱藏單元**與**記憶單元輸出**參與微分的理由請見 $\eqref{eq:42}$
+- $\eqref{eq:52}$ 的**近似**結果是來自 $\eqref{eq:45} \eqref{eq:46}$
+  - $\eqref{eq:52}$ 就是論文中 A.8 式的第二個 case
+  - 根據近似， $\wcell{k}_{p, q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $t$ 時間點的第 $k$ 個**記憶單元輸出** $y^{\cell{k}}(t)$
+
+<!--
+
+$$
+\begin{align*}
+\pd{y_i(t + 1)}{y_j^{\cell{k}}(t)} & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t)} \\
+& = \dfnetout{i}{t + 1} \cdot \wout_{i j^{\star}} \\
+j^{\star} & = \din + \dout + (k - 1) \cdot \dcell + j \\
+\pd{y_i(t + 1)}{y_j^{\opog}(t)} & = \bigg[\sum_{k = 1}^{\ncell} \pd{y_i(t + 1)}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{y_j^{\opog}(t)}\bigg] \\
+& = \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i j^{\star}} \cdot \hcell{j}{k}{t}\bigg] \\
+\pd{y_i(t + 1)}{s_j^{\cell{k}}(t)} & = \pd{y_i(t + 1)}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \\
+& = \dfnetout{i}{t + 1} \cdot \wout_{i j^{\star}} \cdot y_j^{\opog}(t) \cdot \dhcell{j}{k}{t} \\
+\pd{y_i(t + 1)}{y_j^{\opig}(t)} & = \sum_{k = 1}^{\ncell} \bigg[\pd{y_i(t + 1)}{s_j^{\cell{k}}(t)} \cdot \pd{s_j^{\cell{k}}(t)}{y_j^{\opig}(t)}\bigg] \\
+& = \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i j^{\star}} \cdot y_j^{\opog}(t) \cdot \dhcell{j}{k}{t} \cdot \\
+& \quad \gnetcell{j}{k}{t}\bigg] \\
+\pd{y_i(t + 1)}{\netcell{j}{k}{t}} & = \pd{y_i(t + 1)}{s_j^{\cell{k}}(t)} \cdot \pd{s_j^{\cell{k}}(t)}{\netcell{j}{k}{t}} \\
+& = \dfnetout{i}{t + 1} \cdot \wout_{i j^{\star}} \cdot y_j^{\opog}(t) \cdot \dhcell{j}{k}{t} \cdot \\
+& \quad y_j^{\opog}(t) \cdot \dgnetcell{j}{k}{t}
+\end{align*} \tag{51}\label{eq:51}
+$$
+-->
+
+<!--
 
 ### 更新模型參數
 
