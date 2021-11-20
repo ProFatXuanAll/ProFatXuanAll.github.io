@@ -198,7 +198,7 @@ author: [
 - 使用 mulitplicative gate 學習開啟與關閉記憶 hidden state 的機制
   - Forward pass 演算法複雜度為 $O(1)$
   - Backward pass 演算法複雜度為 $O(w)$，$w$ 代表權重
-- 與 [Pytorch][Pytorch-LSTM] 實作的 LSTM 完全不同
+- 與 [PyTorch][Pytorch-LSTM] 實作的 LSTM 完全不同
   - 本篇論文的架構定義更為**廣義**
   - 本篇論文只有**輸入閘門（input gate）**跟**輸出閘門（output gate）**，並沒有使用**失憶閘門（forget gate）**
 
@@ -421,18 +421,18 @@ $$
 
 由 $\eqref{eq:20}$ 我們可以看出所有的 $\dv{k_{n}}{t}{t - n}$ 都與 $\dv{k_{0}}{t}{t}$ 相關，因此我們將 $\dv{k_{n}}{t}{t - n}$ 想成由 $\dv{k_{0}}{t}{t}$ 構成的函數。
 
-現在讓我們固定 $k_{0}^* \in \set{1, \dots, \dout}$，我們可以計算 $\dv{k_{0}^*}{t}{t}$ 對於 $\dv{k_{n}}{t}{t - n}$ 的微分
+現在讓我們固定 $k_{0}^{\star} \in \set{1, \dots, \dout}$，我們可以計算 $\dv{k_{0}^{\star}}{t}{t}$ 對於 $\dv{k_{n}}{t}{t - n}$ 的微分
 
 - 當 $n = 1$ 時，根據 $\eqref{eq:17}$ 我們可以推得論文中的 (3.1) 式
 
   $$
-  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = w_{k_{0}^*, k_{1}} \cdot \dfnet{k_{1}}{t - 1} \tag{21}\label{eq:21}
+  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} = w_{k_{0}^{\star}, k_{1}} \cdot \dfnet{k_{1}}{t - 1} \tag{21}\label{eq:21}
   $$
 
 - 當 $n > 1$ 時，根據 $\eqref{eq:20}$ 我們可以推得論文中的 (3.2) 式
 
   $$
-  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^*}} \bigg[\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \tag{22}\label{eq:22}
+  \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^{\star}}} \bigg[\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}\bigg] \tag{22}\label{eq:22}
   $$
 
 **注意錯誤**：論文中的 (3.2) 式不小心把 $w_{l_{m - 1} l_{m}}$ 寫成 $w_{l_{m} l_{m - 1}}$。
@@ -480,14 +480,18 @@ $$
 $$
 \begin{align*}
 & \abs{\net{k_{q - 1}}{t - q + 1}} \to \infty \\
-\implies & \begin{cases}
+\implies & \begin{dcases}
 \fnet{k_{q - 1}}{t - q + 1} \to 1 & \text{if } \net{k_{q - 1}}{t - q + 1} \to \infty \\
 \fnet{k_{q - 1}}{t - q + 1} \to 0 & \text{if } \net{k_{q - 1}}{t - q + 1} \to -\infty
-\end{cases} \\
+\end{dcases} \\
 \implies & \abs{\dfnet{k_{q - 1}}{t - q + 1}} \to 0 && \text{(by \eqref{eq:25})} \\
-\implies & \abs{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0
+\implies & \abs{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} \\
+& = \abs{w_{k_0, k_1} \cdot \prod_{q = 2}^{n} \bigg[\dfnet{k_{q - 1}}{t - q + 1} \cdot w_{k_{q - 1}, k_{q}}\bigg] \cdot \dfnet{k_{n}}{t - n}} \\
+& \to 0
 \end{align*} \tag{27}\label{eq:27}
 $$
+
+最後一個推論的原理是**指數收斂的速度比線性快**。
 
 **注意錯誤**：論文中的推論
 
@@ -557,10 +561,10 @@ $$
 
 但公式的前提不對，理由是 $w_{l_{m} l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_{m}}$（同 $\eqref{eq:22}$）。
 
-接著我們推導時間點 $t - n$ 的節點 $\net{k_{n}}{t - n}$ 針對 $t$ 時間點造成的**總誤差**梯度**變化**：
+接著我們可以計算 $t$ 時間點 $\dout$ 個**不同**節點 $\net{k_0^{\star}}{t}$ 對於**同一個** $t - n$ 時間點的 $\net{k_{n}}{t - n}$ 節點所貢獻的**梯度變化總和**：
 
 $$
-\sum_{k_{0}^* = 1}^{\dout} \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^*}{t}{t}} \tag{28}\label{eq:28}
+\sum_{k_{0}^{\star} = 1}^{\dout} \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} \tag{28}\label{eq:28}
 $$
 
 由於**每個項次**都能遭遇**梯度消失**，因此**總和**也會遭遇**梯度消失**。
@@ -890,7 +894,7 @@ $$
   - $y_i(t + 1)$ 是**總輸出**，我的 $y_i(t + 1)$ 是論文中的 $y^k(t + 1)$
   - $y_i^{\opog}(t + 1)$ 是**記憶單元**的**輸出閘門**，我的 $y_i^{\opog}(t + 1)$ 是論文中的 $y^{\opout_i}(t + 1)$
 - 接著就可以拿 $y_i(t + 1)$ 去做 $\eqref{eq:3} \eqref{eq:4}$ 的誤差計算，取得梯度並進行模型最佳化
-- 與 [Pytorch 實作的 LSTM][Pytorch-LSTM] **不同**，$t + 1$ 時間點的**總輸出**並不是拿 $y^{\ophid}(t + 1)$ 與 $y^{\cell{k}}(t + 1)$ 計算 $y(t + 1)$，導致 $y(1)$ 只能**完全**依靠 $x(0)$ 的訊號（細節可見論文 A.1 節）
+- 與 [PyTorch 實作的 LSTM][Pytorch-LSTM] **不同**，$t + 1$ 時間點的**總輸出**並不是拿 $y^{\ophid}(t + 1)$ 與 $y^{\cell{k}}(t + 1)$ 計算 $y(t + 1)$，導致 $y(1)$ 只能**完全**依靠 $x(0)$ 的訊號（細節可見論文 A.1 節）
   - **直接**讓**輸入與輸出相接**看起來等同於**保留** $\eqref{eq:1} \eqref{eq:2}$ 的架構
   - 雖然**總輸出**再也沒有辦法**直接**與**總輸出**相連接，但仍透過 $y^{\ophid}, \cell{k}$ **間接**影響**總輸出**
   - 因此論文後續在**最佳化**的過程中動了手腳，詳細請見 $\eqref{eq:44} \eqref{eq:45} \eqref{eq:46} \eqref{eq:47}$
@@ -983,7 +987,9 @@ $$
 $t = 0$ 時模型的**計算狀態**與 $\wout$ **無關**，因此 $t^{\star}$ 從 $1$ 開始。
 不過從 $t^{\star}$ 從 $0$ 開始也沒差，反正前面的乘法項直接讓整個梯度 $\aptr 0$。
 
-### 總輸出參數梯度
+### 相對於總輸出所得剩餘梯度
+
+#### 總輸出參數
 
 令 $\delta_{a, b}$ 為 **Kronecker delta**，i.e.，
 
@@ -1010,7 +1016,7 @@ $$
 - 我們使用 $\delta_{i p}$ 確保梯度只有在 $i = p$ 才會造成作用
   - 與 $y_i(t + 1)$ 透過 $\wout_{i q}$ 相連的節點只有**外部輸入** $x_q(t)$、**隱藏單元** $y_q^{\ophid}(t)$ 以及**記憶單元輸出** $y_q^{\cell{k}}(t)$
 
-### 隱藏單元參數剩餘梯度
+#### 隱藏單元參數
 
 在 $\eqref{eq:44} \eqref{eq:45} \eqref{eq:46} \eqref{eq:47}$ 的作用下，我們可以求得 $\whid$ 在**丟棄**部份梯度後對於 $t + 1$ 時間點**總輸出**計算所得的**剩餘梯度**
 
@@ -1020,7 +1026,8 @@ $$
 & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\whid_{p, q}} \\
 & = \dfnetout{i}{t + 1} \cdot \\
 & \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p, q}}\bigg] \\
-& = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p, q}}\bigg] \\
+& = \dfnetout{i}{t + 1} \cdot \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\ophid} ; \cancelto{0}{y^{\cell{1}}} ; \dots ; \cancelto{0}{y^{\cell{\ncell}}}]_j(t)}{\whid_{p, q}}\bigg] \\
 & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{p, q}}\bigg]
 \end{align*} \tag{50}\label{eq:50}
 $$
@@ -1032,7 +1039,7 @@ $$
   - $\eqref{eq:50}$ 就是論文中 A.8 式的最後一個 case
   - 根據近似， $\whid_{p, q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $t$ 時間點的**隱藏單元** $y^{\ophid}(t)$
 
-### 閘門參數剩餘梯度
+#### 閘門單元參數
 
 同 $\eqref{eq:50}$，我們可以計算 $\wig, \wog$ 對 $t + 1$ 時間點的**總輸出**計算所得的**剩餘梯度**
 
@@ -1046,9 +1053,10 @@ $$
 & = \dfnetout{i}{t + 1} \cdot \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{[\wig ; \wog]_{p, q}}\bigg] + \\
 & \quad \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]\Bigg] \\
 & = \dfnetout{i}{t + 1} \cdot \Bigg[ \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \sum_{\ell = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg(\pd{y_j^{\ophid}(t)}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_{\ell}(t - 1)} \cdot \\
-& \quad \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_{\ell}(t - 1)}{[\wig ; \wog]_{p, q}}\bigg)\bigg] + \\
-& \quad \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]\Bigg] \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \\
+& \quad \quad \sum_{\ell = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg(\cancelto{0}{\pd{y_j^{\ophid}(t)}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_{\ell}(t - 1)}} \cdot \\
+& \quad \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_{\ell}(t - 1)}{[\wig ; \wog]_{p, q}}\bigg) \\
+& \quad \bigg] + \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]\Bigg] \\
 & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]
 \end{align*} \tag{51}\label{eq:51}
 $$
@@ -1060,7 +1068,7 @@ $$
   - $\eqref{eq:51}$ 就是論文中 A.8 式的第三個 case
   - 根據近似， $\wig_{p, q}, \wog_{p, q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $t$ 時間點的**記憶單元輸出** $y^{\cell{1}}(t), \dots, y^{\cell{\ncell}}(t)$
 
-### 記憶單元淨輸入參數剩餘梯度
+#### 記憶單元淨輸入參數
 
 $\wcell{k}$ 對 $t + 1$ 時間點的**總輸出**計算所得的**剩餘梯度**與 $\eqref{eq:51}$ 幾乎**相同**
 
@@ -1072,7 +1080,8 @@ $$
 & \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wcell{k}_{p, q}}\bigg] \\
 & = \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wcell{k}_{p, q}}\bigg] \\
 & = \dfnetout{i}{t + 1} \cdot \\
-& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{\wcell{k}_{p, q}}\bigg] + \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wcell{k}_{p, q}}\bigg]\Bigg] \\
+& \quad \Bigg[\sum_{j = \din + 1}^{\din + \dhid} \bigg[\wout_{i, j} \cdot \cancelto{0}{\pd{y_j^{\ophid}(t)}{\wcell{k}_{p, q}}}\bigg] + \\
+& \quad \cancelto{\din + \dhid + (k - 1) \cdot \dcell + p}{\sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell}} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\wcell{k}_{p, q}}\bigg]\Bigg] \\
 & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot \pd{y_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}
 \end{align*} \tag{52}\label{eq:52}
 $$
@@ -1081,6 +1090,132 @@ $$
 - $\eqref{eq:52}$ 的**近似**結果是來自 $\eqref{eq:45} \eqref{eq:46}$
   - $\eqref{eq:52}$ 就是論文中 A.8 式的第二個 case
   - 根據近似， $\wcell{k}_{p, q}$ 對於**總輸出** $y_i(t + 1)$ 的影響都是來自 $t$ 時間點的第 $k$ 個**記憶單元輸出** $y^{\cell{k}}(t)$
+
+### 相對於隱藏單元所得剩餘梯度
+
+#### 總輸出參數
+
+由於 $y^{\ophid}$ 並不是透過 $\wout$ 產生，因此 $\wout$ 對於 $y^{\ophid}$ 所得梯度為 $0$
+
+$$
+\pd{y_i^{\ophid}(t + 1)}{\wout_{p, q}} = 0 \tag{53}\label{eq:53}
+$$
+
+#### 隱藏單元參數
+
+根據 $\eqref{eq:44} \eqref{eq:45}$ 我們可以得到 $y^{\ophid}(t + 1)$ 對於 $\whid_{p, q}$ 計算所得**剩餘梯度**
+
+$$
+\begin{align*}
+& \pd{y_i^{\ophid}(t + 1)}{\whid_{p, q}} \\
+& = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \pd{\nethid{i}{t + 1}}{\whid_{p, q}} \\
+& = \delta_{i, p} \cdot \dfnethid{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t) + \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \\
+& \quad \cancelto{0}{\pd{\nethid{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}{\whid_{p, q}}\bigg] \\
+& \aptr \delta_{i, p} \cdot \dfnethid{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)
+\end{align*} \tag{54}\label{eq:54}
+$$
+
+#### 閘門單元參數
+
+由於 $y^{\ophid}$ 並**沒有**與 $\wig, \wog$ **直接相連**，因此根據 $\eqref{eq:44}$ 我們可以推得 $\wig, \wog$ 對於 $y^{\ophid}$ **剩餘梯度**為 $0$
+
+$$
+\begin{align*}
+& \pd{y_i^{\ophid}(t + 1)}{[\wig ; \wog]_{p, q}} \\
+& = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[ \\
+& \quad \cancelto{0}{\pd{\nethid{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}{[\wig ; \wog]_{p, q}}\bigg] \\
+& \aptr 0
+\end{align*} \tag{55}\label{eq:55}
+$$
+
+#### 記憶單元淨輸入參數
+
+同 $\eqref{eq:55}$，由於 $y^{\ophid}$ 並**沒有**與 $\wcell{k}$ **直接相連**，因此根據 $\eqref{eq:44}$ 我們可以推得 $\wcell{k}$ 對於 $y^{\ophid}$ **剩餘梯度**為 $0$
+
+$$
+\begin{align*}
+& \pd{y_i^{\ophid}(t + 1)}{\wcell{k}_{p, q}} \\
+& = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[ \\
+& \quad \cancelto{0}{\pd{\nethid{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}{\wcell{k}_{p, q}}\bigg] \\
+& \aptr 0
+\end{align*} \tag{56}\label{eq:56}
+$$
+
+### 相對於閘門單元所得剩餘梯度
+
+#### 總輸出參數
+
+由於 $y^{\opig}, y^{\opog}$ 並不是透過 $\wout$ 產生，因此 $\wout$ 對於 $y^{\opig}, y^{\opog}$ 所得梯度為 $0$
+
+$$
+\pd{[y^{\opig} ; y^{\opog}]_i(t + 1)}{\wout_{p, q}} = 0 \tag{57}\label{eq:57}
+$$
+
+#### 隱藏單元參數
+
+根據 $\eqref{eq:47}$ 我們知道**隱藏單元**參數 $\whid$ 相對於**閘門單元**所得**剩餘梯度**為 $0$。
+
+#### 閘門單元參數
+
+根據 $\eqref{eq:44} \eqref{eq:45}$ 我們可以得到 $y^{\opig}(t + 1), y^{\opog}(t + 1)$ 對於 $\whid_{p, q}$ 計算所得**剩餘梯度**
+
+$$
+\begin{align*}
+& \pd{y_i^{\opig}(t + 1)}{[\wig ; \wog]_{p, q}} \\
+& = \pd{y_i^{\opig}(t + 1)}{\netig{i}{t + 1}} \cdot \pd{\netig{i}{t + 1}}{[\wig ; \wog]_{p, q}} \\
+& = \delta_{i, p} \cdot \dfnetig{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t) + \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\pd{y_i^{\opig}(t + 1)}{\netig{i}{t + 1}} \cdot \\
+& \quad \cancelto{0}{\pd{\netig{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}{[\wig ; \wog]_{p, q}}\bigg] \\
+& \aptr \delta_{i, p} \cdot \dfnetig{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t) \\
+& \\
+& \pd{y_i^{\opog}(t + 1)}{[\wig ; \wog]_{p, q}} \aptr \delta_{i, p} \cdot \dfnetog{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)
+\end{align*} \tag{58}\label{eq:58}
+$$
+
+#### 記憶單元淨輸入參數
+
+由於 $y^{\opig}, y^{\opog}$ 並**沒有**與 $\wcell{k}$ **直接相連**，因此根據 $\eqref{eq:44}$ 我們可以推得 $\wcell{k}$ 對於 $y^{\opig}, y^{\opog}$ **剩餘梯度**為 $0$
+
+$$
+\begin{align*}
+& \pd{y_i^{\opig}(t + 1)}{\wcell{k}_{p, q}} \\
+& = \pd{y_i^{\opig}(t + 1)}{\netig{i}{t + 1}} \cdot \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[ \\
+& \quad \cancelto{0}{\pd{\netig{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}{\wcell{k}_{p, q}}\bigg] \\
+& \aptr 0 \\
+& \\
+& \pd{y_i^{\opog}(t + 1)}{\wcell{k}_{p, q}} \aptr 0
+\end{align*} \tag{59}\label{eq:59}
+$$
+
+### 相對於記憶單元內部狀態所得剩餘梯度
+
+#### 總輸出參數
+
+由於 $s^{\cell{k}}(t + 1)$ 並不是透過 $\wout$ 產生，因此 $\wout$ 對於 $s^{\cell{k}}(t + 1)$ 所得梯度為 $0$
+
+$$
+\pd{s_i^{\cell{k}}(t + 1)}{\wout_{p, q}} = 0 \tag{60}\label{eq:60}
+$$
+
+#### 隱藏單元參數
+
+$$
+\begin{align*}
+& \pd{s_i^{\cell{k}}(t + 1)}{\whid_{p, q}} \\
+& = \pd{s_i^{\cell{k}}(t + 1)}{\netig{i}{t + 1}} \cdot \pd{\netig{i}{t + 1}}{\whid_{p, q}} + \pd{s_i^{\cell{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \pd{\netcell{i}{k}{t + 1}}{\whid_{p, q}} + \pd{s_i^{\cell{k}}(t + 1)}{\netog{i}{t + 1}} \cdot \pd{\netog{i}{t + 1}}{\whid_{p, q}} \\
+& = \delta_{i, p} \cdot \dfnetig{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t) + \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg[\pd{s_i^{\cell{k}}(t + 1)}{\netig{i}{t + 1}} \cdot \\
+& \quad \cancelto{0}{\pd{\netig{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}} \cdot \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)}{\whid_{p, q}}\bigg] \\
+& \aptr \delta_{i, p} \cdot \dfnetig{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t) \\
+& \\
+& \pd{y_i^{\opog}(t + 1)}{\whid_{p, q}} \aptr \delta_{i, p} \cdot \dfnetog{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t)
+\end{align*} \tag{61}\label{eq:61}
+$$
+
+#### 閘門單元參數
+
+#### 記憶單元淨輸入參數
 
 <!--
 

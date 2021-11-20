@@ -1,0 +1,76 @@
+{
+  "MD003": {
+    "style": "consistent"
+  },
+  "MD004": {
+    "style": "consistent"
+  },
+  "MD005": true,
+  "MD007": {
+    "indent": 2
+  },
+  "MD009": true,
+  "MD010": true,
+  "MD011": true,
+  "MD012": true,
+  "MD013": false,
+  "MD014": true,
+  "MD018": true,
+  "MD019": true,
+  "MD020": true,
+  "MD021": true,
+  "MD022": true,
+  "MD023": true,
+  "MD024": {
+    "allow_different_nesting": true
+  },
+  "MD025": true,
+  "MD026": true,
+  "MD027": true,
+  "MD028": true,
+  "MD029": true,
+  "MD030": true,
+  "MD031": true,
+  "MD032": true,
+  "MD033": {
+    "allowed_elements": [
+      "a",
+      "p"
+    ]
+  },
+  "MD034": true,
+  "MD035": true,
+  "MD036": true,
+  "MD037": true,
+  "MD038": true,
+  "MD039": true,
+  "MD040": true,
+  "MD041": true,
+  "MD042": true,
+  "MD043": false,
+  "MD044": {
+    "names": [
+      "BERT",
+      "LSTM",
+      "GRU",
+      "Matplotlib",
+      "Numpy",
+      "PyTorch",
+      "Python",
+      "RNN",
+      "Scipy",
+      "Scikit-Learn",
+      "Seaborn",
+      "Tensorboard",
+      "Tensorflow"
+    ]
+  },
+  "MD045": true,
+  "MD046": {
+    "style": "consistent"
+  },
+  "MD047": true,
+  "MD048": {
+    "style": "backtick"
+  }
+}
