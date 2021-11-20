@@ -479,12 +479,12 @@ $$
 
 $$
 \begin{align*}
-& \abs{\net{k_{q - 1}}{t - q - 1}} \to \infty \\
+& \abs{\net{k_{q - 1}}{t - q + 1}} \to \infty \\
 \implies & \begin{cases}
-\fnet{k_{q - 1}}{t - q - 1} \to 1 & \text{if } \net{k_{q - 1}}{t - q - 1} \to \infty \\
-\fnet{k_{q - 1}}{t - q - 1} \to 0 & \text{if } \net{k_{q - 1}}{t - q - 1} \to -\infty
+\fnet{k_{q - 1}}{t - q + 1} \to 1 & \text{if } \net{k_{q - 1}}{t - q + 1} \to \infty \\
+\fnet{k_{q - 1}}{t - q + 1} \to 0 & \text{if } \net{k_{q - 1}}{t - q + 1} \to -\infty
 \end{cases} \\
-\implies & \abs{\dfnet{k_{q - 1}}{t - q - 1}} \to 0 && \text{(by \eqref{eq:25})} \\
+\implies & \abs{\dfnet{k_{q - 1}}{t - q + 1}} \to 0 && \text{(by \eqref{eq:25})} \\
 \implies & \abs{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0
 \end{align*} \tag{27}\label{eq:27}
 $$
