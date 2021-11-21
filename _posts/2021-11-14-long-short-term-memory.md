@@ -1058,7 +1058,7 @@ $$
 & \quad \quad \sum_{\ell = \din + 1}^{\din + \dhid + (2 + \ncell) \cdot \dcell} \bigg(\cancelto{0}{\pd{y_j^{\ophid}(t)}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_{\ell}(t - 1)}} \cdot \\
 & \quad \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_{\ell}(t - 1)}{[\wig ; \wog]_{p, q}}\bigg) \\
 & \quad \bigg] + \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]\Bigg] \\
-& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{p, q}}\bigg]
+& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell \cdot \dcell} \bigg[\delta_{j, p} \cdot \wout_{i, j} \cdot \pd{[y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{[\wig ; \wog]_{j, q}}\bigg]
 \end{align*} \tag{51}\label{eq:51}
 $$
 
@@ -1319,25 +1319,36 @@ $$
 $$
 \begin{align*}
 & \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wout_{i, j}} = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[ \\
-& \quad \dfnetout{i}{t + 1} \tag{69-a}\label{eq:69-a} \\
-& \quad \times \tag{69-b}\label{eq:69-b} \\
-& \quad [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \tag{69-c}\label{eq:69-c} \\
+& \quad \dfnetout{i}{t + 1} \tag{69a}\label{eq:69a} \\
+& \quad \times \tag{69b}\label{eq:69b} \\
+& \quad [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \tag{69c}\label{eq:69c} \\
 & \bigg]
 \end{align*}
 $$
 
 - 在 $t + 1$ 時間點**總輸出參數** $\wout$ 的**梯度**只來自 $t$ 時間點的**計算狀態**
 - 在 $t + 1$ 時間點**總輸出參數** $\wout$ **更新**所需的**時間複雜度**為 $O(\dim(\wout))$
-  1. 計算並**紀錄** $\eqref{eq:69-a}$ 需要 $O(\dim(\wout))$
-  2. 利用**已經計算過**的 $\eqref{eq:69-a}$ 進行 $\eqref{eq:69-b}$ 需要 $O(\dim(\wout))$
-  3. 因此**時間複雜度**為 $O(\dim(\wout) + \dim(\wout)) = O(\dim(\wout))$
+  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
+  2. 利用 **forward pass** 的結果計算 $\eqref{eq:69a}$ 的計算結果需要 $O(\dout)$
+  3. 利用**已經計算過**的 $\eqref{eq:69a}$ 進行 $\eqref{eq:69b}$ 需要 $O(\dim(\wout))$
+  4. 因此**時間複雜度**為
+
+  $$
+  \begin{align*}
+  & O(\dout + \dim(\wout)) \\
+  & = O(\dout + \dout \cdot (\din + \dhid + \ncell \cdot \dcell)) \\
+  & = O(\dout \cdot (\din + \dhid + \ncell \cdot \dcell)) \\
+  & = O(\dim(\wout))
+  \end{align*}
+  $$
+
 - **總輸出參數** $\wout$ **更新**所需的**總時間複雜度**為 $O(T \cdot \dim(\wout))$
   - 共有 $T$ 個項次
-  - 每個項次的時間複雜度為 $O(\dim(\wout))$
+  - 每個項次的**時間複雜度**為 $O(\dim(\wout))$
 - 在 $t + 1$ 時間點**總輸出參數** $\wout$ **更新**所需的**空間複雜度**為 $O(\dim(\wout))$
-  - 需要紀錄 $t$ 時間點的**計算狀態** $\eqref{eq:69-c}$，空間複雜度為 $O(\dhid + \ncell \cdot \dcell)$
-  - 紀錄 $\eqref{eq:69-a}$ 需要 $O(\dout)$
-  - 進行 $\eqref{eq:69-b}$ 產出 $\dim(\wout)$ 個數值
+  - 需要紀錄 $t$ 時間點的**計算狀態** $\eqref{eq:69c}$，空間複雜度為 $O(\dhid + \ncell \cdot \dcell)$
+  - 紀錄 **forward pass** 與 $\eqref{eq:69a}$ 需要 $O(\dout)$
+  - 進行 $\eqref{eq:69b}$ 產出 $\dim(\wout)$ 個數值
   - 因此**空間複雜度**為
 
   $$
@@ -1359,36 +1370,129 @@ $$
 
 $$
 \begin{align*}
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\whid_{p, q}} \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t)}{\whid_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \dfnethid{p}{t} \cdot \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1)\bigg]
+\end{align*} \tag{70}\label{eq:70}
+$$
+
+我們展開 $\eqref{eq:70}$ 進行分析
+
+$$
+\begin{align*}
 & \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\whid_{p, q}} \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[ \\
-& \quad \dfnetout{i}{t + 1} \tag{70-a}\label{eq:70-a} \\
-& \quad \times \tag{70-b}\label{eq:70-b} \\
-& \quad \wout_{i, p} \tag{70-c}\label{eq:70-c} \\
-& \quad \times \tag{70-d}\label{eq:70-d} \\
-& \quad \dfnethid{p}{t} \tag{70-e}\label{eq:70-e} \\
-& \quad \times \tag{70-f}\label{eq:70-f} \\
-& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1) \tag{70-g}\label{eq:70-g} \\
+& \quad \dfnetout{i}{t + 1} \tag{70a}\label{eq:70a} \\
+& \quad \times \tag{70b}\label{eq:70b} \\
+& \quad \wout_{i, p} \tag{70c}\label{eq:70c} \\
+& \quad \times \tag{70d}\label{eq:70d} \\
+& \quad \dfnethid{p}{t} \tag{70e}\label{eq:70e} \\
+& \quad \times \tag{70f}\label{eq:70f} \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1) \tag{70g}\label{eq:70g} \\
 & \bigg]
 \end{align*}
 $$
 
 - 在 $t + 1$ 時間點**隱藏單元參數** $\whid$ 的**梯度**只來自 $t - 1$ 時間點的**計算狀態**
   - 注意是 $t - 1$ 不是 $t$
-  - 這也代表 $\whid$ 需要 forward 兩次以上（$t \geq 2$）才能收到梯度
+  - $\nethid{p}{t}$ 可以由 $t - 1$ 時間點的**計算狀態**組合而得
+  - 這也代表 $\whid$ 需要進行兩次以上的 **forward pass** （$t \geq 2$）才能收到梯度
 - 在 $t + 1$ 時間點**隱藏單元參數** $\whid$ **更新**所需的**時間複雜度**為 $O(\dout \cdot \dhid + \dim(\whid))$
-  1. 利用 $\eqref{eq:69-a}$ 中**已經計算過**的 $\eqref{eq:70-a}$ 需要 $O(1)$
-  2. 計算並**紀錄** $\eqref{eq:70-b}$ 需要 $O(\dout \cdot \dhid)$
-  3. 計算並**紀錄** $\eqref{eq:70-e}$ 需要 $O(\dim(\whid))$
-  4. 利用**已經計算過**的 $\eqref{eq:70-b} \eqref{eq:70-e}$ 進行計算並**紀錄** $\eqref{eq:70-d}$ 需要 $O(\dout \cdot \dhid)$
-  5. 利用**已經計算過**的 $\eqref{eq:70-d}$ 進行 $\eqref{eq:70-f}$ 的計算需要 $O(\dim(\whid))$
-  6. 因此**時間複雜度**為 $O(2\dout \cdot \dhid + 2\dim(\whid)) = O(\dout \cdot \dhid + \dim(\whid))$
+  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
+  2. 利用 $\eqref{eq:69a}$ 中**已經計算過**的 $\eqref{eq:70a}$ 需要 $O(1)$
+  3. 計算並**紀錄** $\eqref{eq:70b}$ 需要 $O(\dout \cdot \dhid)$
+  4. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:70e}$ 需要 $O(\dhid)$
+  5. 利用**已經計算過**的 $\eqref{eq:70b} \eqref{eq:70e}$ 進行計算並**紀錄** $\eqref{eq:70d}$ 需要 $O(\dout \cdot \dhid)$
+  6. 利用**已經計算過**的 $\eqref{eq:70d}$ 進行 $\eqref{eq:70f}$ 的計算需要 $O(\dim(\whid))$
+  7. 因此**時間複雜度**為
+
+  $$
+  \begin{align*}
+  & O(\dout \cdot \dhid + \dhid + \dout \cdot \dhid + \dim(\whid)) \\
+  & = O((2\dout + 1) \cdot \dhid + \dim(\whid)) \\
+  & = O(\dout \cdot \dhid + \dim(\whid))
+  \end{align*}
+  $$
+
 - **隱藏單元參數** $\whid$ **更新**所需的**總時間複雜度**為 $O(T \cdot (\dout \cdot \dhid + \dim(\whid)))$
   - 共有 $T$ 個項次
   - 每個項次的時間複雜度為 $O(\dout \cdot \dhid + \dim(\whid))$
 - 在 $t + 1$ 時間點**隱藏單元參數** $\whid$ **更新**所需的**空間複雜度**為 $O(\dout \cdot \dhid + \dim(\whid))$
-  - 需要紀錄 $t - 1$ 時間點的**計算狀態** $\eqref{eq:70-g}$，空間複雜度為 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
-  - 紀錄 $\eqref{eq:70-b}$ 需要 $O(\dout \cdot \dhid)$
-  - 紀錄 $\eqref{eq:70-d}$ 需要 $O(\dout \cdot \dhid)$
-  - 紀錄 $\eqref{eq:70-f}$ 產出 $O(\dim(\wout))$ 個數值
+  - 需要紀錄 $t - 1$ 時間點的**計算狀態** $\eqref{eq:70g}$，空間複雜度為 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
+  - 紀錄 $\eqref{eq:70b}$ 需要 $O(\dout \cdot \dhid)$
+  - 紀錄 $\eqref{eq:70d}$ 需要 $O(\dout \cdot \dhid)$
+  - 紀錄 $\eqref{eq:70f}$ 產出 $O(\dim(\whid))$ 個數值
+  - 因此**空間複雜度**為
+
+  $$
+  \begin{align*}
+  & O(\din + \dhid + (2 + \ncell) \cdot \dcell + 2\dout \cdot \dhid + \dim(\whid)) \\
+  & = O\big(\din + \dhid + (2 + \ncell) \cdot \dcell + 2\dout \cdot \dhid + \\
+  & \quad \dhid \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)\big) \\
+  & = O\big(\dout \cdot \dhid + \dhid \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)\big) \\
+  & = O(\dout \cdot \dhid + \dim(\whid))
+  \end{align*}
+  $$
+
+- **隱藏單元參數** $\whid$ **更新**所需的**總空間複雜度**為 $O(\dout \cdot \dhid + \dim(\whid))$
+  - 依照**時間順序**計算梯度，每個時間點的梯度以**疊加**的形勢儲存
+- 沒有如同 $\eqref{eq:22}$ 的**連乘積**項，因此不會有**梯度消失**問題
+
+### 輸出閘門單元參數
+
+從 $\eqref{eq:51} \eqref{eq:55} \eqref{eq:58} \eqref{eq:62} \eqref{eq:66}$ 我們可以觀察出以下結論
+
+$$
+\begin{align*}
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wog_{p, q}} \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[\dfnetout{i}{t + 1} \cdot \sum_{k = 1}^{\ncell} \bigg[\wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg]\Bigg] \\
+& = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \hcell{p}{k}{t} \cdot \pd{y_p^{\opog}(t)}{\wog_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \hcell{p}{k}{t} \cdot \\
+& \quad \dfnetog{p}{t} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg]
+\end{align*} \tag{71}\label{eq:71}
+$$
+
+我們展開 $\eqref{eq:71}$ 進行分析
+
+$$
+\begin{align*}
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wog_{p, q}} \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[ \\
+& \quad \dfnetout{i}{t + 1} \tag{71a}\label{eq:71a} \\
+& \quad \times \tag{71b}\label{eq:71b} \\
+& \quad \wout_{i, p} \tag{71c}\label{eq:71c} \\
+& \quad \times \tag{71d}\label{eq:71d} \\
+& \quad \hcell{p}{k}{t} \tag{71e}\label{eq:71e} \\
+& \quad \times \tag{71f}\label{eq:71f} \\
+& \quad \dfnetog{p}{t} \tag{71g}\label{eq:71g} \\
+& \quad \times \tag{71h}\label{eq:71h} \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1) \tag{71i}\label{eq:71i} \\
+\bigg]
+\end{align*}
+$$
+
+- 在 $t + 1$ 時間點**輸出閘門單元參數** $\wog$ 的**梯度**來自 $t$ 時間點的**記憶單元內部狀態**與 $t - 1$ 時間點的**計算狀態**
+  - 注意是 $t - 1$ 不是 $t$
+  - 這也代表 $\wog$ 需要進行兩次以上的 **forward pass** （$t \geq 2$）才能收到梯度
+- 在 $t + 1$ 時間點**輸出閘門單元參數** $\wog$ **更新**所需的**時間複雜度**為 $O(\dout \cdot \dhid + \dim(\wog))$
+  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
+  2. 利用 $\eqref{eq:69a}$ 中**已經計算過**的 $\eqref{eq:71a}$ 需要 $O(1)$
+  3. 計算並**紀錄** $\eqref{eq:71b}$ 需要 $O(\dout \cdot \ncell \cdot \dcell)$
+  4. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:71e}$ 需要 $O(1)$
+  5. 利用**已經計算過**的 $\eqref{eq:71b} \eqref{eq:71e}$ 進行 $\eqref{eq:71d}$ 的計算需要 $O(\dout \cdot \ncell \cdot \dcell)$
+  6. 利用**已經計算過**的 $\eqref{eq:71d}$ 進行 $\eqref{eq:71f}$ 的計算需要 $O(\dim(\wog))$
+  7. 因此**時間複雜度**為 $O(2\dout \cdot \ncell \cdot \dcell + 2\dim(\wog)) = O(\dout \cdot \ncell \cdot \dcell + \dim(\wog))$
+  8. 利用**已經計算過**的 $\eqref{eq:71b} \eqref{eq:71e}$ 進行計算並**紀錄** $\eqref{eq:71d}$ 需要 $O(\dout \cdot \ncell \cdot \dcell)$
+  9. 利用**已經計算過**的 $\eqref{eq:71d}$ 進行 $\eqref{eq:71f}$ 的計算需要 $O(\dim(\wog))$
+  10. 因此**時間複雜度**為 $O(2\dout \cdot \ncell \cdot \dcell + 2\dim(\wog)) = O(\dout \cdot \ncell \cdot \dcell + \dim(\wog))$
+- **輸出閘門單元參數** $\wog$ **更新**所需的**總時間複雜度**為 $O(T \cdot (\dout \cdot \dhid + \dim(\wog)))$
+  - 共有 $T$ 個項次
+  - 每個項次的時間複雜度為 $O(\dout \cdot \dhid + \dim(\wog))$
+- 在 $t + 1$ 時間點**輸出閘門單元參數** $\wog$ **更新**所需的**空間複雜度**為 $O(\dout \cdot \dhid + \dim(\wog))$
+  - 需要紀錄 $t - 1$ 時間點的**計算狀態** $\eqref{eq:71g}$，空間複雜度為 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
+  - 紀錄 $\eqref{eq:71b}$ 需要 $O(\dout \cdot \dhid)$
+  - 紀錄 $\eqref{eq:71d}$ 需要 $O(\dout \cdot \dhid)$
+  - 紀錄 $\eqref{eq:71f}$ 產出 $O(\dim(\wout))$ 個數值
   - 因此**空間複雜度**為
 
   $$
@@ -1401,11 +1505,9 @@ $$
   \end{align*}
   $$
 
-- **隱藏單元參數** $\whid$ **更新**所需的**總空間複雜度**為 $O(\dout \cdot \dhid + \dim(\wout))$
+- **輸出閘門單元參數** $\wog$ **更新**所需的**總空間複雜度**為 $O(\dout \cdot \dhid + \dim(\wout))$
   - 依照**時間順序**計算梯度，每個時間點的梯度以**疊加**的形勢儲存
 - 沒有如同 $\eqref{eq:22}$ 的**連乘積**項，因此不會有**梯度消失**問題
-
-### 輸出閘門單元參數
 
 ### 輸入閘門單元參數
 
