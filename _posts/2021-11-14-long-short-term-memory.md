@@ -1588,7 +1588,7 @@ $$
   \end{align*} \tag{79}\label{eq:79}
   $$
 
-- **輸入閘門單元參數** $\wig$ **更新**所需的**總時間複雜度**為 $O(T \cdot (\dout \cdot \ncell \cdot \dim(\wig)))$
+- **輸入閘門單元參數** $\wig$ **更新**所需的**總時間複雜度**為 $O(T \cdot \dout \cdot \ncell \cdot \dim(\wig))$
   - 共有 $T$ 個項次
   - 每個項次的時間複雜度為 $O(\dout \cdot \ncell \cdot \dim(\wig))$
 - 在 $t + 1$ 時間點**輸入閘門單元參數** $\wig$ **更新**所需的**空間複雜度**為 $O(\dout \cdot \ncell \cdot \dim(\wig))$
@@ -1667,6 +1667,69 @@ $$
 & \bigg]\Bigg]
 \end{align*}
 $$
+
+- 在 $t + 1$ 時間點**記憶單元淨輸入參數** $\wcell{k}$ 的**梯度**來自 $t$ 時間點的**記憶單元內部狀態**與 $t - 1$ 時間點的**計算狀態**
+  - 注意是 $t - 1$ 不是 $t$
+  - 這也代表 $\wcell{k}$ 需要進行兩次以上的 **forward pass** （$t \geq 2$）才能收到梯度
+- 在 $t + 1$ 時間點**記憶單元淨輸入參數** $\wcell{k}$ **更新**所需的**時間複雜度**為 $O(\dout \cdot \dim(\wcell{k}))$
+  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
+  2. 利用 $\eqref{eq:78b} \eqref{eq:78d} \eqref{eq:78f}$ 中**已經計算過**的 $\eqref{eq:81b} \eqref{eq:81d} \eqref{eq:81f}$ 需要 $O(1)$
+  3. 利用**過去紀錄**的 $\eqref{eq:81i}$ 需要 $O(1)$
+  4. 利用 **forward pass** 的結果計算 $\eqref{eq:81k}$ 需要 $O(1)$
+  5. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:81m}$ 需要 $O(\dcell)$
+  6. 利用**已經計算過**的 $\eqref{eq:81k} \eqref{eq:81m}$ 進行 $\eqref{eq:81l}$ 的計算並**紀錄**需要 $O(\dcell)$
+  7. 利用**已經計算過**的 $\eqref{eq:81l}$ 進行 $\eqref{eq:81n}$ 的計算並**紀錄**需要 $O(\dim(\wcell{k}))$
+  8. 利用**已經計算過**的 $\eqref{eq:81i} \eqref{eq:81n}$ 進行 $\eqref{eq:81j}$ 的計算並**紀錄**需要 $O(\dim(\wcell{k}))$
+  9. 利用**已經計算過**的 $\eqref{eq:81f} \eqref{eq:81j}$ 進行 $\eqref{eq:81h}$ 的計算需要 $O(\dout \cdot \dim(\wcell{k}))$
+  10. 因此**時間複雜度**為
+
+  $$
+  \begin{align*}
+  & O(2\dcell + 2\dim(\wcell{k}) + \dout \cdot \dim(\wcell{k})) \\
+  & = O(\dcell + \dout \cdot \dim(\wcell{k})) \\
+  & = O(\dcell + \dout \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
+  & = O(\dout \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
+  & = O(\dout \cdot \dim(\wcell{k}))
+  \end{align*} \tag{82}\label{eq:82}
+  $$
+
+- **記憶單元淨輸入參數** $\wcell{1}, \dots, \wcell{\ncell}$ **更新**所需的**總時間複雜度**為 $O(T \cdot \ncell \cdot \dout \cdot \dim(\wcell{k}))$
+  - 共有 $T \cdot \ncell$ 個項次
+  - 每個項次的時間複雜度為 $O(\dout \cdot \dim(\wcell{k}))$
+- 在 $t + 1$ 時間點**記憶單元淨輸入參數** $\wcell{k}$ **更新**所需的**空間複雜度**為 $O(\dout \cdot \dim(\wcell{k}))$
+  - 需要紀錄 $t$ 時間點的**輸入閘門單元**與微分值 $\eqref{eq:81k}$，空間複雜度為 $O(\dcell)$
+  - 需要紀錄 $t$ 時間點的**記憶單元淨輸入**與微分值 $\eqref{eq:81m}$，空間複雜度為 $O(\dcell)$
+  - 需要紀錄 $t - 1$ 時間點的**計算狀態** $\eqref{eq:81o}$，空間複雜度為 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
+  - 紀錄 $\eqref{eq:81b}$ 需要 $O(1)$
+  - 紀錄 $\eqref{eq:81d}$ 需要 $O(1)$
+  - 紀錄 $\eqref{eq:81e}$ 需要 $O(1)$
+  - 紀錄 $\eqref{eq:81f}$ 需要 $O(1)$
+  - 紀錄 $\eqref{eq:81g}$ 需要 $O(1)$
+  - 紀錄 $\eqref{eq:81i}$ 需要 $O(1)$
+  - 紀錄 $\eqref{eq:81l}$ 需要 $O(\dcell)$
+  - 紀錄 $\eqref{eq:81n}$ 需要 $O(\dim(\wcell{k}))$
+  - 紀錄 $\eqref{eq:81j}$ 需要 $O(\dim(\wcell{k}))$
+  - 紀錄 $\eqref{eq:81h}$ 產出 $O(\dout \cdot \dim(\wcell{k}))$ 個數值
+  - 因此**空間複雜度**為
+
+  $$
+  \begin{align*}
+  & O(3\dcell + \din + \dhid + (2 + \ncell) \cdot \dcell + 2\dim(\wcell{k}) + \dout \cdot \dim(\wcell{k})) \\
+  & = O(\din + \dhid + \ncell \cdot \dcell + \dout \cdot \dim(\wcell{k})) \\
+  & = O(\din + \dhid + \ncell \cdot \dcell + \dout \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
+  & = O(\dout \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
+  & = O(\dout \cdot \dim(\wcell{k}))
+  \end{align*} \tag{83}\label{eq:83}
+  $$
+
+- **記憶單元淨輸入參數** $\wcell{1}, \dots, \wcell{\ncell}$ **更新**所需的**總空間複雜度**為 $O(\dout \cdot \ncell \cdot \dim(\wcell{1}))$
+  - 共有 $\ncell$ 個不同的記憶單元參數
+  - 依照**時間順序**計算梯度，每個時間點的梯度以**疊加**的形勢儲存
+- 沒有如同 $\eqref{eq:22}$ 的**連乘積**項，因此不會有**梯度消失**問題
+- 整個計算過程**唯一**需要額外紀錄的**梯度**項次就是 $\eqref{eq:81i}$
+  - 紀錄 $\eqref{eq:81i}$ 讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
+  - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
+  - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
 
 <!--
 
