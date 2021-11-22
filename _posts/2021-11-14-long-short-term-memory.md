@@ -1629,6 +1629,45 @@ $$
 
 ### 記憶單元淨輸入參數
 
+從 $\eqref{eq:52} \eqref{eq:56} \eqref{eq:60} \eqref{eq:63} \eqref{eq:68}$ 我們可以觀察出以下結論
+
+$$
+\begin{align*}
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wcell{k}_{p, q}} \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot \pd{y^{\cell{k}}_p(t)}{\wcell{k}_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot y_p^{\opog}(t) \cdot \\
+& \quad \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot y_p^{\opog}(t) \cdot \\
+& \quad \dhcell{p}{k}{t} \cdot \bigg[\pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + y_p^{\opig}(t) \cdot \dgnetcell{p}{k}{t} \cdot \\
+& \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg]\Bigg]
+\end{align*} \tag{81}\label{eq:81}
+$$
+
+我們展開 $\eqref{eq:81}$ 進行分析
+
+$$
+\begin{align*}
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wcell{k}_{p, q}} \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[ \\
+& \quad \dfnetout{i}{t + 1} \tag{81a}\label{eq:81a} \\
+& \quad \times \tag{81b}\label{eq:81b} \\
+& \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \tag{81c}\label{eq:81c} \\
+& \quad \times \tag{81d}\label{eq:81d} \\
+& \quad y_p^{\opog}(t) \tag{81e}\label{eq:81e} \\
+& \quad \times \tag{81f}\label{eq:81f} \\
+& \quad \dhcell{p}{k}{t} \tag{81g}\label{eq:81g} \\
+& \quad \times \tag{81h}\label{eq:81h} \\
+& \quad \bigg[ \\
+& \quad \quad \pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} \tag{81i}\label{eq:81i} \\
+& \quad \quad + \tag{81j}\label{eq:81j} \\
+& \quad \quad y_p^{\opig}(t) \tag{81k}\label{eq:81k} \\
+& \quad \quad \times \tag{81l}\label{eq:81l} \\
+& \quad \quad \dgnetcell{p}{k}{t} \tag{81m}\label{eq:81m} \\
+& \quad \quad \times \tag{81n}\label{eq:81n} \\
+& \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1) \tag{81o}\label{eq:81o} \\
+& \bigg]\Bigg]
+\end{align*}
+$$
+
 <!--
 
 - 從 $\eqref{eq:67} \eqref{eq:68}$ 我們可以觀察出以下結論
