@@ -194,8 +194,12 @@ author: [
   - 無法解決輸入與輸出訊號**間隔較長**（long time lag）的問題
 - 論文提出 **LSTM + RTRL** 能夠解決上述問題
   - Backward pass 演算法**時間複雜度**為 $O(w)$，$w$ 代表權重
-  - Backward pass 演算法**空間複雜度**也為 $O(w)$
+  - Backward pass 演算法**空間複雜度**也為 $O(w)$，因此**沒有輸入長度的限制**
   - 此結論必須依靠**丟棄部份梯度**並使用 **RTRL** 才能以有**效率**的辦法解決梯度**爆炸**或**消失**
+- LSTM 的**閘門單元參數**應該讓**偏差項**（bias term）初始化成**負數**
+  - 輸**入**閘門偏差項初始化成負數能夠解決**內部狀態偏差行為**（**Internal State Drift**）
+  - 輸**出**閘門偏差項初始化成負數能夠避免模型**濫用記憶單元初始值**與**訓練初期梯度過大**
+- 根據實驗 LSTM 能夠達成以下任務
   - 能夠處理 time lag 間隔為 $1000$ 的問題
   - 甚至輸入訊號含有雜訊時也能處理
   - 同時能夠保有處理 short time lag 問題的能力
@@ -1530,6 +1534,8 @@ $$
 \end{align*}
 $$
 
+## 架構分析
+
 ### 時間複雜度
 
 假設 $t + 1$ 時間點的 **forward pass** 已經執行完成，則我們推得**更新** $t + 1$ 時間點**所有參數**的**時間複雜度**
@@ -1656,8 +1662,6 @@ $$
 - 依照**時間順序**計算梯度，計算完 $t + 1$ 時間點的梯度時 $t - 1$ 的資訊便可丟棄
 - 這就是 **RTRL** 的最大優點
 
-## 架構分析
-
 ### 達成梯度常數
 
 根據 $\eqref{eq:39} \eqref{eq:44} \eqref{eq:45} \eqref{eq:46}$ 我們可以推得
@@ -1719,6 +1723,14 @@ $$
 
 雖然這種作法是種**模型偏差**（**Model Bias**）而且會導致 $y^{\opig}(\star)$ 與 $\dfnetig{p}{\star}$ **變小**，但作者認為這些影響比起 Internal State Drift 一點都不重要。
 
+### 輸出閘門初始化
+
+論文 4.7 節表示，在訓練的初期模型有可能濫用**記憶單元的初始值**作為計算的偏差項（細節請見 $\eqref{eq:41}$），導致模型在訓練的過程中學會完全**不紀錄資訊**。
+
+因此可以將**輸出閘門**的偏差項初始化成**較小的負數**（理由類似於 $\eqref{eq:79}$），讓記憶單元在**計算初期**輸出值為 $0$，迫使模型只在**需要**時指派記憶單元進行**記憶**。
+
+如果有多個記憶單元，則可以給予**不同的負數**，讓模型能夠按照需要**依大小順序**取得記憶單元（**愈大的負數**愈容易被取得）。
+
 ### 輸出閘門的優點
 
 在訓練的初期**誤差**通常比較**大**，導致**梯度**更著變**大**（此觀察可以從 $\eqref{eq:69d} \eqref{eq:70g} \eqref{eq:71i} \eqref{eq:72p} \eqref{eq:73o}$ 得出）。
@@ -1728,32 +1740,7 @@ $$
 但這些說法並沒有辦法真的保證一定會實現，算是這篇論文說服力比較薄弱的點。
 
 <!--
-- local in space: if update complexity per time stemp and weight does not depend on network size
-- local in time: if its storage requirements do not depend on input sequeqnce length
-- RTRL is local in time but not in space
-- BPTT is local in space but not in time
-- LSTM local in space and time
-  - there is no need to store activation values observed during sequence processing in a stack with potentially unlimited size
-
 ### 訓練早期發生異常
-
-在訓練的早期，LSTM 模型可能會學到維持輸出閘門開啟，使得
-
-- sequential network construction
-- output gate bias
-
-### Internal state drift
-
-輸入維持正或維持負
-
-$h'(c_i(t))$ 得到較小的值，造成梯度消失
-
-- 挑比較好的 $h$
-- 但如果 $h(c_i(t)) = c_i(t)$，則輸出範為可能不受限制
-- 解決方法為 at the beginning of learning is inititally to bias the input gate toward zero
-  - 這個方法等同於改變 $y^{\opin}$ 的數值範圍
-  - 雖然對計算有影響，但 internal state drift 影響更大，因此值得
-- 根據實驗，採用 sigmoid 函數就不需要進行 bias 的調整
 
 ## 實驗
 
