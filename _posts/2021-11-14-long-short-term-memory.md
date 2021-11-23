@@ -192,12 +192,14 @@ author: [
     - 梯度消失造成**訓練時間慢長**
   - 無法解決輸入與輸出訊號**間隔較長**（long time lag）的問題
 - 論文提出 **LSTM + RTRL** 能夠解決上述問題
+  - RTRL 全名為 **R**eal **T**ime **R**ecurrent **L**earning
+  - Backward pass 演算法**時間複雜度**為 $O(w)$，$w$ 代表權重
+  - Backward pass 演算法**空間複雜度**也為 $O(w)$
+  - 此結論必須依靠**丟棄部份梯度**並使用 RTRL 才有辦法達成
   - 能夠處理 time lag 間隔為 $1000$ 的問題
   - 甚至輸入訊號含有雜訊時也能處理
   - 同時能夠保有處理 short time lag 問題的能力
 - 使用 mulitplicative gate 學習開啟與關閉記憶 hidden state 的機制
-  - Forward pass 演算法複雜度為 $O(1)$
-  - Backward pass 演算法複雜度為 $O(w)$，$w$ 代表權重
 - 與 [PyTorch][Pytorch-LSTM] 實作的 LSTM 完全不同
   - 本篇論文的架構定義更為**廣義**
   - 本篇論文只有**輸入閘門（input gate）**跟**輸出閘門（output gate）**，並沒有使用**失憶閘門（forget gate）**
@@ -1318,51 +1320,23 @@ $$
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wout_{i, j}} = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[ \\
-& \quad \dfnetout{i}{t + 1} \tag{69a}\label{eq:69a} \\
-& \quad \times \tag{69b}\label{eq:69b} \\
-& \quad [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \tag{69c}\label{eq:69c} \\
+& \sum_{t = 0}^{T} \pd{y_i(t + 1)}{\wout_{i, j}} \\
+& = \sum_{t = 0}^{T} \bigg[\dfnetout{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)\bigg] \\
+& = \sum_{t = 0}^{T} \bigg[\dfnetout{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)\bigg]
+\end{align*} \tag{69}\label{eq:69}
+$$
+
+我們展開 $\eqref{eq:69}$ 方便 $\eqref{eq:74} \eqref{eq:75} \eqref{eq:76}$ 進行分析
+
+$$
+\begin{align*}
+& \sum_{t = 0}^{T} \pd{y_i(t + 1)}{\wout_{i, j}} = \sum_{t = 0}^{T} \bigg[ \tag{69d}\label{eq:69d} \\
+& \quad \dfnetout{i}{t + 1} \tag{69b}\label{eq:69b} \\
+& \quad \times \tag{69c}\label{eq:69c} \\
+& \quad [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \tag{69a}\label{eq:69a} \\
 & \bigg]
 \end{align*}
 $$
-
-- 在 $t + 1$ 時間點**總輸出參數** $\wout$ 的**梯度**只來自 $t$ 時間點的**計算狀態**
-- 在 $t + 1$ 時間點**總輸出參數** $\wout$ **更新**所需的**時間複雜度**為 $O(\dim(\wout))$
-  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
-  2. 利用 **forward pass** 的結果計算 $\eqref{eq:69a}$ 的計算結果需要 $O(\dout)$
-  3. 利用**已經計算過**的 $\eqref{eq:69a}$ 進行 $\eqref{eq:69b}$ 需要 $O(\dim(\wout))$
-  4. 因此**時間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(\dout + \dim(\wout)) \\
-  & = O(\dout + \dout \cdot (\din + \dhid + \ncell \cdot \dcell)) \\
-  & = O(\dout \cdot (\din + \dhid + \ncell \cdot \dcell)) \\
-  & = O(\dim(\wout))
-  \end{align*} \tag{70}\label{eq:70}
-  $$
-
-- **總輸出參數** $\wout$ **更新**所需的**總時間複雜度**為 $O(T \cdot \dim(\wout))$
-  - 共有 $T$ 個項次
-  - 每個項次的**時間複雜度**為 $O(\dim(\wout))$
-- 在 $t + 1$ 時間點**總輸出參數** $\wout$ **更新**所需的**空間複雜度**為 $O(\dim(\wout))$
-  - 需要紀錄 $t$ 時間點的**計算狀態** $\eqref{eq:69c}$，空間複雜度為 $O(\dhid + \ncell \cdot \dcell)$
-  - 紀錄 **forward pass** 與 $\eqref{eq:69a}$ 需要 $O(\dout)$
-  - 進行 $\eqref{eq:69b}$ 產出 $\dim(\wout)$ 個數值
-  - 因此**空間複雜度**為
-
-  $$
-  \begin{align*}
-  & O\big(\dhid + \ncell \cdot \dcell + \dout + \dim(\wout)\big) \\
-  & = O\big(\dhid + \ncell \cdot \dcell + \dout + \dout \cdot (\din + \dhid + \ncell \cdot \dcell)\big) \\
-  & = O\big(\dout \cdot (\din + \dhid + \ncell \cdot \dcell)\big) \\
-  & = O(\dim(\wout))
-  \end{align*} \tag{71}\label{eq:71}
-  $$
-
-- **總輸出參數** $\wout$ **更新**所需的**總空間複雜度**為 $O(\dim(\wout))$
-  - 依照**時間順序**計算梯度，每個時間點的梯度以**疊加**的形勢儲存
-- 沒有如同 $\eqref{eq:22}$ 的**連乘積**項，因此不會有**梯度消失**問題
 
 ### 隱藏單元參數
 
@@ -1373,70 +1347,29 @@ $$
 & \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\whid_{p, q}} \\
 & \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t)}{\whid_{p, q}}\bigg] \\
 & \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \dfnethid{p}{t} \cdot \\
-& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1)\bigg]
-\end{align*} \tag{72}\label{eq:72}
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1)\bigg] \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg[\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg] \cdot \dfnethid{p}{t} \cdot \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1)\Bigg]
+\end{align*} \tag{70}\label{eq:70}
 $$
 
-我們展開 $\eqref{eq:72}$ 進行分析
+我們展開 $\eqref{eq:70}$ 方便 $\eqref{eq:74} \eqref{eq:75} \eqref{eq:76}$ 進行分析
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\whid_{p, q}} \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[ \\
-& \quad \dfnetout{i}{t + 1} \tag{72a}\label{eq:72a} \\
-& \quad \times \tag{72b}\label{eq:72b} \\
-& \quad \wout_{i, p} \tag{72c}\label{eq:72c} \\
-& \quad \times \tag{72d}\label{eq:72d} \\
-& \quad \dfnethid{p}{t} \tag{72e}\label{eq:72e} \\
-& \quad \times \tag{72f}\label{eq:72f} \\
-& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1) \tag{72g}\label{eq:72g} \\
-& \bigg]
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\whid_{p, q}} \aptr \sum_{t = 0}^{T} \Bigg[ \tag{70i}\label{eq:70i} \\
+& \quad \bigg[\sum_{i = 1}^{\dout} \tag{70g}\label{eq:70g} \\
+& \quad \quad \dfnetout{i}{t + 1} \tag{70e}\label{eq:70e} \\
+& \quad \quad \times \tag{70f}\label{eq:70f} \\
+& \quad \quad \wout_{i, p} \tag{70a}\label{eq:70a} \\
+& \quad \bigg] \\
+& \quad \times \tag{70h}\label{eq:70h} \\
+& \quad \dfnethid{p}{t} \tag{70c}\label{eq:70c} \\
+& \quad \times \tag{70d}\label{eq:70d} \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1) \tag{70b}\label{eq:70b} \\
+& \Bigg]
 \end{align*}
 $$
-
-- 在 $t + 1$ 時間點**隱藏單元參數** $\whid$ 的**梯度**只來自 $t - 1$ 時間點的**計算狀態**
-  - 注意是 $t - 1$ 不是 $t$
-  - $\nethid{p}{t}$ 可以由 $t - 1$ 時間點的**計算狀態**組合而得
-  - 這也代表 $\whid$ 需要進行兩次以上的 **forward pass** （$t \geq 2$）才能收到梯度
-- 在 $t + 1$ 時間點**隱藏單元參數** $\whid$ **更新**所需的**時間複雜度**為 $O(\dout \cdot \dhid + \dim(\whid))$
-  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
-  2. 利用 $\eqref{eq:69a}$ 中**已經計算過**的 $\eqref{eq:72a}$ 需要 $O(1)$
-  3. 計算並**紀錄** $\eqref{eq:72b}$ 需要 $O(\dout \cdot \dhid)$
-  4. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:72e}$ 需要 $O(\dhid)$
-  5. 利用**已經計算過**的 $\eqref{eq:72b} \eqref{eq:72e}$ 進行計算並**紀錄** $\eqref{eq:72d}$ 需要 $O(\dout \cdot \dhid)$
-  6. 利用**已經計算過**的 $\eqref{eq:72d}$ 進行 $\eqref{eq:72f}$ 的計算需要 $O(\dim(\whid))$
-  7. 因此**時間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(\dout \cdot \dhid + \dhid + \dout \cdot \dhid + \dim(\whid)) \\
-  & = O((2\dout + 1) \cdot \dhid + \dim(\whid)) \\
-  & = O(\dout \cdot \dhid + \dim(\whid))
-  \end{align*} \tag{73}\label{eq:73}
-  $$
-
-- **隱藏單元參數** $\whid$ **更新**所需的**總時間複雜度**為 $O(T \cdot (\dout \cdot \dhid + \dim(\whid)))$
-  - 共有 $T$ 個項次
-  - 每個項次的時間複雜度為 $O(\dout \cdot \dhid + \dim(\whid))$
-- 在 $t + 1$ 時間點**隱藏單元參數** $\whid$ **更新**所需的**空間複雜度**為 $O(\dout \cdot \dhid + \dim(\whid))$
-  - 需要紀錄 $t - 1$ 時間點的**計算狀態** $\eqref{eq:72g}$，空間複雜度為 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
-  - 紀錄 $\eqref{eq:72b}$ 需要 $O(\dout \cdot \dhid)$
-  - 紀錄 $\eqref{eq:72d}$ 需要 $O(\dout \cdot \dhid)$
-  - 紀錄 $\eqref{eq:72f}$ 產出 $O(\dim(\whid))$ 個數值
-  - 因此**空間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(\din + \dhid + (2 + \ncell) \cdot \dcell + 2\dout \cdot \dhid + \dim(\whid)) \\
-  & = O\big(\din + \dhid + (2 + \ncell) \cdot \dcell + 2\dout \cdot \dhid + \\
-  & \quad \dhid \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)\big) \\
-  & = O\big(\dout \cdot \dhid + \dhid \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)\big) \\
-  & = O(\dout \cdot \dhid + \dim(\whid))
-  \end{align*} \tag{74}\label{eq:74}
-  $$
-
-- **隱藏單元參數** $\whid$ **更新**所需的**總空間複雜度**為 $O(\dout \cdot \dhid + \dim(\whid))$
-  - 依照**時間順序**計算梯度，每個時間點的梯度以**疊加**的形勢儲存
-- 沒有如同 $\eqref{eq:22}$ 的**連乘積**項，因此不會有**梯度消失**問題
 
 ### 輸出閘門單元參數
 
@@ -1446,75 +1379,33 @@ $$
 \begin{align*}
 & \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wog_{p, q}} \\
 & \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[\dfnetout{i}{t + 1} \cdot \sum_{k = 1}^{\ncell} \bigg[\wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg]\Bigg] \\
-& = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg] \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \hcell{p}{k}{t} \cdot \pd{y_p^{\opog}(t)}{\wog_{p, q}}\bigg] \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \hcell{p}{k}{t} \cdot \\
-& \quad \dfnetog{p}{t} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg]
-\end{align*} \tag{75}\label{eq:75}
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg)\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t} \cdot \pd{y_p^{\opog}(t)}{\wog_{p, q}}\bigg)\Bigg] \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t}\bigg) \cdot \pd{y_p^{\opog}(t)}{\wog_{p, q}}\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t}\bigg) \cdot \\
+& \quad \dfnetog{p}{t} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\Bigg]
+\end{align*} \tag{71}\label{eq:71}
 $$
 
-我們展開 $\eqref{eq:75}$ 進行分析
+我們展開 $\eqref{eq:71}$ 方便 $\eqref{eq:74} \eqref{eq:75} \eqref{eq:76}$ 進行分析
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wog_{p, q}} \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[ \\
-& \quad \dfnetout{i}{t + 1} \tag{75a}\label{eq:75a} \\
-& \quad \times \tag{75b}\label{eq:75b} \\
-& \quad \wout_{i, p} \tag{75c}\label{eq:75c} \\
-& \quad \times \tag{75d}\label{eq:75d} \\
-& \quad \hcell{p}{k}{t} \tag{75e}\label{eq:75e} \\
-& \quad \times \tag{75f}\label{eq:75f} \\
-& \quad \dfnetog{p}{t} \tag{75g}\label{eq:75g} \\
-& \quad \times \tag{75h}\label{eq:75h} \\
-& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1) \tag{75i}\label{eq:75i} \\
-\bigg]
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wog_{p, q}} \aptr \sum_{t = 0}^{T} \Bigg[ \tag{71k}\label{eq:71k} \\
+& \quad \bigg(\sum_{i = 1}^{\dout} \tag{71i}\label{eq:71i} \\
+& \quad \quad \dfnetout{i}{t + 1} \tag{71g}\label{eq:71g} \\
+& \quad \quad \times \tag{71h}\label{eq:71h} \\
+& \quad \quad \wout_{i, p} \tag{71a}\label{eq:71a} \\
+& \quad \bigg) \\
+& \quad \times \tag{71j}\label{eq:71j} \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t} \tag{71e}\label{eq:71e}\bigg) \\
+& \quad \times \tag{71f}\label{eq:71f} \\
+& \quad \dfnetog{p}{t} \tag{71c}\label{eq:71c} \\
+& \quad \times \tag{71d}\label{eq:71d} \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1) \tag{71b}\label{eq:71b} \\
+& \Bigg]
 \end{align*}
 $$
-
-- 在 $t + 1$ 時間點**輸出閘門單元參數** $\wog$ 的**梯度**來自 $t$ 時間點的**記憶單元內部狀態**與 $t - 1$ 時間點的**計算狀態**
-  - 注意是 $t - 1$ 不是 $t$
-  - 這也代表 $\wog$ 需要進行兩次以上的 **forward pass** （$t \geq 2$）才能收到梯度
-- 在 $t + 1$ 時間點**輸出閘門單元參數** $\wog$ **更新**所需的**時間複雜度**為 $O(\dout \cdot \ncell \cdot \dcell + \dout \cdot \dim(\wog))$
-  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
-  2. 利用 $\eqref{eq:69a}$ 中**已經計算過**的 $\eqref{eq:75a}$ 需要 $O(1)$
-  3. 計算並**紀錄** $\eqref{eq:75b}$ 需要 $O(\dout \cdot \ncell \cdot \dcell)$
-  4. 利用 **forward pass** 的結果計算 $\eqref{eq:75e}$ 需要 $O(1)$
-  5. 利用**已經計算過**的 $\eqref{eq:75b} \eqref{eq:75e}$ 進行 $\eqref{eq:75d}$ 的計算並**紀錄**需要 $O(\dout \cdot \ncell \cdot \dcell)$
-  6. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:75g}$ 需要 $O(\dcell)$
-  7. 利用**已經計算過**的 $\eqref{eq:75d} \eqref{eq:75g}$ 進行 $\eqref{eq:75f}$ 的計算並**紀錄**需要 $O(\dout \cdot \ncell \cdot \dcell)$
-  8. 利用**已經計算過**的 $\eqref{eq:75f}$ 進行 $\eqref{eq:75h}$ 的計算需要 $O(\dout \cdot \dim(\wog))$
-  9. 因此**時間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(3\dout \cdot \ncell \cdot \dcell + \dcell + \dout \cdot \dim(\wog)) \\
-  & = O((3\dout \cdot \ncell + 1) \cdot \dcell + \dout \cdot \dim(\wog)) \\
-  & = O(\dout \cdot \ncell \cdot \dcell + \dout \cdot \dim(\wog))
-  \end{align*} \tag{76}\label{eq:76}
-  $$
-
-- **輸出閘門單元參數** $\wog$ **更新**所需的**總時間複雜度**為 $O(T \cdot (\dout \cdot \ncell \cdot \dcell + \dout \cdot \dim(\wog)))$
-  - 共有 $T$ 個項次
-  - 每個項次的時間複雜度為 $O(\dout \cdot \ncell \cdot \dcell + \dout \cdot \dim(\wog))$
-- 在 $t + 1$ 時間點**輸出閘門單元參數** $\wog$ **更新**所需的**空間複雜度**為 $O(\dout \cdot \ncell \cdot \dcell + \dout \cdot \dim(\wog))$
-  - 需要紀錄 $t - 1$ 時間點的**計算狀態** $\eqref{eq:75i}$，空間複雜度為 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
-  - 需要紀錄 $t$ 時間點的**記憶單元內部狀態**與啟發值 $\eqref{eq:75e}$，空間複雜度為 $O(\ncell \cdot \dcell)$
-  - 紀錄 $\eqref{eq:75b}$ 需要 $O(\dout \cdot \ncell \cdot \dcell)$
-  - 紀錄 $\eqref{eq:75d}$ 需要 $O(\dout \cdot \ncell \cdot \dcell)$
-  - 紀錄 $\eqref{eq:75f}$ 需要 $O(\dout \cdot \ncell \cdot \dcell)$
-  - 紀錄 $\eqref{eq:75h}$ 產出 $O(\dout \cdot \dim(\wog))$ 個數值
-  - 因此**空間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(3\dout \cdot \ncell \cdot \dcell + \dout \cdot \dim(\wog)) \\
-  & = O(\dout \cdot \ncell \cdot \dcell + \dout \cdot \dim(\wog))
-  \end{align*} \tag{77}\label{eq:77}
-  $$
-
-- **輸出閘門單元參數** $\wog$ **更新**所需的**總空間複雜度**為 $O(\dout \cdot \ncell \cdot \dcell + \dout \cdot \dim(\wog))$
-  - 依照**時間順序**計算梯度，每個時間點的梯度以**疊加**的形勢儲存
-- 沒有如同 $\eqref{eq:22}$ 的**連乘積**項，因此不會有**梯度消失**問題
 
 ### 輸入閘門單元參數
 
@@ -1524,108 +1415,45 @@ $$
 \begin{align*}
 & \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wig_{p, q}} \\
 & \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[\dfnetout{i}{t + 1} \cdot \sum_{k = 1}^{\ncell} \bigg[\wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wig_{p, q}}\bigg]\Bigg] \\
-& = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wig_{p, q}}\bigg] \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot y_p^{\opog}(t) \cdot \dhcell{p}{k}{t} \cdot \\
-& \quad \pd{s_p^{\cell{k}}(t)}{\wig_{p, q}}\bigg] \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \Bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot y_p^{\opog}(t) \cdot \dhcell{p}{k}{t} \cdot \\
-& \quad \bigg[\pd{s_p^{\cell{k}}(t - 1)}{\wig_{p, q}} + \gnetcell{p}{k}{t} \cdot \dfnetig{p}{t} \cdot \\
-& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg]\Bigg]
-\end{align*} \tag{78}\label{eq:78}
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \pd{y^{\cell{k}}_p(t)}{\wig_{p, q}}\bigg)\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} y_p^{\opog}(t) \cdot \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wig_{p, q}}\bigg)\Bigg] \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wig_{p, q}}\bigg)\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \dhcell{p}{k}{t} \cdot \bigg[\pd{s_p^{\cell{k}}(t - 1)}{\wig_{p, q}} + \gnetcell{p}{k}{t} \cdot \dfnetig{p}{t} \cdot \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg]\bigg)\Bigg]
+\end{align*} \tag{72}\label{eq:72}
 $$
 
-我們展開 $\eqref{eq:78}$ 進行分析
+我們展開 $\eqref{eq:72}$ 方便 $\eqref{eq:74} \eqref{eq:75} \eqref{eq:76}$ 進行分析
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wig_{p, q}} \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \sum_{k = 1}^{\ncell} \Bigg[ \\
-& \quad \dfnetout{i}{t + 1} \tag{78a}\label{eq:78a} \\
-& \quad \times \tag{78b}\label{eq:78b} \\
-& \quad \wout_{i, p} \tag{78c}\label{eq:78c} \\
-& \quad \times \tag{78d}\label{eq:78d} \\
-& \quad y_p^{\opog}(t) \tag{78e}\label{eq:78e} \\
-& \quad \times \tag{78f}\label{eq:78f} \\
-& \quad \dhcell{p}{k}{t} \tag{78g}\label{eq:78g} \\
-& \quad \times \tag{78h}\label{eq:78h} \\
-& \quad \bigg[ \\
-& \quad \quad \pd{s_p^{\cell{k}}(t - 1)}{\wig_{p, q}} \tag{78i}\label{eq:78i} \\
-& \quad \quad + \tag{78j}\label{eq:78j} \\
-& \quad \quad \gnetcell{p}{k}{t} \tag{78k}\label{eq:78k} \\
-& \quad \quad \times \tag{78l}\label{eq:78l} \\
-& \quad \quad \dfnetig{p}{t} \tag{78m}\label{eq:78m} \\
-& \quad \quad \times \tag{78n}\label{eq:78n} \\
-& \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1) \tag{78o}\label{eq:78o} \\
-& \bigg]\Bigg]
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wig_{p, q}} \\
+& \aptr \sum_{t = 0}^{T} \Bigg[ \tag{72r}\label{eq:72r} \\
+& \quad \bigg(\sum_{i = 1}^{\dout} \tag{72p}\label{eq:72p} \\
+& \quad \quad \dfnetout{i}{t + 1} \tag{72n}\label{eq:72n} \\
+& \quad \quad \times \tag{72o}\label{eq:72o} \\
+& \quad \quad \wout_{i, p} \tag{72a}\label{eq:72a} \\
+& \quad \bigg) \\
+& \quad \times \tag{72q}\label{eq:72q} \\
+& \quad y_p^{\opog}(t) \tag{72l}\label{eq:72l} \\
+& \quad \times \tag{72m}\label{eq:72m} \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \tag{72k}\label{eq:72k} \\
+& \quad \quad \dhcell{p}{k}{t} \tag{72i}\label{eq:72i} \\
+& \quad \quad \times \tag{72j}\label{eq:72j} \\
+& \quad \quad \bigg[ \\
+& \quad \quad \quad \pd{s_p^{\cell{k}}(t - 1)}{\wig_{p, q}} \tag{72c}\label{eq:72c} \\
+& \quad \quad \quad + \tag{72h}\label{eq:72h} \\
+& \quad \quad \quad \gnetcell{p}{k}{t} \tag{72f}\label{eq:72f} \\
+& \quad \quad \quad \times \tag{72g}\label{eq:72g} \\
+& \quad \quad \quad \dfnetig{p}{t} \tag{72d}\label{eq:72d} \\
+& \quad \quad \quad \times \tag{72e}\label{eq:72e} \\
+& \quad \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1) \tag{72b}\label{eq:72b} \\
+& \bigg]\bigg)\Bigg]
 \end{align*}
 $$
-
-- 在 $t + 1$ 時間點**輸入閘門單元參數** $\wig$ 的**梯度**來自 $t$ 時間點的**記憶單元內部狀態**與 $t - 1$ 時間點的**計算狀態**
-  - 注意是 $t - 1$ 不是 $t$
-  - 這也代表 $\wig$ 需要進行兩次以上的 **forward pass** （$t \geq 2$）才能收到梯度
-- 在 $t + 1$ 時間點**輸入閘門單元參數** $\wig$ **更新**所需的**時間複雜度**為 $O(\dout \cdot \ncell \cdot \dim(\wig))$
-  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
-  2. 利用 $\eqref{eq:75b}$ 中**已經計算過**的 $\eqref{eq:78b}$ 需要 $O(1)$
-  3. 利用 **forward pass** 的結果計算 $\eqref{eq:78e}$ 需要 $O(1)$
-  4. 利用**已經計算過**的 $\eqref{eq:78b} \eqref{eq:78e}$ 進行 $\eqref{eq:78d}$ 的計算並**紀錄**需要 $O(\dout \cdot \dcell)$
-  5. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:78g}$ 需要 $O(\ncell \cdot \dcell)$
-  6. 利用**已經計算過**的 $\eqref{eq:78d} \eqref{eq:78g}$ 進行 $\eqref{eq:78f}$ 的計算並**紀錄**需要 $O(\dout \cdot \ncell \cdot \dcell)$
-  7. 利用**過去紀錄**的 $\eqref{eq:78i}$ 需要 $O(1)$
-  8. 利用 **forward pass** 的結果計算 $\eqref{eq:78k}$ 需要 $O(1)$
-  9. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:78m}$ 需要 $O(\dcell)$
-  10. 利用**已經計算過**的 $\eqref{eq:78k} \eqref{eq:78m}$ 進行 $\eqref{eq:78l}$ 的計算並**紀錄**需要 $O(\ncell \cdot \dcell)$
-  11. 利用**已經計算過**的 $\eqref{eq:78l}$ 進行 $\eqref{eq:78n}$ 的計算並**紀錄**需要 $O(\ncell \cdot \dim(\wig))$
-  12. 利用**已經計算過**的 $\eqref{eq:78i} \eqref{eq:78n}$ 進行 $\eqref{eq:78j}$ 的計算並**紀錄**需要 $O(\ncell \cdot \dim(\wig))$
-  13. 利用**已經計算過**的 $\eqref{eq:78f} \eqref{eq:78j}$ 進行 $\eqref{eq:78h}$ 的計算需要 $O(\dout \cdot \ncell \cdot \dim(\wig))$
-  14. 因此**時間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(\dout \cdot \dcell + 2\ncell \cdot \dcell + \dout \cdot \ncell \cdot \dcell + \dcell + 2\ncell \cdot \dim(\wig) \\
-  & \quad + \dout \cdot \ncell \cdot \dim(\wig)) \\
-  & = O(\dout \cdot \ncell \cdot \dcell + \dout \cdot \ncell \cdot \dim(\wig)) \\
-  & = O\big(\dout \cdot \ncell \cdot \dcell + \dout \cdot \ncell \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)\big) \\
-  & = O\big(\dout \cdot \ncell \cdot (\dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell))\big) \\
-  & = O(\dout \cdot \ncell \cdot \dim(\wig))
-  \end{align*} \tag{79}\label{eq:79}
-  $$
-
-- **輸入閘門單元參數** $\wig$ **更新**所需的**總時間複雜度**為 $O(T \cdot \dout \cdot \ncell \cdot \dim(\wig))$
-  - 共有 $T$ 個項次
-  - 每個項次的時間複雜度為 $O(\dout \cdot \ncell \cdot \dim(\wig))$
-- 在 $t + 1$ 時間點**輸入閘門單元參數** $\wig$ **更新**所需的**空間複雜度**為 $O(\dout \cdot \ncell \cdot \dim(\wig))$
-  - 需要紀錄 $t$ 時間點的**輸出單元** $\eqref{eq:78e}$，空間複雜度為 $O(\dcell)$
-  - 需要紀錄 $t$ 時間點的**記憶單元內部狀態** $\eqref{eq:78g}$，空間複雜度為 $O(\ncell \cdot \dcell)$
-  - 需要紀錄 $\wig$ 對於 $t - 1$ 時間點的**記憶單元內部狀態** $s_p^{\cell{k}}$ 造成的梯度 $\eqref{eq:78i}$，空間複雜度為 $O(\ncell \cdot \dim(\wig))$
-  - 需要紀錄 $t$ 時間點的**記憶單元淨輸入**與啟發值 $\eqref{eq:78k}$，空間複雜度為 $O(\ncell \cdot \dcell)$
-  - 需要紀錄 $t$ 時間點的**輸入閘門單元淨輸入**與微分值 $\eqref{eq:78m}$，空間複雜度為 $O(\dcell)$
-  - 需要紀錄 $t - 1$ 時間點的**計算狀態** $\eqref{eq:78o}$，空間複雜度為 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
-  - 紀錄 $\eqref{eq:78b}$ 需要 $O(1)$
-  - 紀錄 $\eqref{eq:78d}$ 需要 $O(\dout \cdot \dcell)$
-  - 紀錄 $\eqref{eq:78f}$ 需要 $O(\dout \cdot \ncell \cdot \dcell)$
-  - 紀錄 $\eqref{eq:78l}$ 需要 $O(\ncell \cdot \dcell)$
-  - 紀錄 $\eqref{eq:78n}$ 需要 $O(\ncell \cdot \dim(\wig))$
-  - 紀錄 $\eqref{eq:78j}$ 需要 $O(\ncell \cdot \dim(\wig))$
-  - 紀錄 $\eqref{eq:78h}$ 產出 $O(\dout \cdot \ncell \cdot \dim(\wig))$ 個數值
-  - 因此**空間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(2\dcell + 3\ncell \cdot \dcell + \ncell \cdot \dim(\wig) + \din + \dhid + (2 + \ncell) \cdot \dcell + \\
-  & \quad \dout \cdot \dcell + \dout \cdot \ncell \cdot \dcell + 2\ncell \cdot \dim(\wig) + \dout \cdot \ncell \cdot \dim(\wig)) \\
-  & = O(\din + \dhid + \dout \cdot \ncell \cdot \dcell + \dout \cdot \ncell \cdot \dim(\wig)) \\
-  & = O(\din + \dhid + \dout \cdot \ncell \cdot \dcell + \\
-  & \quad \dout \cdot \ncell \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
-  & = O(\dout \cdot \ncell \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
-  & = O(\dout \cdot \ncell \cdot \dim(\wig))
-  \end{align*} \tag{80}\label{eq:80}
-  $$
-
-- **輸入閘門單元參數** $\wig$ **更新**所需的**總空間複雜度**為 $O(\dout \cdot \ncell \cdot \dim(\wig))$
-  - 依照**時間順序**計算梯度，每個時間點的梯度以**疊加**的形勢儲存
-- 沒有如同 $\eqref{eq:22}$ 的**連乘積**項，因此不會有**梯度消失**問題
-- 整個計算過程**唯一**需要額外紀錄的**梯度**項次就是 $\eqref{eq:78i}$
-  - 紀錄 $\eqref{eq:78i}$ 讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
-  - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
-  - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
 
 ### 記憶單元淨輸入參數
 
@@ -1635,101 +1463,162 @@ $$
 \begin{align*}
 & \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wcell{k}_{p, q}} \\
 & \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot \pd{y^{\cell{k}}_p(t)}{\wcell{k}_{p, q}}\bigg] \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot y_p^{\opog}(t) \cdot \\
-& \quad \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}\bigg] \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot y_p^{\opog}(t) \cdot \\
-& \quad \dhcell{p}{k}{t} \cdot \bigg[\pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + y_p^{\opig}(t) \cdot \dgnetcell{p}{k}{t} \cdot \\
-& \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg]\Bigg]
-\end{align*} \tag{81}\label{eq:81}
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot \pd{y^{\cell{k}}_p(t)}{\wcell{k}_{p, q}}\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
+& \quad \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
+& \quad \dhcell{p}{k}{t} \cdot \bigg(\pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + y_p^{\opig}(t) \cdot \dgnetcell{p}{k}{t} \cdot \\
+& \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg)\Bigg]
+\end{align*} \tag{73}\label{eq:73}
 $$
 
-我們展開 $\eqref{eq:81}$ 進行分析
+我們展開 $\eqref{eq:73}$ 方便 $\eqref{eq:74} \eqref{eq:75} \eqref{eq:76}$ 進行分析
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wcell{k}_{p, q}} \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[ \\
-& \quad \dfnetout{i}{t + 1} \tag{81a}\label{eq:81a} \\
-& \quad \times \tag{81b}\label{eq:81b} \\
-& \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \tag{81c}\label{eq:81c} \\
-& \quad \times \tag{81d}\label{eq:81d} \\
-& \quad y_p^{\opog}(t) \tag{81e}\label{eq:81e} \\
-& \quad \times \tag{81f}\label{eq:81f} \\
-& \quad \dhcell{p}{k}{t} \tag{81g}\label{eq:81g} \\
-& \quad \times \tag{81h}\label{eq:81h} \\
-& \quad \bigg[ \\
-& \quad \quad \pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} \tag{81i}\label{eq:81i} \\
-& \quad \quad + \tag{81j}\label{eq:81j} \\
-& \quad \quad y_p^{\opig}(t) \tag{81k}\label{eq:81k} \\
-& \quad \quad \times \tag{81l}\label{eq:81l} \\
-& \quad \quad \dgnetcell{p}{k}{t} \tag{81m}\label{eq:81m} \\
-& \quad \quad \times \tag{81n}\label{eq:81n} \\
-& \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1) \tag{81o}\label{eq:81o} \\
-& \bigg]\Bigg]
+& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wcell{k}_{p, q}} \\
+& \aptr \sum_{t = 0}^{T} \Bigg[ \tag{73q}\label{eq:73q} \\
+& \quad \bigg(\sum_{i = 1}^{\dout} \tag{73o}\label{eq:73o} \\
+& \quad \quad \dfnetout{i}{t + 1} \tag{73m}\label{eq:73m} \\
+& \quad \quad \times \tag{73n}\label{eq:73n} \\
+& \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \tag{73a}\label{eq:73a} \\
+& \quad \bigg) \\
+& \quad \times \tag{73p}\label{eq:73p} \\
+& \quad y_p^{\opog}(t) \tag{73k}\label{eq:73k} \\
+& \quad \times \tag{73l}\label{eq:73l} \\
+& \quad \dhcell{p}{k}{t} \tag{73i}\label{eq:73i} \\
+& \quad \times \tag{73j}\label{eq:73j} \\
+& \quad \bigg( \\
+& \quad \quad \pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} \tag{73c}\label{eq:73c} \\
+& \quad \quad + \tag{73h}\label{eq:73h} \\
+& \quad \quad y_p^{\opig}(t) \tag{73f}\label{eq:73f} \\
+& \quad \quad \times \tag{73g}\label{eq:73g} \\
+& \quad \quad \dgnetcell{p}{k}{t} \tag{73d}\label{eq:73d} \\
+& \quad \quad \times \tag{73e}\label{eq:73e} \\
+& \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1) \tag{73b}\label{eq:73b} \\
+& \bigg)\Bigg]
 \end{align*}
 $$
 
-- 在 $t + 1$ 時間點**記憶單元淨輸入參數** $\wcell{k}$ 的**梯度**來自 $t$ 時間點的**記憶單元內部狀態**與 $t - 1$ 時間點的**計算狀態**
+### 時間複雜度
+
+假設 $t + 1$ 時間點的 **forward pass** 已經執行完成，則我們推得**更新** $t + 1$ 時間點**所有參數**的**時間複雜度**為 $O()$
+
+1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
+2. 利用 $t - 1$ 時間點**已經計算過**的 $\eqref{eq:70b} \eqref{eq:71b} \eqref{eq:72b} \eqref{eq:73b}$ 需要 $O(1)$
+3. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:70c} \eqref{eq:71c} \eqref{eq:72d} \eqref{eq:73d}$ 需要 $O(\dhid + 2\dcell + \ncell \cdot \dcell)$
+4. 利用**已經計算過**的 $\eqref{eq:70b} \eqref{eq:70c}$ 計算並**紀錄** $\eqref{eq:70d}$ 需要 $O(\dim(\whid))$
+5. 利用**已經計算過**的 $\eqref{eq:71b} \eqref{eq:71c}$ 計算並**紀錄** $\eqref{eq:71d}$ 需要 $O(\dim(\wog))$
+6. 利用**已經計算過**的 $\eqref{eq:72b} \eqref{eq:72d}$ 計算並**紀錄** $\eqref{eq:72e}$ 需要 $O(\dim(\wig))$
+7. 利用**已經計算過**的 $\eqref{eq:73b} \eqref{eq:73d}$ 計算並**紀錄** $\eqref{eq:73e}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+8. 利用 $t$ 時間點**已經計算過**的 $\eqref{eq:71e} \eqref{eq:72f} \eqref{eq:73f}$ 需要 $O(1)$
+9. 注意 $\eqref{eq:71e}$ 的加法需要 $O(\ncell \cdot \dcell)$
+10. 利用**已經計算過**的 $\eqref{eq:71d} \eqref{eq:71e}$ 計算並**紀錄** $\eqref{eq:71f}$ 需要 $O(\dim(\wog))$
+11. 利用**已經計算過**的 $\eqref{eq:72f} \eqref{eq:72e}$ 計算並**紀錄** $\eqref{eq:72g}$ 需要 $O(\ncell \cdot \dim(\wig))$
+12. 利用**已經計算過**的 $\eqref{eq:72c} \eqref{eq:72g}$ 計算並**紀錄** $\eqref{eq:72h}$ 需要 $O(\ncell \cdot \dim(\wig))$
+13. 利用**已經計算過**的 $\eqref{eq:73e} \eqref{eq:73f}$ 計算並**紀錄** $\eqref{eq:73g}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+14. 利用**已經計算過**的 $\eqref{eq:73c} \eqref{eq:73g}$ 計算並**紀錄** $\eqref{eq:73h}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+15. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:72i} \eqref{eq:73i}$ 需要 $O(\ncell \cdot \dcell)$
+16. 利用**已經計算過**的 $\eqref{eq:72h} \eqref{eq:72i}$ 計算並**紀錄** $\eqref{eq:72j}$ 需要 $O(\ncell \cdot \dim(\wig))$
+17. 利用**已經計算過**的 $\eqref{eq:72j}$ 計算並**紀錄** $\eqref{eq:72k}$ 需要 $O(\ncell \cdot \dim(\wig))$
+18. 利用**已經計算過**的 $\eqref{eq:73h} \eqref{eq:73i}$ 計算並**紀錄** $\eqref{eq:73j}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+19. 利用 $t$ 時間點**已經計算過**的 $\eqref{eq:72l} \eqref{eq:73k}$ 需要 $O(1)$
+20. 利用**已經計算過**的 $\eqref{eq:72k} \eqref{eq:72l}$ 計算並**紀錄** $\eqref{eq:72m}$ 需要 $O(\dim(\wig))$
+21. 利用**已經計算過**的 $\eqref{eq:73j} \eqref{eq:73k}$ 計算並**紀錄** $\eqref{eq:73l}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+22. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:69b} \eqref{eq:70e} \eqref{eq:71g} \eqref{eq:72n} \eqref{eq:73m}$ 需要 $O(\dout)$
+23. 利用**已經計算過**的 $\eqref{eq:69a} \eqref{eq:69b}$ 計算並**紀錄** $\eqref{eq:69c}$ 需要 $O(\dim(\wout))$
+24. **總輸出參數** $t + 1$ 時間點更新結束
+25. 利用**已經計算過**的 $\eqref{eq:70a} \eqref{eq:70e} \eqref{eq:71a} \eqref{eq:71g} \eqref{eq:72a} \eqref{eq:72n} \eqref{eq:73a} \eqref{eq:73m}$ 計算並**紀錄** $\eqref{eq:70f} \eqref{eq:71h} \eqref{eq:72o} \eqref{eq:73n}$ 需要 $O(\dim(\wout))$
+26. 利用**已經計算過**的 $\eqref{eq:70f} \eqref{eq:71h} \eqref{eq:72o} \eqref{eq:73n}$ 計算並**紀錄** $\eqref{eq:70g} \eqref{eq:71i} \eqref{eq:72p} \eqref{eq:73o}$ 需要 $O(\dim(\wout))$
+27. 利用**已經計算過**的 $\eqref{eq:70d} \eqref{eq:70g}$ 計算並**紀錄** $\eqref{eq:70h}$ 需要 $O(\dim(\whid))$
+28. **隱藏單元參數** $t + 1$ 時間點更新結束
+29. 利用**已經計算過**的 $\eqref{eq:71f} \eqref{eq:71i}$ 計算並**紀錄** $\eqref{eq:71j}$ 需要 $O(\dim(\wog))$
+30. **輸出閘門單元參數** $t + 1$ 時間點更新結束
+31. 利用**已經計算過**的 $\eqref{eq:72m} \eqref{eq:72p}$ 計算並**紀錄** $\eqref{eq:72q}$ 需要 $O(\dim(\wig))$
+32. **輸入閘門單元參數** $t + 1$ 時間點更新結束
+33. 利用**已經計算過**的 $\eqref{eq:73l} \eqref{eq:73o}$ 計算並**紀錄** $\eqref{eq:73p}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+34. **記憶單元淨輸入參數** $t + 1$ 時間點更新結束
+35. 因此 $t + 1$ 時間點更新**所有參數**的**時間複雜度**為
+
+$$
+\begin{align*}
+& O(\dhid + 2\dcell + 3\ncell \cdot \dcell + 2\dim(\whid) + 3\dim(\wog) + 3\dim(\wig) + \\
+& \quad 6\ncell \cdot \dim(\wcell{1}) + 4\ncell \cdot \dim(\wig) + \dout + 3\dim(\wout)) \\
+& = O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}) + \\
+& \quad \ncell \cdot \dim(\wig) + \dim(\wout))
+\end{align*} \tag{74}\label{eq:74}
+$$
+
+- 在 $t + 1$ 時間點**參數更新**需要考慮 $t - 1$ 時間點的**計算狀態**
   - 注意是 $t - 1$ 不是 $t$
-  - 這也代表 $\wcell{k}$ 需要進行兩次以上的 **forward pass** （$t \geq 2$）才能收到梯度
-- 在 $t + 1$ 時間點**記憶單元淨輸入參數** $\wcell{k}$ **更新**所需的**時間複雜度**為 $O(\dout \cdot \dim(\wcell{k}))$
-  1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
-  2. 利用 $\eqref{eq:78b} \eqref{eq:78d} \eqref{eq:78f}$ 中**已經計算過**的 $\eqref{eq:81b} \eqref{eq:81d} \eqref{eq:81f}$ 需要 $O(1)$
-  3. 利用**過去紀錄**的 $\eqref{eq:81i}$ 需要 $O(1)$
-  4. 利用 **forward pass** 的結果計算 $\eqref{eq:81k}$ 需要 $O(1)$
-  5. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:81m}$ 需要 $O(\dcell)$
-  6. 利用**已經計算過**的 $\eqref{eq:81k} \eqref{eq:81m}$ 進行 $\eqref{eq:81l}$ 的計算並**紀錄**需要 $O(\dcell)$
-  7. 利用**已經計算過**的 $\eqref{eq:81l}$ 進行 $\eqref{eq:81n}$ 的計算並**紀錄**需要 $O(\dim(\wcell{k}))$
-  8. 利用**已經計算過**的 $\eqref{eq:81i} \eqref{eq:81n}$ 進行 $\eqref{eq:81j}$ 的計算並**紀錄**需要 $O(\dim(\wcell{k}))$
-  9. 利用**已經計算過**的 $\eqref{eq:81f} \eqref{eq:81j}$ 進行 $\eqref{eq:81h}$ 的計算需要 $O(\dout \cdot \dim(\wcell{k}))$
-  10. 因此**時間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(2\dcell + 2\dim(\wcell{k}) + \dout \cdot \dim(\wcell{k})) \\
-  & = O(\dcell + \dout \cdot \dim(\wcell{k})) \\
-  & = O(\dcell + \dout \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
-  & = O(\dout \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
-  & = O(\dout \cdot \dim(\wcell{k}))
-  \end{align*} \tag{82}\label{eq:82}
-  $$
-
-- **記憶單元淨輸入參數** $\wcell{1}, \dots, \wcell{\ncell}$ **更新**所需的**總時間複雜度**為 $O(T \cdot \ncell \cdot \dout \cdot \dim(\wcell{k}))$
-  - 共有 $T \cdot \ncell$ 個項次
-  - 每個項次的時間複雜度為 $O(\dout \cdot \dim(\wcell{k}))$
-- 在 $t + 1$ 時間點**記憶單元淨輸入參數** $\wcell{k}$ **更新**所需的**空間複雜度**為 $O(\dout \cdot \dim(\wcell{k}))$
-  - 需要紀錄 $t$ 時間點的**輸入閘門單元**與微分值 $\eqref{eq:81k}$，空間複雜度為 $O(\dcell)$
-  - 需要紀錄 $t$ 時間點的**記憶單元淨輸入**與微分值 $\eqref{eq:81m}$，空間複雜度為 $O(\dcell)$
-  - 需要紀錄 $t - 1$ 時間點的**計算狀態** $\eqref{eq:81o}$，空間複雜度為 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
-  - 紀錄 $\eqref{eq:81b}$ 需要 $O(1)$
-  - 紀錄 $\eqref{eq:81d}$ 需要 $O(1)$
-  - 紀錄 $\eqref{eq:81e}$ 需要 $O(1)$
-  - 紀錄 $\eqref{eq:81f}$ 需要 $O(1)$
-  - 紀錄 $\eqref{eq:81g}$ 需要 $O(1)$
-  - 紀錄 $\eqref{eq:81i}$ 需要 $O(1)$
-  - 紀錄 $\eqref{eq:81l}$ 需要 $O(\dcell)$
-  - 紀錄 $\eqref{eq:81n}$ 需要 $O(\dim(\wcell{k}))$
-  - 紀錄 $\eqref{eq:81j}$ 需要 $O(\dim(\wcell{k}))$
-  - 紀錄 $\eqref{eq:81h}$ 產出 $O(\dout \cdot \dim(\wcell{k}))$ 個數值
-  - 因此**空間複雜度**為
-
-  $$
-  \begin{align*}
-  & O(3\dcell + \din + \dhid + (2 + \ncell) \cdot \dcell + 2\dim(\wcell{k}) + \dout \cdot \dim(\wcell{k})) \\
-  & = O(\din + \dhid + \ncell \cdot \dcell + \dout \cdot \dim(\wcell{k})) \\
-  & = O(\din + \dhid + \ncell \cdot \dcell + \dout \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
-  & = O(\dout \cdot \dcell \cdot (\din + \dhid + (2 + \ncell) \cdot \dcell)) \\
-  & = O(\dout \cdot \dim(\wcell{k}))
-  \end{align*} \tag{83}\label{eq:83}
-  $$
-
-- **記憶單元淨輸入參數** $\wcell{1}, \dots, \wcell{\ncell}$ **更新**所需的**總空間複雜度**為 $O(\dout \cdot \ncell \cdot \dim(\wcell{1}))$
-  - 共有 $\ncell$ 個不同的記憶單元參數
-  - 依照**時間順序**計算梯度，每個時間點的梯度以**疊加**的形勢儲存
+  - 這也代表需要進行兩次以上的 **forward pass** （$t \geq 2$）**部份參數**才能收到梯度
+  - **部份參數**指的是除了**總輸出參數**以外的所有參數，細節請見 $\eqref{eq:70b} \eqref{eq:71b} \eqref{eq:72b} \eqref{eq:73b}$
 - 沒有如同 $\eqref{eq:22}$ 的**連乘積**項，因此不會有**梯度消失**問題
-- 整個計算過程**唯一**需要額外紀錄的**梯度**項次就是 $\eqref{eq:81i}$
-  - 紀錄 $\eqref{eq:81i}$ 讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
+- 整個計算過程**唯一**需要額外紀錄的**梯度**項次就是 $\eqref{eq:72c} \eqref{eq:73c}$
+  - 紀錄 $\eqref{eq:72c} \eqref{eq:73c}$ 讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
   - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
   - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
+
+總共會執行 $T$ 個 **forward pass**，因此**更新所有參數**所需的**總時間複雜度**為
+
+$$
+\begin{align*}
+& O\big(T \cdot \big[\dim(\whid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}) + \\
+& \quad \ncell \cdot \dim(\wig) + \dim(\wout)\big]\big)
+\end{align*} \tag{75}\label{eq:75}
+$$
+
+### 空間複雜度
+
+在 $t + 1$ 時間點**更新所有參數**所需的**空間複雜度**為 $O()$
+
+1. 創造所有參數需要 $O(\dim(\wout) + \dim(\whid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}))$
+2. 紀錄 $t - 1$ 時間點的所有**計算狀態** $\eqref{eq:70b} \eqref{eq:71b} \eqref{eq:72b} \eqref{eq:73b}$ 需要 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
+3. 紀錄 $t - 1$ 時間點的**記憶單元內部狀態微分值** $\eqref{eq:72c} \eqref{eq:73c}$ 需要 $O(\ncell \cdot (\dim(\wig) + \dim(\wcell{1})))$
+4. 紀錄 $t$ 時間點的所有**計算狀態** $\eqref{eq:69a} \eqref{eq:70c} \eqref{eq:71c} \eqref{eq:71e} \eqref{eq:72d} \eqref{eq:72f} \eqref{eq:72i} \eqref{eq:72l} \eqref{eq:73d} \eqref{eq:73f} \eqref{eq:73i} \eqref{eq:73k} \eqref{eq:71b} \eqref{eq:72b} \eqref{eq:73b}$ 需要 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
+5. 紀錄 $\eqref{eq:70c} \eqref{eq:71c} \eqref{eq:72d} \eqref{eq:73d}$ 需要 $O(\dhid + 2\dcell + \ncell \cdot \dcell)$
+6. 紀錄 $\eqref{eq:70d} \eqref{eq:71d} \eqref{eq:72e} \eqref{eq:73e}$ 需要 $O(\dim(\dhid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}))$
+7. 紀錄 $\eqref{eq:71e}$ 需要 $O(\dcell)$
+8. 紀錄 $\eqref{eq:71f}$ 需要 $O(\dim(\wog))$
+9. 紀錄 $\eqref{eq:72g}$ 需要 $O(\ncell \cdot \dim(\wig))$
+10. 紀錄 $\eqref{eq:72h}$ 需要 $O(\ncell \cdot \dim(\wig))$
+11. 紀錄 $\eqref{eq:73g}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+12. 紀錄 $\eqref{eq:73h}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+13. 紀錄 $\eqref{eq:72i} \eqref{eq:73i}$ 需要 $O(\ncell \cdot \dcell)$
+14. 紀錄 $\eqref{eq:72j}$ 需要 $O(\ncell \cdot \dim(\wig))$
+15. 紀錄 $\eqref{eq:72k}$ 需要 $O(\dim(\wig))$
+16. 紀錄 $\eqref{eq:73j}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+17. 紀錄 $\eqref{eq:72m}$ 需要 $O(\dim(\wig))$
+18. 紀錄 $\eqref{eq:73l}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+19. 紀錄 $\eqref{eq:69b} \eqref{eq:70e} \eqref{eq:71g} \eqref{eq:72n} \eqref{eq:73m}$ 需要 $O(\dout)$
+20. 紀錄 $\eqref{eq:69c}$ 需要 $O(\dim(\wout))$
+21. **總輸出參數** $t + 1$ 時間點更新結束
+22. 紀錄 $\eqref{eq:70f} \eqref{eq:71h} \eqref{eq:72o} \eqref{eq:73n}$ 需要 $O(\dim(\wout))$
+23. 紀錄 $\eqref{eq:70g} \eqref{eq:71i} \eqref{eq:72p} \eqref{eq:73o}$ 需要 $O(\dhid + (2 + \ncell) \cdot \dcell)$
+24. 紀錄 $\eqref{eq:70h}$ 需要 $O(\dim(\whid))$
+25. **隱藏單元參數** $t + 1$ 時間點更新結束
+26. 紀錄 $\eqref{eq:71j}$ 需要 $O(\dim(\wog))$
+27. **輸出閘門單元參數** $t + 1$ 時間點更新結束
+28. 紀錄 $\eqref{eq:72q}$ 需要 $O(\dim(\wig))$
+29. **輸入閘門單元參數** $t + 1$ 時間點更新結束
+30. 紀錄 $\eqref{eq:73p}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+31. **記憶單元淨輸入參數** $t + 1$ 時間點更新結束
+32. 因此 $t + 1$ 時間點更新**所有參數**的**空間複雜度**為
+
+$$
+\begin{align*}
+& O(3\dim(\wout) + 3\dim(\whid) + 4\dim(\wog) + 5\dim(\wig) + \\
+& \quad 8\ncell \cdot \dim(\wcell{1}) + 2\din + 4\dhid + 9\dcell + 5\ncell \cdot \dcell + \\
+& \quad 4\ncell \cdot \dim(\wig) + \dout) \\
+& = O(\dim(\wout) + \dim(\whid) + \dim(\wog) + \dim(\wig) + \\
+& \quad \ncell \cdot \dim(\wcell{1}) + \ncell \cdot \dim(\wig))
+\end{align*} \tag{76}\label{eq:76}
+$$
+
+總共會執行 $T$ 個 **forward pass**，但**更新**所需的**總空間複雜度**仍然同 $\eqref{eq:76}$
+
+- 依照**時間順序**計算梯度，計算完 $t + 1$ 時間點的梯度時 $t - 1$ 的資訊便可丟棄
+- 這就是 **RTRL** 的最大優點
 
 <!--
 
