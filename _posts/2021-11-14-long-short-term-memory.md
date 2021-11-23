@@ -185,36 +185,35 @@ author: [
 
 ## 重點
 
-- 對 RNN 進行梯度反向傳播的演算法通常稱為 **BPTT** （**B**ack-**P**ropagation **T**hrought **T**ime） 或 real-time recurrent learning
-  - RNN 透過 back-propagation 學習**效率差**
-  - 梯度會**爆炸**或**消失**
-    - 梯度爆炸造成神經網路的**權重劇烈振盪**
-    - 梯度消失造成**訓練時間慢長**
+- 計算 **RNN** 梯度反向傳播的演算法包含 **BPTT** 或 **RTRL**
+  - BPTT 全名為 **B**ack-**P**ropagation **T**hrought **T**ime
+  - RTRL 全名為 **R**eal **T**ime **R**ecurrent **L**earning
+- 不論使用 BPTT 或 RTRL，RNN 的梯度都會面臨**爆炸**或**消失**的問題
+  - 梯度**爆炸**造成神經網路的**權重劇烈振盪**
+  - 梯度**消失**造成**訓練時間慢長**
   - 無法解決輸入與輸出訊號**間隔較長**（long time lag）的問題
 - 論文提出 **LSTM + RTRL** 能夠解決上述問題
-  - RTRL 全名為 **R**eal **T**ime **R**ecurrent **L**earning
   - Backward pass 演算法**時間複雜度**為 $O(w)$，$w$ 代表權重
   - Backward pass 演算法**空間複雜度**也為 $O(w)$
-  - 此結論必須依靠**丟棄部份梯度**並使用 RTRL 才有辦法達成
+  - 此結論必須依靠**丟棄部份梯度**並使用 **RTRL** 才能以有**效率**的辦法解決梯度**爆炸**或**消失**
   - 能夠處理 time lag 間隔為 $1000$ 的問題
   - 甚至輸入訊號含有雜訊時也能處理
   - 同時能夠保有處理 short time lag 問題的能力
-- 使用 mulitplicative gate 學習開啟與關閉記憶 hidden state 的機制
+- 使用**乘法閘門**（**Mulitplicative Gate**）學習**開啟** / **關閉**模型記憶**寫入** / **讀取**機制
 - 與 [PyTorch][Pytorch-LSTM] 實作的 LSTM 完全不同
   - 本篇論文的架構定義更為**廣義**
-  - 本篇論文只有**輸入閘門（input gate）**跟**輸出閘門（output gate）**，並沒有使用**失憶閘門（forget gate）**
+  - 本篇論文只有**輸入閘門**（**Input Gate**）跟**輸出閘門**（**Output Gate**），並沒有使用**失憶閘門**（**Forget Gate**）
 
 ## 傳統的 RNN
 
-### BPTT
+### 模型輸入
 
-BPTT = **B**ack **P**ropagation **T**hrough **T**ime，是專門用來計算 RNN 神經網路模型的**梯度反向傳播演算法**。
 一個 RNN 模型的**輸入**來源共有兩種：
 
-- **外部輸入（external input）** $x(t)$
+- **外部輸入**（**External Input**） $x(t)$
   - 輸入維度為 $\din$
   - 使用下標 $x_{j}(t)$ 代表不同的輸入訊號，$j = 1, \dots, \din$
-- **總輸出（total output）** $y(t)$
+- **總輸出**（**Total Output**） $y(t)$
   - 輸出維度為 $\dout$
   - 使用下標 $y_{j}(t)$ 代表不同的輸入訊號，$j = \din + 1, \dots, \din + \dout$
   - 注意這裡是使用 $t$ 不是 $t - 1$
@@ -222,7 +221,9 @@ BPTT = **B**ack **P**ropagation **T**hrough **T**ime，是專門用來計算 RNN
   - 時間為離散狀態
   - 方便起見令 $y(0) = 0$
 
-令 RNN 模型的參數為 $w \in \R^{\dout \times (\din + \dout)}$，如果我們已經取得 $t$ 時間點的**外部輸入** $x(t)$ 與**總輸出** $y(t)$，則我們可以定義 $t + 1$ 時間點的第 $i$ 個**模型內部節點** $\net{i}{t}$
+### 模型輸出
+
+令 RNN 模型的**參數**為 $w \in \R^{\dout \times (\din + \dout)}$，如果我們已經取得 $t$ 時間點的**外部輸入** $x(t)$ 與**總輸出** $y(t)$，則我們可以定義 $t + 1$ 時間點的第 $i$ 個**模型內部節點** $\net{i}{t}$
 
 $$
 \begin{align*}
@@ -240,7 +241,7 @@ $$
   - 總共有 $\dout$ 個內部節點，因此 $1 \leq i \leq \dout$
 - $[x ; y]$ 代表將外部輸入與總輸出**串接**在一起
 
-令模型使用的**啟發函數**（activation function）為 $f : \R^{\dout} \to \R^{\dout}$，並且內部節點之間無法直接溝通（elementwise activation function），則我們可以得到 $t + 1$ 時間的輸出
+令模型使用的**啟發函數**（**Activation Function**）為 $f : \R^{\dout} \to \R^{\dout}$，並且內部節點之間無法直接溝通（**Elementwise** Activation Function），則我們可以得到 $t + 1$ 時間的輸出
 
 $$
 y_{i}(t + 1) = \fnet{i}{t + 1} \tag{2}\label{eq:2}
@@ -249,6 +250,8 @@ $$
 - 使用下標 $f_{i}$ 是因為每個維度所使用的啟發函數可以**不同**
 - $f$ 必須要可以**微分**
 - 當時幾乎都是使用 sigmoid 函數 $\sigma(x) = 1 / (1 + e^{-x})$
+
+### 計算誤差
 
 如果 $t + 1$ 時間點的**輸出目標**為 $\hat{y}(t + 1) \in \R^{\dout}$，則**目標函數**為**最小平方差**（Mean Square Error）：
 
@@ -261,6 +264,8 @@ $$
 $$
 \Loss{t + 1} = \sum_{i = 1}^{\dout} \loss{i}{t + 1} \tag{4}\label{eq:4}
 $$
+
+### 反向傳播
 
 根據 $\eqref{eq:3} \eqref{eq:4}$ 我們可以輕易的計算 $\loss{i}{t + 1}$ 對 $\Loss{t + 1}$ 所得梯度
 
@@ -1559,7 +1564,7 @@ $$
   - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
   - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
 
-總共會執行 $T$ 個 **forward pass**，因此**更新所有參數**所需的**總時間複雜度**為
+總共會執行 $T$ 個 **forward pass**，因此**更新所有參數**（$\eqref{eq:69d} \eqref{eq:70i} \eqref{eq:71k} \eqref{eq:72r} \eqref{eq:73q}$）所需的**總時間複雜度**為
 
 $$
 \begin{align*}
@@ -1620,21 +1625,9 @@ $$
 - 依照**時間順序**計算梯度，計算完 $t + 1$ 時間點的梯度時 $t - 1$ 的資訊便可丟棄
 - 這就是 **RTRL** 的最大優點
 
+## 達成梯度常數
+
 <!--
-
-- 從 $\eqref{eq:67} \eqref{eq:68}$ 我們可以觀察出以下結論
-  - 在 $t + 1$ 時間點**輸入閘門參數**與**記憶單元淨輸入參數** $\wig, \wcell{k}$ 的**剩餘梯度**都與 $\pd{s_i^{\cell{k}}(t)}{[\wig ; \wcell{k}]_{i q}}$ 有關
-  - 進行**參數更新**時只需要紀錄**一份**數字
-  - **參數更新**所需的**空間複雜度**為 $O(\wig + \wcell{1} + \dots + \wcell{\ncell})$
-
-### 更新模型參數
-
-只針對來自記憶單元 $c_i(t + 1)$ 的梯度進行跟新
-
-$$
-\pd{c_i(t + 1)}{w_{j k}}
-$$
-
 - local in space: if update complexity per time stemp and weight does not depend on network size
 - local in time: if its storage requirements do not depend on input sequeqnce length
 - RTRL is local in time but not in space
