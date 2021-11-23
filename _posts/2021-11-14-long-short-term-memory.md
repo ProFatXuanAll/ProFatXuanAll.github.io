@@ -1321,13 +1321,15 @@ $$
 
 ### 總輸出參數
 
-從 $\eqref{eq:49} \eqref{eq:53} \eqref{eq:57} \eqref{eq:61} \eqref{eq:64}$ 我們可以觀察出以下結論
+從 $\eqref{eq:5} \eqref{eq:6} \eqref{eq:7} \eqref{eq:49} \eqref{eq:53} \eqref{eq:57} \eqref{eq:61} \eqref{eq:64}$ 我們可以觀察出以下結論
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \pd{y_i(t + 1)}{\wout_{i, j}} \\
-& = \sum_{t = 0}^{T} \bigg[\dfnetout{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)\bigg] \\
-& = \sum_{t = 0}^{T} \bigg[\dfnetout{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)\bigg]
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\wout_{i, j}} \\
+& = \sum_{t = 0}^{T} \bigg[\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wout_{i, j}}\bigg] \\
+& = \sum_{t = 0}^{T} \bigg[1 \cdot \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \pd{y_i(t + 1)}{\wout_{i, j}}\bigg] \\
+& = \sum_{t = 0}^{T} \bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+& \quad [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)\bigg]
 \end{align*} \tag{69}\label{eq:69}
 $$
 
@@ -1335,7 +1337,9 @@ $$
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \pd{y_i(t + 1)}{\wout_{i, j}} = \sum_{t = 0}^{T} \bigg[ \tag{69d}\label{eq:69d} \\
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\wout_{i, j}} = \sum_{t = 0}^{T} \bigg[ \tag{69f}\label{eq:69f} \\
+& \quad \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \tag{69d}\label{eq:69d} \\
+& \quad \times \tag{69e}\label{eq:69e} \\
 & \quad \dfnetout{i}{t + 1} \tag{69b}\label{eq:69b} \\
 & \quad \times \tag{69c}\label{eq:69c} \\
 & \quad [x ; y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t) \tag{69a}\label{eq:69a} \\
@@ -1345,16 +1349,18 @@ $$
 
 ### 隱藏單元參數
 
-從 $\eqref{eq:47} \eqref{eq:50} \eqref{eq:54}$ 我們可以觀察出以下結論
+從 $\eqref{eq:5} \eqref{eq:6} \eqref{eq:7} \eqref{eq:47} \eqref{eq:50} \eqref{eq:54}$ 我們可以觀察出以下結論
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\whid_{p, q}} \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t)}{\whid_{p, q}}\bigg] \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \dfnethid{p}{t} \cdot \\
-& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1)\bigg] \\
-& = \sum_{t = 0}^{T} \Bigg[\bigg[\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg] \cdot \dfnethid{p}{t} \cdot \\
-& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1)\Bigg]
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\whid_{p, q}} \\
+& = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\whid_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[1 \cdot \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \\
+& \quad \pd{y_p^{\ophid}(t)}{\whid_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \\
+& \quad \dfnethid{p}{t} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1)\bigg] \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
+& \quad \dfnethid{p}{t} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1)\Bigg]
 \end{align*} \tag{70}\label{eq:70}
 $$
 
@@ -1362,13 +1368,15 @@ $$
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\whid_{p, q}} \aptr \sum_{t = 0}^{T} \Bigg[ \tag{70i}\label{eq:70i} \\
-& \quad \bigg[\sum_{i = 1}^{\dout} \tag{70g}\label{eq:70g} \\
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\whid_{p, q}} \aptr \sum_{t = 0}^{T} \Bigg[ \tag{70k}\label{eq:70k} \\
+& \quad \bigg(\sum_{i = 1}^{\dout} \tag{70i}\label{eq:70i} \\
+& \quad \quad \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \tag{70g}\label{eq:70g} \\
+& \quad \quad \times \tag{70h}\label{eq:70h} \\
 & \quad \quad \dfnetout{i}{t + 1} \tag{70e}\label{eq:70e} \\
 & \quad \quad \times \tag{70f}\label{eq:70f} \\
 & \quad \quad \wout_{i, p} \tag{70a}\label{eq:70a} \\
-& \quad \bigg] \\
-& \quad \times \tag{70h}\label{eq:70h} \\
+& \quad \bigg) \\
+& \quad \times \tag{70j}\label{eq:70j} \\
 & \quad \dfnethid{p}{t} \tag{70c}\label{eq:70c} \\
 & \quad \times \tag{70d}\label{eq:70d} \\
 & \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t - 1) \tag{70b}\label{eq:70b} \\
@@ -1378,17 +1386,23 @@ $$
 
 ### 輸出閘門單元參數
 
-從 $\eqref{eq:51} \eqref{eq:55} \eqref{eq:58} \eqref{eq:62} \eqref{eq:66}$ 我們可以觀察出以下結論
+從 $\eqref{eq:5} \eqref{eq:6} \eqref{eq:7} \eqref{eq:51} \eqref{eq:55} \eqref{eq:58} \eqref{eq:62} \eqref{eq:66}$ 我們可以觀察出以下結論
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wog_{p, q}} \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[\dfnetout{i}{t + 1} \cdot \sum_{k = 1}^{\ncell} \bigg[\wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg]\Bigg] \\
-& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg)\Bigg] \\
-& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t} \cdot \pd{y_p^{\opog}(t)}{\wog_{p, q}}\bigg)\Bigg] \\
-& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t}\bigg) \cdot \pd{y_p^{\opog}(t)}{\wog_{p, q}}\Bigg] \\
-& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t}\bigg) \cdot \\
-& \quad \dfnetog{p}{t} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\Bigg]
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\wog_{p, q}} \\
+& = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wog_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[1 \cdot \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+& \quad \sum_{k = 1}^{\ncell} \bigg(\wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg)\Bigg] \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \pd{y^{\cell{k}}_p(t)}{\wog_{p, q}}\bigg)\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t} \cdot \pd{y_p^{\opog}(t)}{\wog_{p, q}}\bigg)\Bigg] \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t}\bigg) \cdot \pd{y_p^{\opog}(t)}{\wog_{p, q}}\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t}\bigg) \cdot \dfnetog{p}{t} \cdot \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\Bigg]
 \end{align*} \tag{71}\label{eq:71}
 $$
 
@@ -1396,13 +1410,15 @@ $$
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wog_{p, q}} \aptr \sum_{t = 0}^{T} \Bigg[ \tag{71k}\label{eq:71k} \\
-& \quad \bigg(\sum_{i = 1}^{\dout} \tag{71i}\label{eq:71i} \\
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\wog_{p, q}} \aptr \sum_{t = 0}^{T} \Bigg[ \tag{71m}\label{eq:71m} \\
+& \quad \bigg(\sum_{i = 1}^{\dout} \tag{71k}\label{eq:71k} \\
+& \quad \quad \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \tag{71i}\label{eq:71i} \\
+& \quad \quad \times \tag{71j}\label{eq:71j} \\
 & \quad \quad \dfnetout{i}{t + 1} \tag{71g}\label{eq:71g} \\
 & \quad \quad \times \tag{71h}\label{eq:71h} \\
 & \quad \quad \wout_{i, p} \tag{71a}\label{eq:71a} \\
 & \quad \bigg) \\
-& \quad \times \tag{71j}\label{eq:71j} \\
+& \quad \times \tag{71l}\label{eq:71l} \\
 & \quad \bigg(\sum_{k = 1}^{\ncell} \hcell{p}{k}{t} \tag{71e}\label{eq:71e}\bigg) \\
 & \quad \times \tag{71f}\label{eq:71f} \\
 & \quad \dfnetog{p}{t} \tag{71c}\label{eq:71c} \\
@@ -1414,18 +1430,21 @@ $$
 
 ### 輸入閘門單元參數
 
-從 $\eqref{eq:51} \eqref{eq:55} \eqref{eq:59} \eqref{eq:62} \eqref{eq:67}$ 我們可以觀察出以下結論
+從 $\eqref{eq:5} \eqref{eq:6} \eqref{eq:7} \eqref{eq:51} \eqref{eq:55} \eqref{eq:59} \eqref{eq:62} \eqref{eq:67}$ 我們可以觀察出以下結論
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wig_{p, q}} \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[\dfnetout{i}{t + 1} \cdot \sum_{k = 1}^{\ncell} \bigg[\wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wig_{p, q}}\bigg]\Bigg] \\
-& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \bigg(\sum_{k = 1}^{\ncell} \pd{y^{\cell{k}}_p(t)}{\wig_{p, q}}\bigg)\Bigg] \\
-& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\wig_{p, q}} \\
+& = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wig_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \Bigg[1 \cdot \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+& \quad \sum_{k = 1}^{\ncell} \bigg(\wout_{i, p} \cdot \pd{y^{\cell{k}}_p(t)}{\wig_{p, q}}\bigg)\Bigg] \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \pd{y^{\cell{k}}_p(t)}{\wig_{p, q}}\bigg)\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot \\
 & \quad \bigg(\sum_{k = 1}^{\ncell} y_p^{\opog}(t) \cdot \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wig_{p, q}}\bigg)\Bigg] \\
-& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
 & \quad \bigg(\sum_{k = 1}^{\ncell} \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wig_{p, q}}\bigg)\Bigg] \\
-& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
 & \quad \bigg(\sum_{k = 1}^{\ncell} \dhcell{p}{k}{t} \cdot \bigg[\pd{s_p^{\cell{k}}(t - 1)}{\wig_{p, q}} + \gnetcell{p}{k}{t} \cdot \dfnetig{p}{t} \cdot \\
 & \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg]\bigg)\Bigg]
 \end{align*} \tag{72}\label{eq:72}
@@ -1435,14 +1454,16 @@ $$
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wig_{p, q}} \\
-& \aptr \sum_{t = 0}^{T} \Bigg[ \tag{72r}\label{eq:72r} \\
-& \quad \bigg(\sum_{i = 1}^{\dout} \tag{72p}\label{eq:72p} \\
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\wig_{p, q}} \\
+& \aptr \sum_{t = 0}^{T} \Bigg[ \tag{72t}\label{eq:72t} \\
+& \quad \bigg(\sum_{i = 1}^{\dout} \tag{72r}\label{eq:72r} \\
+& \quad \quad \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \tag{72p}\label{eq:72p} \\
+& \quad \quad \times \tag{72q}\label{eq:72q} \\
 & \quad \quad \dfnetout{i}{t + 1} \tag{72n}\label{eq:72n} \\
 & \quad \quad \times \tag{72o}\label{eq:72o} \\
 & \quad \quad \wout_{i, p} \tag{72a}\label{eq:72a} \\
 & \quad \bigg) \\
-& \quad \times \tag{72q}\label{eq:72q} \\
+& \quad \times \tag{72s}\label{eq:72s} \\
 & \quad y_p^{\opog}(t) \tag{72l}\label{eq:72l} \\
 & \quad \times \tag{72m}\label{eq:72m} \\
 & \quad \bigg(\sum_{k = 1}^{\ncell} \tag{72k}\label{eq:72k} \\
@@ -1462,18 +1483,21 @@ $$
 
 ### 記憶單元淨輸入參數
 
-從 $\eqref{eq:52} \eqref{eq:56} \eqref{eq:60} \eqref{eq:63} \eqref{eq:68}$ 我們可以觀察出以下結論
+從 $\eqref{eq:5} \eqref{eq:6} \eqref{eq:7} \eqref{eq:52} \eqref{eq:56} \eqref{eq:60} \eqref{eq:63} \eqref{eq:68}$ 我們可以觀察出以下結論
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wcell{k}_{p, q}} \\
-& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot \pd{y^{\cell{k}}_p(t)}{\wcell{k}_{p, q}}\bigg] \\
-& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot \pd{y^{\cell{k}}_p(t)}{\wcell{k}_{p, q}}\Bigg] \\
-& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
-& \quad \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}\Bigg] \\
-& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
-& \quad \dhcell{p}{k}{t} \cdot \bigg(\pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + y_p^{\opig}(t) \cdot \dgnetcell{p}{k}{t} \cdot \\
-& \quad \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg)\Bigg]
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\wcell{k}_{p, q}} \\
+& = \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wcell{k}_{p, q}}\bigg] \\
+& \aptr \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \bigg[1 \cdot \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+& \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \cdot \pd{y^{\cell{k}}_p(t)}{\wcell{k}_{p, q}}\bigg] \\
+& = \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+& \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot \pd{y^{\cell{k}}_p(t)}{\wcell{k}_{p, q}}\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+& \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot y_p^{\opog}(t) \cdot \dhcell{p}{k}{t} \cdot \pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+& \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p}\bigg) \cdot y_p^{\opog}(t) \cdot \dhcell{p}{k}{t} \cdot \bigg(\pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + \\
+& \quad y_p^{\opig}(t) \cdot \dgnetcell{p}{k}{t} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg)\Bigg]
 \end{align*} \tag{73}\label{eq:73}
 $$
 
@@ -1481,14 +1505,16 @@ $$
 
 $$
 \begin{align*}
-& \sum_{t = 0}^{T} \sum_{i = 1}^{\dout} \pd{y_i(t + 1)}{\wcell{k}_{p, q}} \\
-& \aptr \sum_{t = 0}^{T} \Bigg[ \tag{73q}\label{eq:73q} \\
-& \quad \bigg(\sum_{i = 1}^{\dout} \tag{73o}\label{eq:73o} \\
+& \sum_{t = 0}^{T} \pd{\Loss{t + 1}}{\wcell{k}_{p, q}} \\
+& \aptr \sum_{t = 0}^{T} \Bigg[ \tag{73s}\label{eq:73s} \\
+& \quad \bigg(\sum_{i = 1}^{\dout} \tag{73q}\label{eq:73q} \\
+& \quad \quad \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \tag{73o}\label{eq:73o} \\
+& \quad \quad \times \tag{73p}\label{eq:73p} \\
 & \quad \quad \dfnetout{i}{t + 1} \tag{73m}\label{eq:73m} \\
 & \quad \quad \times \tag{73n}\label{eq:73n} \\
 & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dcell + p} \tag{73a}\label{eq:73a} \\
 & \quad \bigg) \\
-& \quad \times \tag{73p}\label{eq:73p} \\
+& \quad \times \tag{73r}\label{eq:73r} \\
 & \quad y_p^{\opog}(t) \tag{73k}\label{eq:73k} \\
 & \quad \times \tag{73l}\label{eq:73l} \\
 & \quad \dhcell{p}{k}{t} \tag{73i}\label{eq:73i} \\
@@ -1507,7 +1533,7 @@ $$
 
 ### 時間複雜度
 
-假設 $t + 1$ 時間點的 **forward pass** 已經執行完成，則我們推得**更新** $t + 1$ 時間點**所有參數**的**時間複雜度**為 $O()$
+假設 $t + 1$ 時間點的 **forward pass** 已經執行完成，則我們推得**更新** $t + 1$ 時間點**所有參數**的**時間複雜度**
 
 1. 假設所有**函數微分計算**只需要 $O(1)$，這個假設可以用像是 sigmoid 的函數達成
 2. 利用 $t - 1$ 時間點**已經計算過**的 $\eqref{eq:70b} \eqref{eq:71b} \eqref{eq:72b} \eqref{eq:73b}$ 需要 $O(1)$
@@ -1532,28 +1558,32 @@ $$
 21. 利用**已經計算過**的 $\eqref{eq:73j} \eqref{eq:73k}$ 計算並**紀錄** $\eqref{eq:73l}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
 22. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:69b} \eqref{eq:70e} \eqref{eq:71g} \eqref{eq:72n} \eqref{eq:73m}$ 需要 $O(\dout)$
 23. 利用**已經計算過**的 $\eqref{eq:69a} \eqref{eq:69b}$ 計算並**紀錄** $\eqref{eq:69c}$ 需要 $O(\dim(\wout))$
-24. **總輸出參數** $t + 1$ 時間點更新結束
-25. 利用**已經計算過**的 $\eqref{eq:70a} \eqref{eq:70e} \eqref{eq:71a} \eqref{eq:71g} \eqref{eq:72a} \eqref{eq:72n} \eqref{eq:73a} \eqref{eq:73m}$ 計算並**紀錄** $\eqref{eq:70f} \eqref{eq:71h} \eqref{eq:72o} \eqref{eq:73n}$ 需要 $O(\dim(\wout))$
-26. 利用**已經計算過**的 $\eqref{eq:70f} \eqref{eq:71h} \eqref{eq:72o} \eqref{eq:73n}$ 計算並**紀錄** $\eqref{eq:70g} \eqref{eq:71i} \eqref{eq:72p} \eqref{eq:73o}$ 需要 $O(\dim(\wout))$
-27. 利用**已經計算過**的 $\eqref{eq:70d} \eqref{eq:70g}$ 計算並**紀錄** $\eqref{eq:70h}$ 需要 $O(\dim(\whid))$
-28. **隱藏單元參數** $t + 1$ 時間點更新結束
-29. 利用**已經計算過**的 $\eqref{eq:71f} \eqref{eq:71i}$ 計算並**紀錄** $\eqref{eq:71j}$ 需要 $O(\dim(\wog))$
-30. **輸出閘門單元參數** $t + 1$ 時間點更新結束
-31. 利用**已經計算過**的 $\eqref{eq:72m} \eqref{eq:72p}$ 計算並**紀錄** $\eqref{eq:72q}$ 需要 $O(\dim(\wig))$
-32. **輸入閘門單元參數** $t + 1$ 時間點更新結束
-33. 利用**已經計算過**的 $\eqref{eq:73l} \eqref{eq:73o}$ 計算並**紀錄** $\eqref{eq:73p}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
-34. **記憶單元淨輸入參數** $t + 1$ 時間點更新結束
-35. 因此 $t + 1$ 時間點更新**所有參數**的**時間複雜度**為
+24. 利用 **forward pass** 的結果計算並**紀錄** $\eqref{eq:69d} \eqref{eq:70g} \eqref{eq:71i} \eqref{eq:72p} \eqref{eq:73o}$ 需要 $O(\dout)$
+25. 利用**已經計算過**的 $\eqref{eq:69c} \eqref{eq:69d}$ 計算並**紀錄** $\eqref{eq:69e}$ 需要 $O(\dim(\wout))$
+26. **總輸出參數** $t + 1$ 時間點更新結束
+27. 利用**已經計算過**的 $\eqref{eq:70a} \eqref{eq:70e} \eqref{eq:71a} \eqref{eq:71g} \eqref{eq:72a} \eqref{eq:72n} \eqref{eq:73a} \eqref{eq:73m}$ 計算並**紀錄** $\eqref{eq:70f} \eqref{eq:71h} \eqref{eq:72o} \eqref{eq:73n}$ 需要 $O(\dim(\wout))$
+28. 利用**已經計算過**的 $\eqref{eq:70f} \eqref{eq:70g} \eqref{eq:71h} \eqref{eq:71i} \eqref{eq:72o} \eqref{eq:72p} \eqref{eq:73n} \eqref{eq:73o}$ 計算並**紀錄** $\eqref{eq:70h} \eqref{eq:71j} \eqref{eq:72q} \eqref{eq:73p}$ 需要 $O(\dim(\wout))$
+29. 利用**已經計算過**的 $\eqref{eq:70h} \eqref{eq:71j} \eqref{eq:72q} \eqref{eq:73p}$ 計算並**紀錄** $\eqref{eq:70i} \eqref{eq:71k} \eqref{eq:72r} \eqref{eq:73q}$ 需要 $O(\dim(\wout))$
+30. 利用**已經計算過**的 $\eqref{eq:70d} \eqref{eq:70i}$ 計算並**紀錄** $\eqref{eq:70j}$ 需要 $O(\dim(\whid))$
+31. **隱藏單元參數** $t + 1$ 時間點更新結束
+32. 利用**已經計算過**的 $\eqref{eq:71f} \eqref{eq:71k}$ 計算並**紀錄** $\eqref{eq:71l}$ 需要 $O(\dim(\wog))$
+33. **輸出閘門單元參數** $t + 1$ 時間點更新結束
+34. 利用**已經計算過**的 $\eqref{eq:72m} \eqref{eq:72r}$ 計算並**紀錄** $\eqref{eq:72s}$ 需要 $O(\dim(\wig))$
+35. **輸入閘門單元參數** $t + 1$ 時間點更新結束
+36. 利用**已經計算過**的 $\eqref{eq:73l} \eqref{eq:73q}$ 計算並**紀錄** $\eqref{eq:73r}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+37. **記憶單元淨輸入參數** $t + 1$ 時間點更新結束
+38. 因此 $t + 1$ 時間點更新**所有參數**的**時間複雜度**為
 
 $$
 \begin{align*}
 & O(\dhid + 2\dcell + 3\ncell \cdot \dcell + 2\dim(\whid) + 3\dim(\wog) + 3\dim(\wig) + \\
-& \quad 6\ncell \cdot \dim(\wcell{1}) + 4\ncell \cdot \dim(\wig) + \dout + 3\dim(\wout)) \\
+& \quad 6\ncell \cdot \dim(\wcell{1}) + 4\ncell \cdot \dim(\wig) + 2\dout + 5\dim(\wout)) \\
 & = O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}) + \\
 & \quad \ncell \cdot \dim(\wig) + \dim(\wout))
 \end{align*} \tag{74}\label{eq:74}
 $$
 
+- $\eqref{eq:74}$ 就是論文中的 A.27 式
 - 在 $t + 1$ 時間點**參數更新**需要考慮 $t - 1$ 時間點的**計算狀態**
   - 注意是 $t - 1$ 不是 $t$
   - 這也代表需要進行兩次以上的 **forward pass** （$t \geq 2$）**部份參數**才能收到梯度
@@ -1564,7 +1594,7 @@ $$
   - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
   - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
 
-總共會執行 $T$ 個 **forward pass**，因此**更新所有參數**（$\eqref{eq:69d} \eqref{eq:70i} \eqref{eq:71k} \eqref{eq:72r} \eqref{eq:73q}$）所需的**總時間複雜度**為
+總共會執行 $T$ 個 **forward pass**，因此**更新所有參數**（$\eqref{eq:69f} \eqref{eq:70k} \eqref{eq:71m} \eqref{eq:72t} \eqref{eq:73q}$）所需的**總時間複雜度**為
 
 $$
 \begin{align*}
@@ -1575,14 +1605,14 @@ $$
 
 ### 空間複雜度
 
-在 $t + 1$ 時間點**更新所有參數**所需的**空間複雜度**為 $O()$
+我們也可以推得在 $t + 1$ 時間點**更新所有參數**所需的**空間複雜度**
 
 1. 創造所有參數需要 $O(\dim(\wout) + \dim(\whid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}))$
 2. 紀錄 $t - 1$ 時間點的所有**計算狀態** $\eqref{eq:70b} \eqref{eq:71b} \eqref{eq:72b} \eqref{eq:73b}$ 需要 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
 3. 紀錄 $t - 1$ 時間點的**記憶單元內部狀態微分值** $\eqref{eq:72c} \eqref{eq:73c}$ 需要 $O(\ncell \cdot (\dim(\wig) + \dim(\wcell{1})))$
 4. 紀錄 $t$ 時間點的所有**計算狀態** $\eqref{eq:69a} \eqref{eq:70c} \eqref{eq:71c} \eqref{eq:71e} \eqref{eq:72d} \eqref{eq:72f} \eqref{eq:72i} \eqref{eq:72l} \eqref{eq:73d} \eqref{eq:73f} \eqref{eq:73i} \eqref{eq:73k} \eqref{eq:71b} \eqref{eq:72b} \eqref{eq:73b}$ 需要 $O(\din + \dhid + (2 + \ncell) \cdot \dcell)$
 5. 紀錄 $\eqref{eq:70c} \eqref{eq:71c} \eqref{eq:72d} \eqref{eq:73d}$ 需要 $O(\dhid + 2\dcell + \ncell \cdot \dcell)$
-6. 紀錄 $\eqref{eq:70d} \eqref{eq:71d} \eqref{eq:72e} \eqref{eq:73e}$ 需要 $O(\dim(\dhid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}))$
+6. 紀錄 $\eqref{eq:70d} \eqref{eq:71d} \eqref{eq:72e} \eqref{eq:73e}$ 需要 $O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}))$
 7. 紀錄 $\eqref{eq:71e}$ 需要 $O(\dcell)$
 8. 紀錄 $\eqref{eq:71f}$ 需要 $O(\dim(\wog))$
 9. 紀錄 $\eqref{eq:72g}$ 需要 $O(\ncell \cdot \dim(\wig))$
@@ -1597,24 +1627,26 @@ $$
 18. 紀錄 $\eqref{eq:73l}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
 19. 紀錄 $\eqref{eq:69b} \eqref{eq:70e} \eqref{eq:71g} \eqref{eq:72n} \eqref{eq:73m}$ 需要 $O(\dout)$
 20. 紀錄 $\eqref{eq:69c}$ 需要 $O(\dim(\wout))$
-21. **總輸出參數** $t + 1$ 時間點更新結束
-22. 紀錄 $\eqref{eq:70f} \eqref{eq:71h} \eqref{eq:72o} \eqref{eq:73n}$ 需要 $O(\dim(\wout))$
-23. 紀錄 $\eqref{eq:70g} \eqref{eq:71i} \eqref{eq:72p} \eqref{eq:73o}$ 需要 $O(\dhid + (2 + \ncell) \cdot \dcell)$
-24. 紀錄 $\eqref{eq:70h}$ 需要 $O(\dim(\whid))$
-25. **隱藏單元參數** $t + 1$ 時間點更新結束
-26. 紀錄 $\eqref{eq:71j}$ 需要 $O(\dim(\wog))$
-27. **輸出閘門單元參數** $t + 1$ 時間點更新結束
-28. 紀錄 $\eqref{eq:72q}$ 需要 $O(\dim(\wig))$
-29. **輸入閘門單元參數** $t + 1$ 時間點更新結束
-30. 紀錄 $\eqref{eq:73p}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
-31. **記憶單元淨輸入參數** $t + 1$ 時間點更新結束
-32. 因此 $t + 1$ 時間點更新**所有參數**的**空間複雜度**為
+21. 紀錄 $\eqref{eq:69d} \eqref{eq:70g} \eqref{eq:71i} \eqref{eq:72p} \eqref{eq:73o}$ 需要 $O(\dout)$
+22. 紀錄 $\eqref{eq:69e}$ 需要 $O(\dim(\wout))$
+23. **總輸出參數** $t + 1$ 時間點更新結束
+24. 紀錄 $\eqref{eq:70h} \eqref{eq:71j} \eqref{eq:72q} \eqref{eq:73p}$ 需要 $O(\dim(\wout))$
+25. 紀錄 $\eqref{eq:70i} \eqref{eq:71k} \eqref{eq:72r} \eqref{eq:73q}$ 需要 $O(\dhid + (2 + \ncell) \cdot \dcell)$
+26. 紀錄 $\eqref{eq:70j}$ 需要 $O(\dim(\whid))$
+27. **隱藏單元參數** $t + 1$ 時間點更新結束
+28. 紀錄 $\eqref{eq:71l}$ 需要 $O(\dim(\wog))$
+29. **輸出閘門單元參數** $t + 1$ 時間點更新結束
+30. 紀錄 $\eqref{eq:72s}$ 需要 $O(\dim(\wig))$
+31. **輸入閘門單元參數** $t + 1$ 時間點更新結束
+32. 紀錄 $\eqref{eq:73r}$ 需要 $O(\ncell \cdot \dim(\wcell{1}))$
+33. **記憶單元淨輸入參數** $t + 1$ 時間點更新結束
+34. 因此 $t + 1$ 時間點更新**所有參數**的**空間複雜度**為
 
 $$
 \begin{align*}
-& O(3\dim(\wout) + 3\dim(\whid) + 4\dim(\wog) + 5\dim(\wig) + \\
+& O(4\dim(\wout) + 3\dim(\whid) + 4\dim(\wog) + 5\dim(\wig) + \\
 & \quad 8\ncell \cdot \dim(\wcell{1}) + 2\din + 4\dhid + 9\dcell + 5\ncell \cdot \dcell + \\
-& \quad 4\ncell \cdot \dim(\wig) + \dout) \\
+& \quad 4\ncell \cdot \dim(\wig) + 2\dout) \\
 & = O(\dim(\wout) + \dim(\whid) + \dim(\wog) + \dim(\wig) + \\
 & \quad \ncell \cdot \dim(\wcell{1}) + \ncell \cdot \dim(\wig))
 \end{align*} \tag{76}\label{eq:76}
@@ -1625,7 +1657,76 @@ $$
 - 依照**時間順序**計算梯度，計算完 $t + 1$ 時間點的梯度時 $t - 1$ 的資訊便可丟棄
 - 這就是 **RTRL** 的最大優點
 
-## 達成梯度常數
+## 架構分析
+
+### 達成梯度常數
+
+根據 $\eqref{eq:39} \eqref{eq:44} \eqref{eq:45} \eqref{eq:46}$ 我們可以推得
+
+$$
+\begin{align*}
+\pd{s_i^{\cell{k}}(t + 1)}{s_i^{\cell{k}}(t)} & = \pd{s_i^{\cell{k}}(t)}{s_i^{\cell{k}}(t)} + \cancelto{0}{\pd{y_i^{\opig}(t + 1)}{s_i^{\cell{k}}(t)}} \cdot \gnetcell{i}{k}{t + 1} + \\
+& \quad y_i^{\opig}(t + 1) \cdot \cancelto{0}{\pd{\gnetcell{i}{k}{t + 1}}{s_i^{\cell{k}}(t)}} \\
+& \aptr 1
+\end{align*} \tag{77}\label{eq:77}
+$$
+
+由於**丟棄部份梯度**的作用，$s^{\cell{k}}$ 的**梯度**是模型中**唯一**進行**遞迴**（跨過多個時間點的意思）的梯度。
+透過丟棄部份梯度我們從 $\eqref{eq:77}$ 可以看出 LSTM 達成 $\eqref{eq:31}$ 所設想的情況。
+
+### 內部狀態偏差行為
+
+觀察 $\eqref{eq:67} \eqref{eq:72}$ 我們可以推得以下結果
+
+$$
+\begin{align*}
+& \sum_{t = 0}^T \pd{\Loss{t + 1}}{\wig_{p, q}} \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \dhcell{p}{k}{t} \cdot \bigg[\pd{s_p^{\cell{k}}(t - 1)}{\wig_{p, q}} + \gnetcell{p}{k}{t} \cdot \dfnetig{p}{t} \cdot \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t - 1)\bigg]\bigg)\Bigg] \\
+& \aptr \sum_{t = 0}^{T} \Bigg[\bigg(\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}\bigg) \cdot y_p^{\opog}(t) \cdot \\
+& \quad \bigg(\sum_{k = 1}^{\ncell} \dhcell{p}{k}{t} \cdot \bigg[\sum_{t^{\star} = 1}^t \gnetcell{p}{k}{t^{\star}} \cdot \dfnetig{p}{t^{\star}} \cdot \\
+& \quad [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{k}}]_q(t^{\star} - 1)\bigg]\bigg)\Bigg]
+\end{align*} \tag{78}\label{eq:78}
+$$
+
+當 $h$ 是 sigmoid 函數時，我們可以發現
+
+- 如果 $s^{\cell{k}}(t)$ 是一個**非常大**的**正數**，則 $\dhcell{p}{k}{t}$ 會變得**非常小**
+- 如果 $s^{\cell{k}}(t)$ 是一個**非常小**的**負數**，則 $\dhcell{p}{k}{t}$ 也會變得**非常小**
+- 在 $s^{\cell{k}}(t)$ 極正或極負的情況下，**輸入閘門參數** $\wig$ 的**梯度**會**消失**
+- 此現象稱為**內部狀態偏差行為**（**Internal State Drift**）
+- 同樣的現象也會發生在**記憶單元淨輸入參數** $\wcell{1}, \dots \wcell{\ncell}$ 身上，請見 $\eqref{eq:73}$
+- 此分析就是論文的 A.39 式
+
+### 解決 Internal State Drift
+
+作者提出在**訓練初期**可以將 $\opnet^{\opig}$ 的 bias term 弄成很小的**負數**，邏輯如下
+
+$$
+\begin{align*}
+& \opnet^{\opig}(1) \ll 0 \\
+\implies & y^{\opig}(1) \approx 0 \\
+\implies & s^{\wcell{k}}(1) = s^{\wcell{k}}(0) + y^{\opig}(1) \odot g\big(\opnet^{\wcell{k}}(1)\big) \\
+& = y^{\opig}(1) \odot g\big(\opnet^{\wcell{k}}(1)\big) \approx 0 \\
+\implies & \begin{dcases}
+s^{\wcell{k}}(t + 1) \not\ll 0 \\
+s^{\wcell{k}}(t + 1) \not\gg 0
+\end{dcases} \quad \forall t = 0, \dots, T
+\end{align*} \tag{79}\label{eq:79}
+$$
+
+根據 $\eqref{eq:79}$ 我們就不會得到 $s^{\cell{k}}(t)$ 極正或極負的情況，也就不會出現 Internal State Drift。
+
+雖然這種作法是種**模型偏差**（**Model Bias**）而且會導致 $y^{\opig}(\star)$ 與 $\dfnetig{p}{\star}$ **變小**，但作者認為這些影響比起 Internal State Drift 一點都不重要。
+
+### 輸出閘門的優點
+
+在訓練的初期**誤差**通常比較**大**，導致**梯度**更著變**大**（此觀察可以從 $\eqref{eq:69d} \eqref{eq:70g} \eqref{eq:71i} \eqref{eq:72p} \eqref{eq:73o}$ 得出）。
+
+由於**輸出閘門**所使用的**啟發函數** $f^{\opog}$ 是 sigmoid，數值範圍是 $(0, 1)$，我們可以發現 $\eqref{eq:72l} \eqref{eq:73k}$ 可以嘗試讓**過大誤差**造成的**梯度變小**，避免訓練初期的參數劇烈振盪。
+
+但這些說法並沒有辦法真的保證一定會實現，算是這篇論文說服力比較薄弱的點。
 
 <!--
 - local in space: if update complexity per time stemp and weight does not depend on network size
