@@ -209,7 +209,7 @@ author: [
   - 擁有處理**長時間差**（**Long Time Lag**）任務的能力
   - 能夠處理最長時間差長達 $1000$ 個單位的任務
   - 輸入訊號含有雜訊時也能處理
-- 使用**乘法閘門**（**Mulitplicative Gate**）學習**開啟** / **關閉**模型記憶**寫入** / **讀取**機制
+- 使用**乘法閘門**（**Multiplicative Gate**）學習**開啟** / **關閉**模型記憶**寫入** / **讀取**機制
 - 與 [PyTorch][Pytorch-LSTM] 實作的 LSTM 完全不同
   - 本篇論文的架構定義更為**廣義**
   - 本篇論文只有**輸入閘門**（**Input Gate**）跟**輸出閘門**（**Output Gate**），並沒有使用**失憶閘門**（**Forget Gate**）
@@ -251,7 +251,7 @@ $$
   - 總共有 $\dout$ 個內部節點，因此 $1 \leq i \leq \dout$
 - $[x ; y]$ 代表將外部輸入與總輸出**串接**在一起
 
-令模型使用的**啟發函數**（**Activation Function**）為 $f : \R^{\dout} \to \R^{\dout}$，並且內部節點之間無法直接溝通（**Elementwise** Activation Function），則我們可以得到 $t + 1$ 時間的輸出
+令模型使用的**啟發函數**（**Activation Function**）為 $f : \R^{\dout} \to \R^{\dout}$，並且內部節點之間無法直接溝通（**Element-wise** Activation Function），則我們可以得到 $t + 1$ 時間的輸出
 
 $$
 y_{i}(t + 1) = \fnet{i}{t + 1} \tag{2}\label{eq:2}
