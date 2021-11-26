@@ -9,6 +9,7 @@ categories: [
 ]
 tags: [
   LSTM,
+  RTRL,
   BPTT,
   Gradient Explosion,
   Gradient Vanishing,
@@ -59,6 +60,9 @@ author: [
   <!-- Operator cell multiplicative output gate. -->
   $\providecommand{\opog}{}$
   $\renewcommand{\opog}{\operatorname{og}}$
+  <!-- Operator sequence. -->
+  $\providecommand{\opseq}{}$
+  $\renewcommand{\opseq}{\operatorname{seq}}$
 
   <!-- Total loss. -->
   $\providecommand{\Loss}{}$
@@ -191,7 +195,7 @@ author: [
 - 不論使用 BPTT 或 RTRL，RNN 的梯度都會面臨**爆炸**或**消失**的問題
   - 梯度**爆炸**造成神經網路的**權重劇烈振盪**
   - 梯度**消失**造成**訓練時間慢長**
-  - 無法解決輸入與輸出訊號**間隔較長**（long time lag）的問題
+  - 無法解決**時間差較長**的問題
 - 論文提出 **LSTM + RTRL** 能夠解決上述問題
   - Backward pass 演算法**時間複雜度**為 $O(w)$，$w$ 代表權重
   - Backward pass 演算法**空間複雜度**也為 $O(w)$，因此**沒有輸入長度的限制**
@@ -199,10 +203,12 @@ author: [
 - LSTM 的**閘門單元參數**應該讓**偏差項**（bias term）初始化成**負數**
   - 輸**入**閘門偏差項初始化成負數能夠解決**內部狀態偏差行為**（**Internal State Drift**）
   - 輸**出**閘門偏差項初始化成負數能夠避免模型**濫用記憶單元初始值**與**訓練初期梯度過大**
+  - 如果沒有輸出閘門，則**收斂速度會變慢**
 - 根據實驗 LSTM 能夠達成以下任務
-  - 能夠處理 time lag 間隔為 $1000$ 的問題
-  - 甚至輸入訊號含有雜訊時也能處理
-  - 同時能夠保有處理 short time lag 問題的能力
+  - 擁有處理**短時間差**（**Short Time Lag**）任務的能力
+  - 擁有處理**長時間差**（**Long Time Lag**）任務的能力
+  - 能夠處理最長時間差長達 $1000$ 個單位的任務
+  - 輸入訊號含有雜訊時也能處理
 - 使用**乘法閘門**（**Mulitplicative Gate**）學習**開啟** / **關閉**模型記憶**寫入** / **讀取**機制
 - 與 [PyTorch][Pytorch-LSTM] 實作的 LSTM 完全不同
   - 本篇論文的架構定義更為**廣義**
@@ -669,23 +675,22 @@ $$
 
 因此**無法只靠一個** $w_{j, i}$ 決定**輸出**的影響，必須有**額外**能夠**理解當前內容 (context-sensitive)** 的功能模組幫忙**讀取** $y_i(*)$
 
-值得一提的是，上述的假設是基於以下的事實觀察：
-已知 RNN 能夠學習解決多個記憶時間較短 (short-time-lag) 的任務，但如果要能夠同時解決記憶時間較長 (long-time-lag) 的任務，則模型應該依照以下順序執行：
-
-1. 記住短期資訊 $t_{0} \sim t_{1}$ (需要寫入功能)
-2. 解決需要短期資訊 $t_{0} \sim t_{1}$ 的任務 (需要讀取功能)
-3. 忘記短期資訊 $t_{0} \sim t_{1}$ (需要忽略功能)
-4. 記住短期資訊 $t_{1} \sim t_{2}$ (需要寫入功能)
-5. 解決需要短期資訊 $t_{1} \sim t_{2}$ 的任務 (需要讀取功能)
-6. 忘記短期資訊 $t_{1} \sim t_{2}$ (需要忽略功能)
-7. 為了解決與短期資訊 $t_{0} \sim t_{1}$ 相關的任務，突然又需要回憶起短期資訊 $t_{0} \sim t_{1}$ (需要寫入 + 讀取功能)
-
 ## LSTM 架構
 
 <a name="paper-fig-1"></a>
+
+圖 1：記憶單元內部架構。
+符號對應請見下個小節。
+圖片來源：[論文][論文]。
+
 ![paper-fig:1](https://i.imgur.com/uhS4AgH.png)
 
 <a name="paper-fig-2"></a>
+
+圖 2：LSTM 全連接架構範例。
+線條真的多到讓人看不懂，看我整理過的公式比較好理解。
+圖片來源：[論文][論文]。
+
 ![paper-fig:2](https://i.imgur.com/UQ5LAu8.png)
 
 為了解決**梯度爆炸 / 消失**問題，作者決定以 Constant Error Carousel 為出發點（見 $\eqref{eq:33}$），提出 **3** 個主要的機制，並將這些機制的合體稱為**記憶單元（Memory Cell）**（見[圖 1](#paper-fig-1)）：
@@ -1739,41 +1744,227 @@ $$
 
 但這些說法並沒有辦法真的保證一定會實現，算是這篇論文說服力比較薄弱的點。
 
-<!--
-### 訓練早期發生異常
-
 ## 實驗
 
+### 實驗設計
+
 - 要測試較長的時間差
-- 資料集不可以出現短時間差
+  - 資料集不可以出現短時間差
 - 任務要夠難
   - 不可以只靠 random weight guessing 解決
   - 需要比較多的參數或是高計算精度 (sparse in weight space)
 
-### 實驗設計
+### 控制變因
 
-- 使用 online learning
+- 使用 Online Learning 進行最佳化
+  - 意思就是 batch size 為 1
+  - 不要被 Online 這個字誤導
 - 使用 sigmoid 作為啟發函數
-- 參數初始化範圍為 $[-0.1, 0.1]$
-  - 只有實驗 1 與 2 的初始化範圍為 $[-0.2, 0.2]$
-- 資料的訓練順序為隨機
+  - 包含 $f^{\opout}, f^{\ophid}, f^{\opig}, f^{\opog}$
+- 資料隨機性
+  - 資料生成為隨機
+  - 訓練順序為隨機
 - 在每個時間點 $t$ 的計算順序為
   1. 將外部輸入 $x(t)$ 丟入模型
-  2. 計算輸入閘門、輸出閘門、記憶單元
-  3. 計算淨輸出
+  2. 計算輸入閘門、輸出閘門、記憶單元、隱藏單元
+  3. 計算總輸出
+- 訓練初期只使用一個記憶單元，即 $\ncell = 1$
+  - 如果訓練中發現最佳化做的不好，開始增加記憶單元，即 $\ncell = \ncell + 1$
+  - 這個概念稱為 Sequential Network Construction
+- $h^{\cell{k}}$ 與 $g^{\cell{k}}$ 函數如果沒有特別提及，就是使用 $\eqref{eq:80} \eqref{eq:81}$ 的定義
 
-$h : \R \to [-1, 1]$ 函數的定義為
-
-$$
-h(x) = \frac{2}{1 + \exp(-x)} - 1 = 2 \sigma(x) - 1
-$$
-
-$g : \R \to [-2, 2]$ 函數的定義為
+$h^{\cell{k}} : \R \to [-1, 1]$ 函數的定義為
 
 $$
-g(x) = \frac{4}{1 + \exp(-x)} - 2 = 4 \sigma(x) - 2
+h^{\cell{k}}(x) = \frac{2}{1 + \exp(-x)} - 1 = 2 \sigma(x) - 1 \tag{80}\label{eq:80}
 $$
 
--->
+$g^{\cell{k}} : \R \to [-2, 2]$ 函數的定義為
+
+$$
+g^{\cell{k}}(x) = \frac{4}{1 + \exp(-x)} - 2 = 4 \sigma(x) - 2 \tag{81}\label{eq:81}
+$$
+
+### 實驗 1：Embedded Reber Grammar
+
+<a name="paper-fig-3"></a>
+
+圖 3：Reber Grammar。
+一個簡單的有限狀態機，能夠生成的字母包含 BEPSTVX。
+圖片來源：[論文][論文]。
+
+![paper-fig:3](https://i.imgur.com/frOl0Tf.png)
+
+圖 4：Embedded Reber Grammar。
+一個簡單的有限狀態機，包含兩個完全相同的 Reber Grammar，開頭跟結尾只能是 BT...TE 與 BP...PE。
+圖片來源：[論文][論文]。
+
+<a name="paper-fig-4"></a>
+![paper-fig:4](https://i.imgur.com/SVfVbJN.png)
+
+#### 任務定義
+
+- Embedded Reber Grammar 是實驗 RNN 短時間差（Short Time Lag）的基準測試資料集
+  - [圖 3](#paper-fig-3) 只是 Reber Grammar，真正的生成資料是使用[圖 4](#paper-fig-4) 的 Embedded Reber Grammar
+  - Embedded Reber Grammar 時間差最短只有 $9$ 個單位
+  - 傳統 RNN 在此資料集上仍然表現不錯
+  - 資料生成為隨機，任何一個分支都有 $0.5$ 的機率被生成
+- 根據[圖 3](#paper-fig-3) 的架構，生成的第一個字為 B，接著是 T 或 P
+  - 因此前兩個字生成 BT 或 BP 的機率各為 $0.5$
+  - 能夠生成的字母包含 BEPSTVX
+  - 生成直到產生 E 結束，結尾一定是 SE 或 VE
+  - 由於有限狀態機中有 Loop，因此 Reber Grammar 有可能產生**任意長度**的文字
+- 根據[圖 4](#paper-fig-4) 的架構，生成的開頭為 BT 或 BP
+  - 前兩個字生成 BT 或 BP 的機率各為 $0.5$
+  - 如果生成 BT，則結尾一定要是 TE
+  - 如果生成 BP，則結尾一定要是 PE
+  - 因此 RNN 模型必須學會記住**開頭**的 T / P 與**結尾搭配**，判斷一個文字序列是否由 Embedded Reber Grammar 生成
+- 模型會在每個時間點 $t$ 收到一個字元，並輸出下一個時間點 $t + 1$ 會收到的字元
+  - 輸入與輸出都是 one-hot vector，維度為 $7$，每個維度各自代表 BEPSTVX 中的一個字元，取數值最大的維度作為預測結果
+  - 模型必須根據 $0, 1, \dots t - 1, t$ 時間點收到的字元預測 $t + 1$ 時間點輸出的字元
+  - 概念就是 Language Model
+- 資料數
+  - 訓練集：256 筆
+  - 測試集：256 筆
+  - 總共產生 3 組不同的訓練測試集
+  - 每組資料集都跑 $10$ 次實驗，每次實驗模型都隨機初始化
+  - 總共執行 $30$ 次實驗取平均
+- 評估方法
+  - Accuracy
+
+#### LSTM 架構
+
+|參數|數值（或範圍）|備註|
+|-|-|-|
+|$\din$|$7$||
+|$\dhid$|$0$|沒有隱藏單元|
+|$(\ncell, \dcell)$|$\set{(3, 2), (4, 1)}$|至少有 $3$ 個記憶單元|
+|$\dout$|$7$||
+|$\dim(\whid)$|$0$|沒有隱藏單元|
+|$\dim(\wcell{k})$|$\dcell \times [\din + (2 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wig)$|$\dcell \times [\din + (2 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wog)$|$\dcell \times [\din + (2 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell]$|外部輸入沒有直接連接到總輸出|
+|參數初始化範圍|$[-0.2, 0.2]$||
+|輸出閘門偏差項初始化範圍|$\set{-1, -2, -3}$|由大到小依序初始化不同記憶單元偏差項|
+|Learning rate|$\set{0.1, 0.2, 0.5}$||
+|總參數量|$\set{264, 276}$||
+
+#### 實驗結果
+
+<a name="paper-table-1"></a>
+
+表格 1：Embedded Reber Grammar 實驗結果。
+表格來源：[論文][論文]。
+
+![paper-table:1](https://i.imgur.com/51yPwmH.png)
+
+- LSTM + 丟棄梯度 + RTRL 在不同的實驗架構中都能解決任務
+  - RNN + RTRL 無法完成
+  - Elman Net + ELM 無法完成
+- LSTM 收斂速度比其他模型都還要快
+- LSTM 使用的參數數量並沒有比其他的模型多太多
+- 驗證**輸出閘門**的有效性
+  - 當 LSTM 模型記住第二個輸入是 T / P 之後，輸出閘門就會讓後續運算的啟發值接近 $0$，不讓記憶單元內部狀態影響模型學習簡單的 Reber Grammar
+  - 如果沒有輸出閘門，則**收斂速度會變慢**
+
+### 實驗 2a：無雜訊長時間差任務
+
+#### 任務定義
+
+定義 $p + 1$ 種不同的字元，標記為 $V = \set{c_0, c_1, c_2, \dots, c_{p - 1}, c_p}$。
+
+令 $\alpha = c_0$，$\beta = c_p$，定義 $2$ 種長度為 $p + 1$ 不同的序列 $\opseq_1, \opseq_2$，分別為
+
+$$
+\begin{align*}
+\opseq_1 & = \alpha, c_1, c_2, \dots, c_{p - 2}, c_{p - 1}, \alpha \\
+\opseq_2 & = \beta, c_1, c_2, \dots, c_{p - 2}, c_{p - 1}, \beta
+\end{align*}
+$$
+
+令 $\opseq_{\star} \in \set{\opseq_1, \opseq_2}$，令 $\opseq_{\star}$ 第 $t$ 個時間點的字元為 $\opseq_{\star}(t) \in V$。
+
+當給予模型 $\opseq_{\star}(t)$ 時，模型要能夠根據 $\opseq_{\star}(0), \opseq_{\star}(1), \dots \opseq_{\star}(t - 1), \opseq_{\star}(t)$ 預測 $\opseq_{\star}(t + 1)$
+
+- 模型需要記住 $c_1, \dots, c_{p - 1}$ 的順序
+- 模型也需要記住開頭的 $\opseq_{\star}(0)$ 是 $\alpha$ 還是 $\beta$，並利用 $\opseq_{\star}(0)$ 的資訊預測 $\opseq_{\star}(p + 1)$
+- 根據 $p$ 的大小這個任務可以是**短**時間差或**長**時間差
+- 訓練資料
+  - 每次以各 $0.5$ 的機率抽出 $\opseq_1, \opseq_2$ 作為輸入
+  - 總共執行 $5000000$ 次抽樣與更新
+- 測試資料
+  - 每次以各 $0.5$ 的機率抽出 $\opseq_1, \opseq_2$ 作為輸入
+  - 每次錯誤率在 $0.25$ 以下就是成功，反之失敗
+  - 總共執行 $10000$ 次成功與失敗的判斷
+
+#### LSTM 架構
+
+|參數|數值（或範圍）|備註|
+|-|-|-|
+|$\din$|$p + 1$||
+|$\dhid$|$0$|沒有隱藏單元|
+|$\dcell$|$\dout$|總輸出就是記憶單元的輸出|
+|$\ncell$|$1$|當誤差停止下降時，增加記憶單元|
+|$\dout$|$p + 1$||
+|$g$|$g(x) = \sigma(x)$|Sigmoid 函數|
+|$h$|$h(x) = x$||
+|$\dim(\whid)$|$0$|沒有隱藏單元|
+|$\dim(\wcell{k})$|$\dcell \times [\din + (1 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wig)$|$\dcell \times [\din + (1 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wog)$|$0$|沒有輸出閘門|
+|$\dim(\wout)$|$0$|總輸出就是記憶單元的輸出|
+|參數初始化範圍|$[-0.2, 0.2]$||
+|輸出閘門偏差項初始化範圍|$\set{-1, -2, -3}$|由大到小依序初始化不同記憶單元偏差項|
+|Learning rate|$1$||
+|總參數量|$\set{264, 276}$||
+|最大更新次數|$5000000$||
+
+#### 實驗結果
+
+<a name="paper-table-2"></a>
+
+表格 2：無雜訊長時間差任務實驗結果。
+表格來源：[論文][論文]。
+
+![paper-table:2](https://i.imgur.com/638FPkg.png)
+
+- 在 $p = 4$ 時使用 RNN + RTRL 時部份實驗能夠預測序列
+  - 序列很短時 RNN 還是有能力完成任務
+- 在 $p \geq 10$ 時使用 RNN + RTRL 時直接失敗
+- 在 $p = 100$ 時只剩 LSTM 能夠完全完成任務
+- LSTM 收斂速度最快
+
+### 實驗 2b：有雜訊長時間差任務
+
+#### 任務定義
+
+實驗設計和 LSTM 的架構與實驗 2a 完全相同，只是序列 $\opseq_1, \opseq_2$ 中除了頭尾之外的字元可以替換成 $V$ 中任意的文字，總長度維持 $p + 1$。
+
+- 此設計目的是為了確保實驗 2a 中的順序性無法被順利壓縮
+- 先創造訓練資料，測試使用與訓練完全相同的資料
+- 仍然只有 LSTM 能夠完全完成任務
+- LSTM 的誤差仍然很快就收斂
+  - 當 $p = 100$ 時只需要 $5680$ 次更新就能完成任務
+  - 代表 LSTM 能夠在有雜訊的情況下正常運作
+
+### 實驗 3：Two sequence problem
+
+- 改進 Bengio 提出的 Two-sequence problem
+  - 原始的問題可以用隨機參數猜測（random weight guessing）解決
+
+### 實驗 4：Distributed Continuous Value input
+
+- minimal time lag >= 100
+- 傳統的 RNN、BPTT、RTRL 都無法解決
+
+### 實驗 5：Distributed Continuous Value input
+
+- 傳統的 RNN、BPTT、RTRL 都無法解決
+
+### 實驗 6：temporal order
+
+- 傳統的 RNN、BPTT、RTRL 都無法解決
 
 [Pytorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html?highlight=lstm#torch.nn.LSTM
+[論文]: https://ieeexplore.ieee.org/abstract/document/6795963
