@@ -210,6 +210,8 @@ author: [
   - 能夠處理最長時間差長達 $1000$ 個單位的任務
   - 輸入訊號含有雜訊時也能處理
 - 使用**乘法閘門**（**Multiplicative Gate**）學習**開啟** / **關閉**模型記憶**寫入** / **讀取**機制
+- 當單一字元的**出現次數期望值增加**時，**學習速度會下降**
+  - 作者認為是常見字詞的出現導致參數開始振盪
 - 與 [PyTorch][Pytorch-LSTM] 實作的 LSTM 完全不同
   - 本篇論文的架構定義更為**廣義**
   - 本篇論文只有**輸入閘門**（**Input Gate**）跟**輸出閘門**（**Output Gate**），並沒有使用**失憶閘門**（**Forget Gate**）
@@ -1872,9 +1874,9 @@ $$
 
 #### 任務定義
 
-定義 $p + 1$ 種不同的字元，標記為 $V = \set{c_0, c_1, c_2, \dots, c_{p - 1}, c_p}$。
+定義 $p + 1$ 種不同的字元，標記為 $V = \set{\alpha, \beta, c_1, c_2, \dots, c_{p - 1}}$。
 
-令 $\alpha = c_0$，$\beta = c_p$，定義 $2$ 種長度為 $p + 1$ 不同的序列 $\opseq_1, \opseq_2$，分別為
+定義 $2$ 種長度為 $p + 1$ 不同的序列 $\opseq_1, \opseq_2$，分別為
 
 $$
 \begin{align*}
@@ -1885,7 +1887,7 @@ $$
 
 令 $\opseq_{\star} \in \set{\opseq_1, \opseq_2}$，令 $\opseq_{\star}$ 第 $t$ 個時間點的字元為 $\opseq_{\star}(t) \in V$。
 
-當給予模型 $\opseq_{\star}(t)$ 時，模型要能夠根據 $\opseq_{\star}(0), \opseq_{\star}(1), \dots \opseq_{\star}(t - 1), \opseq_{\star}(t)$ 預測 $\opseq_{\star}(t + 1)$
+當給予模型 $\opseq_{\star}(t)$ 時，模型要能夠根據 $\opseq_{\star}(0), \opseq_{\star}(1), \dots \opseq_{\star}(t - 1), \opseq_{\star}(t)$ 預測 $\opseq_{\star}(t + 1)$。
 
 - 模型需要記住 $c_1, \dots, c_{p - 1}$ 的順序
 - 模型也需要記住開頭的 $\opseq_{\star}(0)$ 是 $\alpha$ 還是 $\beta$，並利用 $\opseq_{\star}(0)$ 的資訊預測 $\opseq_{\star}(p + 1)$
@@ -1915,9 +1917,7 @@ $$
 |$\dim(\wog)$|$0$|沒有輸出閘門|
 |$\dim(\wout)$|$0$|總輸出就是記憶單元的輸出|
 |參數初始化範圍|$[-0.2, 0.2]$||
-|輸出閘門偏差項初始化範圍|$\set{-1, -2, -3}$|由大到小依序初始化不同記憶單元偏差項|
 |Learning rate|$1$||
-|總參數量|$\set{264, 276}$||
 |最大更新次數|$5000000$||
 
 #### 實驗結果
@@ -1937,8 +1937,6 @@ $$
 
 ### 實驗 2b：有雜訊長時間差任務
 
-#### 任務定義
-
 實驗設計和 LSTM 的架構與實驗 2a 完全相同，只是序列 $\opseq_1, \opseq_2$ 中除了頭尾之外的字元可以替換成 $V$ 中任意的文字，總長度維持 $p + 1$。
 
 - 此設計目的是為了確保實驗 2a 中的順序性無法被順利壓縮
@@ -1947,6 +1945,106 @@ $$
 - LSTM 的誤差仍然很快就收斂
   - 當 $p = 100$ 時只需要 $5680$ 次更新就能完成任務
   - 代表 LSTM 能夠在有雜訊的情況下正常運作
+
+### 實驗 2c：有雜訊超長時間差任務
+
+#### 任務定義
+
+實驗設計和 LSTM 的架構與實驗 2a 概念相同，只是 $V$ 增加了兩個字元 $b, e$，而序列長度可以不同。
+
+生成一個序列的概念如下：
+
+1. 固定一個正整數 $q$，代表序列基本長度
+2. 從 $c_1, \dots, c_{p - 1}$ 中隨機抽樣生成長度為 $q$ 的序列 $\opseq$
+3. 在序列的開頭補上 $b \alpha$ 或 $b \beta$（機率各為 $0.5$），讓序列長度變成 $q + 2$
+4. 接著以 $0.9$ 的機率從 $c_1, \dots, c_{p - 1}$ 中挑一個字補在序列 $\opseq$ 的尾巴，或是以 $0.1$ 的機率補上 $e$
+5. 如果生成 $e$ 就再補上 $\alpha$ 或 $\beta$（與開頭第二個字元相同）並結束
+6. 如果不是生成 $e$ 則重複步驟 4
+
+假設步驟 $4$ 執行了 $k + 1$ 次，則序列長度為 $2 + q + (k + 1) + 1 = q + k + 4$。
+序列的最短長度為 $q + 4$，長度的期望值為
+
+$$
+\begin{align*}
+& 4 + \sum_{k = 0}^\infty \frac{1}{10} \paren{\frac{9}{10}}^k (q + k) \\
+& = 4 + \frac{q}{10} \brack{\sum_{k = 0}^\infty \paren{\frac{9}{10}}^k} + \frac{1}{10} \brack{\sum_{k = 0}^\infty \paren{\frac{9}{10}}^k \cdot k} \\
+& = 4 + \frac{q}{10} \cdot 10 + \frac{1}{10} \cdot 100 \\
+& = q + 14
+\end{align*}
+$$
+
+其中
+
+$$
+\begin{align*}
+& \brack{\sum_{k = 0}^n k x^k} - x \brack{\sum_{k = 0}^n k x^k} \\
+& = (0x^0 + 1x^1 + 2x^2 + 3x^3 + \dots + nx^n) - \\
+& \quad (0x^1 + 1x^2 + 2x^3 + 3x^4 + \dots + nx^{n + 1}) \\
+& = 0x^0 + 1x^1 + 1x^2 + 1x^3 + \dots + 1x^n - nx^{n + 1} \\
+& = \brack{\sum_{k = 0}^n x^k} - nx^{n + 1} \\
+& = \frac{1 - x^{n + 1}}{1 - x} - nx^{n + 1} \\
+& = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{1 - x}
+\end{align*}
+$$
+
+因此
+
+$$
+\begin{align*}
+& \brack{\sum_{k = 0}^n k x^k} - x \brack{\sum_{k = 0}^n k x^k} = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{1 - x} \\
+\implies & \sum_{k = 0}^n k x^k = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{(1 - x)^2} \\
+\implies & \sum_{k = 0}^\infty k x^k = \frac{1}{(1 - x)^2} \text{ when } 0 \leq x \lt 1
+\end{align*}
+$$
+
+利用二項式分佈的期望值公式我們可以推得 $c_i \in V$ 出現次數的期望值
+
+$$
+\begin{align*}
+& \sum_{k = 0}^\infty \frac{1}{10} \cdot \paren{\frac{9}{10}}^k \cdot \brack{\sum_{i = 0}^{q + k} \binom{q + k}{i} \cdot \paren{\frac{1}{p - 1}}^i \cdot \paren{1 - \frac{1}{p - 1}}^{q + k - i}} \\
+& = \sum_{k = 0}^\infty \frac{1}{10} \cdot \paren{\frac{9}{10}}^k \cdot \frac{q + k}{p - 1} \\
+& = \frac{q}{10(p - 1)} \brack{\sum_{k = 0}^\infty \paren{\frac{9}{10}}^k} + \frac{1}{10(p - 1)} \brack{\sum_{k = 0}^\infty \paren{\frac{9}{10}}^k \cdot k} \\
+& = \frac{q}{p - 1} + \frac{10}{p - 1} \\
+& \approx \frac{q}{p - 1} \text{ when } q \gg 0
+\end{align*}
+$$
+
+訓練誤差只考慮最後一個時間點 $\opseq(2 + q + k + 2)$ 的預測結果，必須要跟第 $\opseq(1)$ 個時間點的輸入相同（概念同實驗 2a）。
+
+測試時會連續執行 $10000$ 次的實驗，預測誤差必須要永遠小於 $0.2$。
+會以 $20$ 次的測試結果取平均。
+
+#### LSTM 架構
+
+|參數|數值（或範圍）|備註|
+|-|-|-|
+|$\din$|$p + 4$||
+|$\dhid$|$0$|沒有隱藏單元|
+|$\dcell$|$\dout$|總輸出就是記憶單元的輸出|
+|$\ncell$|$2$|當誤差停止下降時，增加記憶單元|
+|$\dout$|$2$|只考慮最後一個時間點的預測誤差，並且預測的可能結果只有 $2$ 種（$\alpha$ 或 $\beta$）|
+|$\dim(\whid)$|$0$|沒有隱藏單元|
+|$\dim(\wcell{k})$|$\dcell \times [\din + (2 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wig)$|$\dcell \times [\din + (2 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wog)$|$\dcell \times [\din + (2 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell]$|全連接隱藏層|
+|參數初始化範圍|$[-0.2, 0.2]$||
+|Learning rate|$0.01$||
+
+#### 實驗結果
+
+<a name="paper-table-3"></a>
+
+表格 3：有雜訊超長時間差任務實驗結果。
+表格來源：[論文][論文]。
+
+![paper-table:3](https://i.imgur.com/j8e0W2U.png)
+
+- 其他方法沒有辦法完成任務，因此不列入表格比較
+- 輸入序列長度可到達 $1000$
+- 當輸入字元種類與輸入長度一起增加時，訓練時間只會緩慢增加
+- 當單一字元的**出現次數期望值增加**時，**學習速度會下降**
+  - 作者認為是常見字詞的出現導致參數開始振盪
 
 ### 實驗 3：Two sequence problem
 
