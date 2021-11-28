@@ -1570,6 +1570,7 @@ $$
   3. 計算總輸出
 - 訓練初期只使用一個記憶單元，即 $\ncell = 1$
   - 如果訓練中發現最佳化做的不好，開始增加記憶單元，即 $\ncell = \ncell + 1$
+  - 一旦記憶單元增加，輸入閘門與輸出閘門也需要跟著增加
   - 這個概念稱為 Sequential Network Construction
 - $h^{\cell{k}}$ 與 $g^{\cell{k}}$ 函數如果沒有特別提及，就是使用 $\eqref{eq:80} \eqref{eq:81}$ 的定義
 
@@ -1642,11 +1643,11 @@ $$
 |$\dout$|$7$||
 |$\dim(\whid)$|$0$|沒有隱藏單元|
 |$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
-|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
-|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
+|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell]$|外部輸入沒有直接連接到總輸出|
 |參數初始化範圍|$[-0.2, 0.2]$||
-|輸出閘門偏差項初始化範圍|$\set{-1, -2, -3}$|由大到小依序初始化不同記憶單元偏差項|
+|輸出閘門偏差項初始化範圍|$\set{-1, -2, -3}$|由大到小依序初始化不同記憶單元對應輸出閘門偏差項|
 |Learning rate|$\set{0.1, 0.2, 0.5}$||
 |總參數量|$\set{264, 276}$||
 
@@ -1855,10 +1856,14 @@ $$
 
 給定一個常數 $T$，並從 $[T, T + \frac{T}{10}]$ 的區間中隨機挑選一個整數作為序列 $\opseq$ 的長度 $L$。
 
-當 $L \geq N$ 時，任何在 $\opseq(N + 1), \dots \opseq(L - 1)$ 中的數字都是由常態分佈隨機產生，常態分佈的平均為 $0$ 標準差為 $0.2$。
+當 $L \geq N$ 時，任何在 $\opseq(N + 1), \dots \opseq(L - 1)$ 中的數字都是由常態分佈隨機產生，常態分佈的平均為 $0$ 變異數為 $0.2$。
 
 - 此任務由 Bengio 提出
 - 作者發現只要用隨機權重猜測（Random Weight Guessing）就能解決，因此在實驗 3c 提出任務的改進版本
+- 訓練分成兩個階段
+  - ST1：事先隨機抽取的 $256$ 筆測試資料完全分類正確
+  - ST2：達成 ST1 後在 $2560$ 筆測試資料上平均錯誤低於 $0.01$
+- 實驗結果是執行 $10$ 次實驗的平均值
 
 #### LSTM 架構
 
@@ -1870,13 +1875,68 @@ $$
 |$\ncell$|$3$||
 |$\dout$|$1$||
 |$\dim(\whid)$|$0$|沒有隱藏單元|
-|$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
-|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
-|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
+|$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell]$|外部輸入沒有直接連接到總輸出|
-|參數初始化範圍|$[-0.2, 0.2]$||
-|閘門偏差項初始化範圍|$\set{-1, -2, -3}$|由大到小依序初始化不同記憶單元偏差項|
-|Learning rate|$0.01$||
+|參數初始化範圍|$[-0.1, 0.1]$||
+|輸入閘門偏差項初始化範圍|$\set{-1, -3, -5}$|由大到小依序初始化不同記憶單元對應輸入閘門偏差項|
+|輸出閘門偏差項初始化範圍|$\set{-2, -4, -6}$|由大到小依序初始化不同記憶單元對應輸出閘門偏差項|
+|Learning rate|$1$||
+
+#### 實驗結果
+
+<a name="paper-table-4"></a>
+
+表格 4：Two-Sequence Problem 實驗結果。
+表格來源：[論文][論文]。
+
+![paper-table:4](https://i.imgur.com/e1OKDP5.png)
+
+- 偏差項初始化的數值其實不需要這麼準確
+- LSTM 能夠快速解決任務
+- LSTM 在輸入有雜訊（高斯分佈）時仍然能夠正常表現
+
+### 實驗 3b：Two-Sequence Problem + 雜訊
+
+<a name="paper-table-5"></a>
+
+表格 5：Two-Sequence Problem + 雜訊實驗結果。
+表格來源：[論文][論文]。
+
+![paper-table:5](https://i.imgur.com/DEkS8ST.png)
+
+實驗設計與 LSTM 完全與實驗 3a 相同，但對於序列 $\opseq$ 前 $N$ 個實數加上雜訊（與實驗 2a 相同的高斯分佈）。
+
+- 兩階段訓練稍微做點修改
+  - ST1：事先隨機抽取的 $256$ 筆測試資料少於 $6$ 筆資料分類錯誤
+  - ST2：達成 ST1 後在 $2560$ 筆測試資料上平均錯誤低於 $0.04$
+- 結論
+  - 增加雜訊導致誤差收斂時間變長
+  - 相較於實驗 3a，雖然分類錯誤率上升，但 LSTM 仍然能夠保持較低的分類錯誤率
+
+### 實驗 3c：強化版 Two-Sequence Problem
+
+<a name="paper-table-6"></a>
+
+表格 6：強化版 Two-Sequence Problem 實驗結果。
+表格來源：[論文][論文]。
+
+![paper-table:6](https://i.imgur.com/1eXhAr4.png)
+
+實驗設計與 LSTM 完全與實驗 3b 相同，但進行以下修改
+
+- $C_1$ 類別必須輸出 $0.2$，$C_2$ 類別必須輸出 $0.8$
+- 高斯分佈變異數改為 $0.1$
+- 預測結果與答案絕對誤差大於 $0.1$ 就算分類錯誤
+- 任務目標是所有的預測絕對誤差平均值小於 $0.015$
+- 兩階段訓練改為一階段
+  - 事先隨機抽取的 $256$ 筆測試資料完全分類正確
+  - $2560$ 筆測試資料上絕對誤差平均值小於 $0.015$
+- Learning rate 改成 $0.1$
+- 結論
+  - 任務變困難導致收斂時間變更長
+  - 相較於實驗 3a，雖然分類錯誤率上升，但 LSTM 仍然能夠保持較低的分類錯誤率
 
 ### 實驗 4：Distributed Continuous Value input
 
