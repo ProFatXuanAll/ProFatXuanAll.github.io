@@ -1647,7 +1647,7 @@ $$
 |$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell]$|外部輸入沒有直接連接到總輸出|
 |參數初始化範圍|$[-0.2, 0.2]$||
-|輸出閘門偏差項初始化範圍|$\set{-1, -2, -3}$|由大到小依序初始化不同記憶單元對應輸出閘門偏差項|
+|輸出閘門偏差項初始化範圍|$\set{-1, -2, -3, -4}$|由大到小依序初始化不同記憶單元對應輸出閘門偏差項|
 |Learning rate|$\set{0.1, 0.2, 0.5}$||
 |總參數量|$\set{264, 276}$||
 
@@ -2031,13 +2031,14 @@ $$
 
 與實驗 4 完全相同，只做以下修改：
 
+- 輸入閘門偏差項改成隨機初始化
 - Learning rate 改為 $0.1$
 
 #### 實驗結果
 
 <a name="paper-table-8"></a>
 
-表格 8：加法任務實驗結果。
+表格 8：乘法任務實驗結果。
 表格來源：[論文][論文]。
 
 ![paper-table:8](https://i.imgur.com/bi9jJ3W.png)
@@ -2049,9 +2050,98 @@ $$
 - LSTM 能夠摹擬乘法器，具有作為 distributed representation 的能力
 - 能夠儲存時間差至少有 $T / 2$ 以上的資訊，因此不會被**內部狀態偏差行為**影響
 
-### 實驗 6：temporal order
+### 實驗 6a：Temporal Order with 4 Classes
 
-- 傳統的 RNN、BPTT、RTRL 都無法解決
+#### 任務定義
+
+給予一個序列 $\opseq$，其長度 $L$ 會落在 $[100, 110]$ 之間，序列中的所有元素都來自於集合 $V = \set{a, b, c, d, B, E, X, Y}$。
+
+序列 $\opseq$ 的開頭必定為 $B$，最後為 $E$，剩餘所有的元素都是 $a, b, c, d$，除了兩個時間點 $t_1, t_2$。
+
+$t_1, t_2$ 時間點只能出現 $X$ 或 $Y$，$t_1$ 時間點會落在 $[10, 20]$，$t_2$ 時間點會落在 $[50, 60]$。
+
+因此根據 $X, Y$ 出現的**次數**與**順序**共有 $4$ 種不同的類別
+
+$$
+\begin{align*}
+C_1 & = XX \\
+C_2 & = XY \\
+C_3 & = YX \\
+C_4 & = YY
+\end{align*}
+$$
+
+模型必須要在 $L + 1$ 時間點進行類別預測，誤差只會出現在 $L + 1$ 時間點。
+
+- $t_1, t_2$ 的最少時間差為 $30$
+- 模型必須要記住資訊與**出現順序**
+- 當模型成功預測連續 $2000$ 筆資料，並且預測平均誤差低於 $0.1$ 時便停止訓練
+- 測試資料共有 $2560$ 筆
+
+#### LSTM 架構
+
+|參數|數值（或範圍）|備註|
+|-|-|-|
+|$\din$|$8$||
+|$\dhid$|$0$|沒有隱藏單元|
+|$\dcell$|$2$||
+|$\ncell$|$2$||
+|$\dout$|$4$||
+|$\dim(\whid)$|$0$|沒有隱藏單元|
+|$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
+|參數初始化範圍|$[-0.1, 0.1]$||
+|輸入閘門偏差項初始化範圍|$\set{-2, -4}$|由大到小依序初始化不同記憶單元對應輸入閘門偏差項|
+|Learning rate|$0.5$||
+
+#### 實驗結果
+
+<a name="paper-table-9"></a>
+
+表格 9：Temporal Order with 4 Classes 任務實驗結果。
+表格來源：[論文][論文]。
+
+![paper-table:9](https://i.imgur.com/ucyQoeQ.png)
+
+- LSTM 的平均誤差低於 $0.1$
+  - 沒有超過 $3$ 筆以上的預測錯誤
+- LSTM 可能使用以下的方法進行解答
+  - 擁有 $2$ 個記憶單元時，依照順序記住出現的資訊
+  - 只有 $1$ 個記憶單元時，LSTM 可以改成記憶狀態的轉移
+
+### 實驗 6b：Temporal Order with 8 Classes
+
+#### 任務定義
+
+與實驗 6a 完全相同，只是多了一個 $t_3$ 時間點可以出現 $X, Y$。
+
+- $t_2$ 時間點改成落在 $[33, 43]$
+- $t_3$ 時間點落在 $[66, 76]$
+- 類別變成 $8$ 種
+
+#### LSTM 架構
+
+|參數|數值（或範圍）|備註|
+|-|-|-|
+|$\din$|$8$||
+|$\dhid$|$0$|沒有隱藏單元|
+|$\dcell$|$2$||
+|$\ncell$|$3$||
+|$\dout$|$8$||
+|$\dim(\whid)$|$0$|沒有隱藏單元|
+|$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
+|參數初始化範圍|$[-0.1, 0.1]$||
+|輸入閘門偏差項初始化範圍|$\set{-2, -4, -6}$|由大到小依序初始化不同記憶單元對應輸入閘門偏差項|
+|Learning rate|$0.1$||
+
+#### 實驗結果
+
+見[表格 9](#paper-table-9)。
 
 [Pytorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html?highlight=lstm#torch.nn.LSTM
 [論文]: https://ieeexplore.ieee.org/abstract/document/6795963
