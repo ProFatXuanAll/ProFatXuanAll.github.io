@@ -599,7 +599,9 @@ $$
 
 由於**每個項次**都能遭遇**梯度消失**，因此**總和**也會遭遇**梯度消失**。
 
-## 梯度常數
+## 問題觀察
+
+### 情境 1：模型輸出與內部節點 1-1 對應
 
 **梯度常數（Constant Error Flow）**的概念是控制**部份梯度**為**常數**。
 
@@ -607,8 +609,6 @@ $$
   - 不會像 $\eqref{eq:23}$ 導致梯度**爆炸**
   - 不會像 $\eqref{eq:24}$ 導致梯度**消失**
 - 要達成 $\eqref{eq:31}$，就必須讓 $f_j$ 是**線性函數**
-
-### 情境 1：模型輸出與內部節點 1-1 對應
 
 假設模型輸出節點 $y_{j}(t - 1)$ 只與 $\net{j}{t}$ 相連，即
 
@@ -833,7 +833,7 @@ $$
 接著我們將 $\eqref{eq:38}$ 的計算結果用來計算 $t + 1$ 時間點的**記憶單元內部狀態** $s^{\cell{k}}(t + 1)$
 
 $$
-s^{\cell{k}}(t + 1) = s^{\cell{k}}(t) + y_k^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tag{39}\label{eq:39}
+s_i^{\cell{k}}(t + 1) = s_i^{\cell{k}}(t) + y_k^{\opig}(t + 1) \cdot \gnetcell{i}{k}{t + 1} \tag{39}\label{eq:39}
 $$
 
 - 根據 $\eqref{eq:38}$ 我們知道 $y_k^{\opig}(t + 1)$ 能夠**控制輸入訊號的開關**
@@ -1140,7 +1140,7 @@ $$
 & \pd{y_i^{\ophid}(t + 1)}{\whid_{p, q}} \\
 & = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \pd{\nethid{i}{t + 1}}{\whid_{p, q}} \\
 & = \delta_{i, p} \cdot \dfnethid{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t) + \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot (2 + \dcell)} \bigg[\pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot (2 + \dcell)} \bigg[\dfnethid{i}{t + 1} \cdot \\
 & \quad \cancelto{0}{\pd{\nethid{i}{t + 1}}{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}} \cdot \\
 & \quad \pd{[y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p, q}}\bigg] \\
 & \aptr \delta_{i, p} \cdot \dfnethid{i}{t + 1} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_q(t)
@@ -1456,7 +1456,7 @@ $$
   - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
   - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
 
-總共會執行 $T$ 個 **forward pass**，因此**更新所有參數**所需的**總時間複雜度**為
+總共會執行 $T + 1$ 個 **forward pass**，因此**更新所有參數**所需的**總時間複雜度**為
 
 $$
 O\big(T \cdot \big[\dim(\whid) + \dim(\wog) + \dim(\wig) + \ncell \cdot \dim(\wcell{1}) + \dim(\wout)\big]\big) \tag{75}\label{eq:75}
