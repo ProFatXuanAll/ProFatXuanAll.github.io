@@ -10,6 +10,7 @@ categories: [
 tags: [
   RNN,
   BPTT,
+  note-is-under-construction,
 ]
 author: [
   Paolo Frasconi,
@@ -19,7 +20,7 @@ author: [
 ---
 
 |-|-|
-|目標|分析 local feedback multilayered networks|
+|目標|分析 Local Feedback Multilayered Networks，證明該模型擁有遺忘行為，並認為遺忘行為是**好現象**|
 |作者|Paolo Frasconi, Marco Gori, Giovanni Soda|
 |期刊/會議名稱|Neural Computation|
 |發表時間|1992|
@@ -442,7 +443,7 @@ $$
 
 作者接著證明 Local Feedback Multilayered Networks 在特定條件下能夠擁有遺忘行為。
 
-### 引理 1：啟發值的最大值
+### 引理：啟發值的最大值
 
 令啟發函數 $f(z) = \tanh(z / 2)$。
 則
@@ -470,7 +471,7 @@ $$
 我們接著證明以下敘述：
 
 令 $M$ 為 $\eqref{16}$ 中的數值。
-當 Local Feedback Multilayered Networks 使用的啟發函數都是 $f(z) = \tanh(z / 2)$，輸出單元都是非遞迴單元，且 $\uhid, \vhid$ 的數值範圍滿足
+當 Local Feedback Multilayered Networks 使用的啟發函數都是 $f(z) = \tanh(z / 2)$，且 $\uhid, \vhid$ 的數值範圍滿足
 
 $$
 \begin{align*}
@@ -529,7 +530,7 @@ $$
 \end{align*} \tag{21}\label{21}
 $$
 
-展開 $\eqref{15}$ 我們可以發現
+展開 $\eqref{15}$ 我們可以發現當 $i = 1, \dots, \opnorm(y)$ 時
 
 $$
 \begin{align*}
@@ -550,11 +551,17 @@ $$
 $$
 \begin{align*}
 & q > 0 \\
-\implies & \abs{\pd{y_i(t)}{x_k(t - q)}} \\
-& \leq \abs{f'\pa{\wout_i \odot h(t)}} \cdot \Bigg[ \\
+\implies & \abs{\pd{y_i(t)}{x_k(t - q)}} \leq \abs{f'\pa{\wout_i \odot h(t)}} \cdot \Bigg[ \\
 & \quad \abs{\sum_{j = \opnorm(h) + 1}^{\opnorm(h) + \oprecur{1}(h)} \pa{\wout_{i j} \cdot f'\pa{\tilde{h}_j(t)} \cdot \abs{\uhid_j}^q \cdot \whid_{j k}}} \\
 & \quad + \abs{\sum_{j = \opnorm(h) + \oprecur{1}(h) + 1}^{\dhid} \pa{\wout_{i j} \cdot f'\pa{\bar{h}_j(t)} \cdot \abs{\vhid_j \cdot M}^q \cdot \whid_{j k}}}\Bigg] \\
 \implies & \lim_{q \to \infty} \abs{\pd{y_i(t)}{x_k(t - q)}} = 0 \\
 \implies & \lim_{q \to \infty} \pd{y_i(t)}{x_k(t - q)} = 0.
 \end{align*}
 $$
+
+### 備註
+
+同樣的推理也可以套用至 $\uout, \vout$。
+
+- 輸入長度固定時，Local Feedback Multilayered Networks 使用固定輸入長度的 MLP 概念相同，但架構比 MLP 更廣義
+- Local Feedback Multilayered Networks 可能不適合用來解決輸入長度不固定的問題
