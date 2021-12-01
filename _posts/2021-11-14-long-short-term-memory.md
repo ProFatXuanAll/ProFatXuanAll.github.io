@@ -15,17 +15,18 @@ tags: [
   Gradient Vanishing,
 ]
 author: [
-  Sepp Hochreiter, Jürgen Schmidhuber
+  Sepp Hochreiter,
+  Jürgen Schmidhuber,
 ]
 ---
 
 |-|-|
-|論文連結|<https://ieeexplore.ieee.org/abstract/document/6795963>|
-|書本連結|<https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4>|
+|目標|提出 RNN 使用 BPTT 進行最佳化時遇到的問題，並提出 LSTM 架構進行修正|
+|作者|Sepp Hochreiter, Jürgen Schmidhuber|
 |期刊/會議名稱|Neural Computation|
 |發表時間|1997|
-|作者|Sepp Hochreiter, Jürgen Schmidhuber|
-|目標|提出 RNN 使用 BPTT 進行最佳化時遇到的問題，並提出 LSTM 架構進行修正|
+|論文連結|<https://ieeexplore.ieee.org/abstract/document/6795963>|
+|書本連結|<https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4>|
 
 <!--
   Define LaTeX command which will be used through out the writing.
@@ -762,9 +763,9 @@ $$
 
 $$
 \begin{align*}
-\netig{k}{t + 1} & = \brack{\sum_{j = 1}^{\din} \wig_{k, j} \cdot x_j(t)} + \brack{\sum_{j = \din + 1}^{\din + \dhid} \wig_{k, j} \cdot y_j^{\ophid}(t)} \\
-& \quad + \brack{\sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell} \wig_{k, j} \cdot y_j^{\opig}(t)} + \brack{\sum_{j = \din + \dhid + \ncell + 1}^{\din + \dhid + 2\ncell} \wig_{k, j} \cdot y_j^{\opog}(t)} \\
-& \quad + \brack{\sum_{k^{\star} = 1}^{\ncell} \sum_{j = \din + \dhid + 2\ncell + (k^{\star} - 1) \cdot \dcell + 1}^{\din + \dhid + 2\ncell + k^{\star} \cdot \dcell} \wig_{k, j} \cdot y_j^{\cell{k^{\star}}}(t)} \\
+\netig{k}{t + 1} & = \br{\sum_{j = 1}^{\din} \wig_{k, j} \cdot x_j(t)} + \br{\sum_{j = \din + 1}^{\din + \dhid} \wig_{k, j} \cdot y_j^{\ophid}(t)} \\
+& \quad + \br{\sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell} \wig_{k, j} \cdot y_j^{\opig}(t)} + \br{\sum_{j = \din + \dhid + \ncell + 1}^{\din + \dhid + 2\ncell} \wig_{k, j} \cdot y_j^{\opog}(t)} \\
+& \quad + \br{\sum_{k^{\star} = 1}^{\ncell} \sum_{j = \din + \dhid + 2\ncell + (k^{\star} - 1) \cdot \dcell + 1}^{\din + \dhid + 2\ncell + k^{\star} \cdot \dcell} \wig_{k, j} \cdot y_j^{\cell{k^{\star}}}(t)} \\
 & = \sum_{j = 1}^{\din + \dhid + \ncell \cdot (2 + \dcell)} \wig_{k, j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t); \\
 y_k^{\opig}(t + 1) & = \fnetig{k}{t + 1}.
 \end{align*} \tag{36}\label{eq:36}
@@ -788,9 +789,9 @@ $$
 
 $$
 \begin{align*}
-\netcell{i}{k}{t + 1} & = \brack{\sum_{j = 1}^{\din} \wcell{k}_{i, j} \cdot x_j(t)} + \brack{\sum_{j = \din + 1}^{\din + \dhid} \wcell{k}_{i, j} \cdot y_j^{\ophid}(t)} \\
-& \quad + \brack{\sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell} \wcell{k}_{i, j} \cdot y_j^{\opig}(t)} + \brack{\sum_{j = \din + \dhid + \ncell + 1}^{\din + \dhid + 2\ncell} \wcell{k}_{i, j} \cdot y_j^{\opog}(t)} \\
-& \quad + \brack{\sum_{k^{\star} = 1}^{\ncell} \sum_{j = \din + \dhid + 2\ncell + (k^{\star} - 1) \cdot \dcell + 1}^{\din + \dhid + 2\ncell + k^{\star} \cdot \dcell} \wcell{k}_{i, j} \cdot y_j^{\cell{k^{\star}}}(t)} \\
+\netcell{i}{k}{t + 1} & = \br{\sum_{j = 1}^{\din} \wcell{k}_{i, j} \cdot x_j(t)} + \br{\sum_{j = \din + 1}^{\din + \dhid} \wcell{k}_{i, j} \cdot y_j^{\ophid}(t)} \\
+& \quad + \br{\sum_{j = \din + \dhid + 1}^{\din + \dhid + \ncell} \wcell{k}_{i, j} \cdot y_j^{\opig}(t)} + \br{\sum_{j = \din + \dhid + \ncell + 1}^{\din + \dhid + 2\ncell} \wcell{k}_{i, j} \cdot y_j^{\opog}(t)} \\
+& \quad + \br{\sum_{k^{\star} = 1}^{\ncell} \sum_{j = \din + \dhid + 2\ncell + (k^{\star} - 1) \cdot \dcell + 1}^{\din + \dhid + 2\ncell + k^{\star} \cdot \dcell} \wcell{k}_{i, j} \cdot y_j^{\cell{k^{\star}}}(t)} \\
 & = \sum_{j = 1}^{\din + \dhid + \ncell \cdot (2 + \dcell)} \wcell{k}_{i, j} \cdot [x ; y^{\ophid} ; y^{\opig} ; y^{\opog} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)
 \end{align*} \tag{37}\label{eq:37}
 $$
@@ -1052,10 +1053,10 @@ $$
 & \pd{y_i(t + 1)}{\whid_{p, q}} \\
 & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\whid_{p, q}} \\
 & = \dfnetout{i}{t + 1} \cdot \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \brack{\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p, q}}} \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \br{\pd{\netout{i}{t + 1}}{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)} \cdot \pd{[y^{\ophid} ; y^{\cell{1}} ; \dots ; y^{\cell{\ncell}}]_j(t)}{\whid_{p, q}}} \\
 & = \dfnetout{i}{t + 1} \cdot \\
-& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \brack{\wout_{i, j} \cdot \pd{[y^{\ophid} ; \cancelto{0}{y^{\cell{1}}} ; \dots ; \cancelto{0}{y^{\cell{\ncell}}}]_j(t)}{\whid_{p, q}}} \\
-& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \brack{\wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{p, q}}} \\
+& \quad \sum_{j = \din + 1}^{\din + \dhid + \ncell \cdot \dcell} \br{\wout_{i, j} \cdot \pd{[y^{\ophid} ; \cancelto{0}{y^{\cell{1}}} ; \dots ; \cancelto{0}{y^{\cell{\ncell}}}]_j(t)}{\whid_{p, q}}} \\
+& \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = \din + 1}^{\din + \dhid} \br{\wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{p, q}}} \\
 & \aptr \dfnetout{i}{t + 1} \cdot \delta_{j, p} \cdot \wout_{i, j} \cdot \pd{y_j^{\ophid}(t)}{\whid_{j, q}}
 \end{align*} \tag{50}\label{eq:50}
 $$
@@ -1776,8 +1777,8 @@ $$
 
 $$
 \begin{align*}
-& 4 + \sum_{k = 0}^\infty \frac{1}{10} \paren{\frac{9}{10}}^k (q + k) \\
-& = 4 + \frac{q}{10} \brack{\sum_{k = 0}^\infty \paren{\frac{9}{10}}^k} + \frac{1}{10} \brack{\sum_{k = 0}^\infty \paren{\frac{9}{10}}^k \cdot k} \\
+& 4 + \sum_{k = 0}^\infty \frac{1}{10} \pa{\frac{9}{10}}^k (q + k) \\
+& = 4 + \frac{q}{10} \br{\sum_{k = 0}^\infty \pa{\frac{9}{10}}^k} + \frac{1}{10} \br{\sum_{k = 0}^\infty \pa{\frac{9}{10}}^k \cdot k} \\
 & = 4 + \frac{q}{10} \cdot 10 + \frac{1}{10} \cdot 100 \\
 & = q + 14
 \end{align*}
@@ -1787,11 +1788,11 @@ $$
 
 $$
 \begin{align*}
-& \brack{\sum_{k = 0}^n k x^k} - x \brack{\sum_{k = 0}^n k x^k} \\
+& \br{\sum_{k = 0}^n k x^k} - x \br{\sum_{k = 0}^n k x^k} \\
 & = (0x^0 + 1x^1 + 2x^2 + 3x^3 + \dots + nx^n) - \\
 & \quad (0x^1 + 1x^2 + 2x^3 + 3x^4 + \dots + nx^{n + 1}) \\
 & = 0x^0 + 1x^1 + 1x^2 + 1x^3 + \dots + 1x^n - nx^{n + 1} \\
-& = \brack{\sum_{k = 0}^n x^k} - nx^{n + 1} \\
+& = \br{\sum_{k = 0}^n x^k} - nx^{n + 1} \\
 & = \frac{1 - x^{n + 1}}{1 - x} - nx^{n + 1} \\
 & = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{1 - x}
 \end{align*}
@@ -1801,7 +1802,7 @@ $$
 
 $$
 \begin{align*}
-& \brack{\sum_{k = 0}^n k x^k} - x \brack{\sum_{k = 0}^n k x^k} = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{1 - x} \\
+& \br{\sum_{k = 0}^n k x^k} - x \br{\sum_{k = 0}^n k x^k} = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{1 - x} \\
 \implies & \sum_{k = 0}^n k x^k = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{(1 - x)^2} \\
 \implies & \sum_{k = 0}^\infty k x^k = \frac{1}{(1 - x)^2} \text{ when } 0 \leq x \lt 1
 \end{align*}
@@ -1811,9 +1812,9 @@ $$
 
 $$
 \begin{align*}
-& \sum_{k = 0}^\infty \frac{1}{10} \cdot \paren{\frac{9}{10}}^k \cdot \brack{\sum_{i = 0}^{q + k} \binom{q + k}{i} \cdot \paren{\frac{1}{p - 1}}^i \cdot \paren{1 - \frac{1}{p - 1}}^{q + k - i}} \\
-& = \sum_{k = 0}^\infty \frac{1}{10} \cdot \paren{\frac{9}{10}}^k \cdot \frac{q + k}{p - 1} \\
-& = \frac{q}{10(p - 1)} \brack{\sum_{k = 0}^\infty \paren{\frac{9}{10}}^k} + \frac{1}{10(p - 1)} \brack{\sum_{k = 0}^\infty \paren{\frac{9}{10}}^k \cdot k} \\
+& \sum_{k = 0}^\infty \frac{1}{10} \cdot \pa{\frac{9}{10}}^k \cdot \br{\sum_{i = 0}^{q + k} \binom{q + k}{i} \cdot \pa{\frac{1}{p - 1}}^i \cdot \pa{1 - \frac{1}{p - 1}}^{q + k - i}} \\
+& = \sum_{k = 0}^\infty \frac{1}{10} \cdot \pa{\frac{9}{10}}^k \cdot \frac{q + k}{p - 1} \\
+& = \frac{q}{10(p - 1)} \br{\sum_{k = 0}^\infty \pa{\frac{9}{10}}^k} + \frac{1}{10(p - 1)} \br{\sum_{k = 0}^\infty \pa{\frac{9}{10}}^k \cdot k} \\
 & = \frac{q}{p - 1} + \frac{10}{p - 1} \\
 & \approx \frac{q}{p - 1} \text{ when } q \gg 0
 \end{align*}
@@ -1976,7 +1977,7 @@ $$
 模型在 $L + 1$ 時間點必須輸出所有元素中第二個數值為 $1$ 的元素，其第一個數值的總和，並轉換到 $[0, 1]$ 區間的數值，即
 
 $$
-\hat{y}(L + 1) = 0.5 + \frac{1}{4} \sum_{t = 0}^{L} \brack{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}
+\hat{y}(L + 1) = 0.5 + \frac{1}{4} \sum_{t = 0}^{L} \br{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}
 $$
 
 只考慮 $L + 1$ 時間點的誤差，誤差必須要低於 $0.04$ 才算預測正確。
@@ -2030,7 +2031,7 @@ $$
 - $L + 1$ 時間點的輸出目標改成
 
 $$
-\hat{y}(L + 1) = 0.5 + \frac{1}{4} \prod_{t = 0}^{L} \brack{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}
+\hat{y}(L + 1) = 0.5 + \frac{1}{4} \prod_{t = 0}^{L} \br{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}
 $$
 
 - 當連續 $2000$ 筆訓練資料中，不超過 $n_{\opseq}$ 筆資料的絕對誤差小於 $0.04$ 就停止訓練
