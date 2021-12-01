@@ -545,15 +545,16 @@ $$
 \end{align*} \tag{22}\label{22}
 $$
 
-因此結合 $\eqref{21}\eqref{22}$ 加上 $\eqref{17}$ 的假設我們可以推得當 $q > 0$ 時，
+因此結合 $\eqref{21}\eqref{22}$ 加上 $\eqref{17}$ 的假設我們可以推得 $\eqref{15}$ 的結論
 
 $$
 \begin{align*}
-& \abs{\pd{y_i(t)}{x_k(t - q)}} \\
+& q > 0 \\
+\implies & \abs{\pd{y_i(t)}{x_k(t - q)}} \\
 & \leq \abs{f'\pa{\wout_i \odot h(t)}} \cdot \Bigg[ \\
 & \quad \abs{\sum_{j = \opnorm(h) + 1}^{\opnorm(h) + \oprecur{1}(h)} \pa{\wout_{i j} \cdot f'\pa{\tilde{h}_j(t)} \cdot \abs{\uhid_j}^q \cdot \whid_{j k}}} \\
 & \quad + \abs{\sum_{j = \opnorm(h) + \oprecur{1}(h) + 1}^{\dhid} \pa{\wout_{i j} \cdot f'\pa{\bar{h}_j(t)} \cdot \abs{\vhid_j \cdot M}^q \cdot \whid_{j k}}}\Bigg] \\
 \implies & \lim_{q \to \infty} \abs{\pd{y_i(t)}{x_k(t - q)}} = 0 \\
-\implies & \lim_{q \to \infty} \pd{y_i(t)}{x_k(t - q)} = 0
+\implies & \lim_{q \to \infty} \pd{y_i(t)}{x_k(t - q)} = 0.
 \end{align*}
 $$
