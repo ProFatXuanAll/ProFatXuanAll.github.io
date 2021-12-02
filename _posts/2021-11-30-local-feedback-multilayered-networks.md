@@ -576,14 +576,14 @@ $$
 
 ## 儲存正負號
 
-令 $t = 1, \dots, T$ 為任意時間點，令任意模型的任意節點淨輸入為 $a(t)$。
-如果模型能夠滿足在 $t_0 > t$ 之後的所有時間點的淨輸入正負號不變，即
+令 $t_0 = 1, \dots, T$ 為任意時間點，令任意模型的任意節點淨輸入為 $a(t_0)$。
+如果模型能夠滿足在 $t > t_0$ 之後的所有時間點的淨輸入正負號不變（數值大小可以改變），即
 
 $$
-\sign(a(t)) = \sign(a(t_0)) \quad \forall t > t_0
+\sign\big(a(t)\big) = \sign\big(a(t_0)\big) \quad \forall t > t_0
 $$
 
-則稱模型能夠**儲存正負號**（**Information Latching**），更準確的說法是維持 $t$ 時間點的正負狀態不變（數值大小可以改變）。
+則稱模型能夠**儲存正負號**（**Information Latching**）。
 
 作者宣稱在滿足特定條件下，Local Feedback Multilayered Networks 可以擁有儲存正負號的功能。
 
