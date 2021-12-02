@@ -86,15 +86,20 @@ author: [
 
 - 分析 Local Feedback Multilayered Networks
   - 是 RNN 模型的其中一種
-  - Feedback connection 只能接到相同的來源
   - 作者認為 RNN 架構不需要全連結
+  - Feedback connection 只能接到相同的來源
+  - 提出兩種不同的 feedback connection 架構，分別稱為**淨輸入遞迴單元**與**啟發值遞迴單元**
+  - 提倡使用**啟發值遞迴單元**
   - 作者證明 Local Feedback Multilayered Networks 在特定條件下擁有**遺忘行為**（**Forgetting Behavior**）
 - 作者認為如果 RNN 模型擁有**遺忘行為**，則該 RNN 就等同於**簡單的 MLP**，但輸入是**固定範圍**的資訊
   - 作者認為遺忘行為能夠幫助模型忘記**較早期**已經處理過的資訊，在**語音辨識**中是很重要的功能
   - 從現在的角度來看，我覺得就像是使用 RNN 模擬一個簡單的 **CNN**
-- 最佳化可以達成 local in both space and time
-- 無法學習輸入較長的任務
-  - 例如無法模擬計數器
+- 由於模型擁有遺忘行為，因此最佳化不需要計算完整的 BPTT，計算時間與空間不會隨著時間增加
+  - 此現象稱為 Local in both Space and Time
+- 提出**儲存正負號**（**Information Latching**）的概念
+  - 作者證明 Local Feedback Multilayered Networks 在特定條件下能夠儲存正負號
+  - 雖然模型會忘記過去的資訊，但可以永遠維持過去資訊計算所得的正負號
+  - 但此功能無法解決輸入較長的任務，例如無法模擬計數器
 
 ## 模型架構
 
@@ -563,5 +568,47 @@ $$
 
 同樣的推理也可以套用至 $\uout, \vout$。
 
-- 輸入長度固定時，Local Feedback Multilayered Networks 使用固定輸入長度的 MLP 概念相同，但架構比 MLP 更廣義
-- Local Feedback Multilayered Networks 可能不適合用來解決輸入長度不固定的問題
+- 論文 4.1 節引用其他 paper 的證明，在輸入長度固定下，使用淨輸入遞迴單元的 Local Feedback Multilayered Networks 概念與 MLP 相同，但架構比 MLP 更廣義
+- 論文 4.2 節提到使用淨輸入遞迴單元的 Local Feedback Multilayered Networks 無法解決輸入長度不固定的問題
+  - 如果誤差只會在 $t = T$ 產生，則 Local Feedback Multilayered Networks 無法最佳化
+  - 這裡有提到 relaxation at the unique equilibrium state，應該是跟微分方程有關的分析，我還不太懂，會了再補
+  - 以此為出發點，提倡使用啟發值遞迴單元而不是淨輸入遞迴單元
+
+## 儲存正負號
+
+令 $t = 1, \dots, T$ 為任意時間點，令任意模型的任意節點淨輸入為 $a(t)$。
+如果模型能夠滿足在 $t_0 > t$ 之後的所有時間點的淨輸入正負號不變，即
+
+$$
+\sign(a(t)) = \sign(a(t_0)) \quad \forall t > t_0
+$$
+
+則稱模型能夠**儲存正負號**（**Information Latching**），更準確的說法是維持 $t$ 時間點的正負狀態不變（數值大小可以改變）。
+
+作者宣稱在滿足特定條件下，Local Feedback Multilayered Networks 可以擁有儲存正負號的功能。
+
+### 證明
+
+當與遞迴單元有關參數其絕對值大於 $2$ 時，則模型能夠儲存正負號。
+
+$$
+\abs{w} > 2 \quad w \in \set{\whid_{j k}, \uhid_j, \vhid_j, \wout_i, \uout_i, \vout_i, \Wout_{i k}}
+$$
+
+When forcing term is bounded in module by a constant $B = wf(\xi) - \xi$, where $\xi$ is a solution of
+
+$$
+\frac{w}{2} (1 - f(\xi))^2 - 1 = 0,
+$$
+
+the latching condition also holds.
+
+接下來的證明都跟微分方程有關，包含 equilibrium points, asymptotical stability, Lyapunov function 等，現在的我還看不懂，等我會了再回來補。
+
+### 備註
+
+- 根據論文的範例 1，若有一個序列分類任務，輸入長度可以是任意長，但分類只需要靠**第一個輸入**就可達成，則 Local Feedback Multilayered Networks 可以透過儲存正負號的方式完成任務
+  - 模型在訓練的過程中能夠自動判斷只有第一個輸入是重要的
+  - 當類別有 $5$ 種時，模型必須要擁有至少 $3$ 個以上的遞迴單元才能完成任務（二進制的概念）
+- 根據論文的範例 2，若有一個序列分類任務，輸入長度可以是任意長，但分類需要靠過濾輸入中的**雜訊**，並**按照順序紀錄資訊**，則 Local Feedback Multilayered Networks 無法完成任務
+  - 例如計數器，儲存正負號的功能只能維持正負號，無法保證數值不變，因此該模型無法模擬計數器
