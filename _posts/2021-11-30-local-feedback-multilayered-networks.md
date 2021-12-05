@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: ML-note
 title:  "Local Feedback Multilayered Networks"
 date:   2021-11-30 14:21:00 +0800
 categories: [
@@ -29,12 +29,9 @@ author: [
 <!--
   Define LaTeX command which will be used through out the writing.
 
-  First we need to include `tools/math` which setup auto rendering.
   Each command must be wrapped with $ signs.
   We use "display: none;" to avoid redudant whitespaces.
  -->
-
-{% include tools/math.html %}
 
 <p style="display: none;">
 
