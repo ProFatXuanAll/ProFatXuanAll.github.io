@@ -1,7 +1,7 @@
 ---
 layout: ML-note
 title:  "A time-delay neural network architecture for isolated word recognition"
-date:   2021-11-30 12:28:00 +0800
+date:   2021-12-06 12:28:00 +0800
 categories: [
   Deep Learning,
   Model Architecture,
