@@ -9,7 +9,6 @@ categories: [
 tags: [
   RNN,
   LSTM,
-  note-is-under-construction,
 ]
 author: [
   Felix A. Gers,
