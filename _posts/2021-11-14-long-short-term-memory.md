@@ -1652,8 +1652,8 @@ $$
 |$\dout$|$7$||
 |$\dim(\whid)$|$0$|沒有隱藏單元|
 |$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
-|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wig)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell]$|外部輸入沒有直接連接到總輸出|
 |參數初始化範圍|$[-0.2, 0.2]$||
 |輸出閘門偏差項初始化範圍|$\set{-1, -2, -3, -4}$|由大到小依序初始化不同記憶單元對應輸出閘門偏差項|
@@ -1721,7 +1721,7 @@ $$
 |$h$|$h(x) = x$||
 |$\dim(\whid)$|$0$|沒有隱藏單元|
 |$\dim(\wcell{k})$|$\dcell \times [\din + (1 + \ncell) \cdot \dcell]$|全連接隱藏層|
-|$\dim(\wig)$|$\dcell \times [\din + (1 + \ncell) \cdot \dcell]$|全連接隱藏層|
+|$\dim(\wig)$|$\ncell \times [\din + (1 + \ncell) \cdot \dcell]$|全連接隱藏層|
 |$\dim(\wog)$|$0$|沒有輸出閘門|
 |$\dim(\wout)$|$0$|總輸出就是記憶單元的輸出|
 |參數初始化範圍|$[-0.2, 0.2]$||
@@ -1833,8 +1833,8 @@ $$
 |$\dout$|$2$|只考慮最後一個時間點的預測誤差，並且預測的可能結果只有 $2$ 種（$\alpha$ 或 $\beta$）|
 |$\dim(\whid)$|$0$|沒有隱藏單元|
 |$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
-|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
-|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
+|$\dim(\wig)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
+|$\dim(\wog)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell)]$|全連接隱藏層|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell]$|外部輸入沒有直接連接到總輸出|
 |參數初始化範圍|$[-0.2, 0.2]$||
 |Learning rate|$0.01$||
@@ -1885,8 +1885,8 @@ $$
 |$\dout$|$1$||
 |$\dim(\whid)$|$0$|沒有隱藏單元|
 |$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wig)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell]$|外部輸入沒有直接連接到總輸出|
 |參數初始化範圍|$[-0.1, 0.1]$||
 |輸入閘門偏差項初始化範圍|$\set{-1, -3, -5}$|由大到小依序初始化不同記憶單元對應輸入閘門偏差項|
@@ -1995,8 +1995,8 @@ $$
 |$\dout$|$1$||
 |$\dim(\whid)$|$0$|沒有隱藏單元|
 |$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wig)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
 |參數初始化範圍|$[-0.1, 0.1]$||
 |輸入閘門偏差項初始化範圍|$\set{-3, -6}$|由大到小依序初始化不同記憶單元對應輸入閘門偏差項|
@@ -2098,8 +2098,8 @@ $$
 |$\dout$|$4$||
 |$\dim(\whid)$|$0$|沒有隱藏單元|
 |$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wig)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
 |參數初始化範圍|$[-0.1, 0.1]$||
 |輸入閘門偏差項初始化範圍|$\set{-2, -4}$|由大到小依序初始化不同記憶單元對應輸入閘門偏差項|
@@ -2141,8 +2141,8 @@ $$
 |$\dout$|$8$||
 |$\dim(\whid)$|$0$|沒有隱藏單元|
 |$\dim(\wcell{k})$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wig)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
-|$\dim(\wog)$|$\dcell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wig)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
+|$\dim(\wog)$|$\ncell \times [\din + \ncell \cdot (2 + \dcell) + 1]$|全連接隱藏層，有額外使用偏差項|
 |$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
 |參數初始化範圍|$[-0.1, 0.1]$||
 |輸入閘門偏差項初始化範圍|$\set{-2, -4, -6}$|由大到小依序初始化不同記憶單元對應輸入閘門偏差項|
