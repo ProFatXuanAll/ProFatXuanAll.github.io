@@ -30,11 +30,6 @@ author: [
  -->
 
 <p style="display: none;">
-
-  <!-- Sequence. -->
-  $\providecommand{\seq}{}$
-  $\renewcommand{\seq}[2]{u_{#1}, \dots, u_{#2}}$
-
 </p>
 
 <!-- End LaTeX command define section. -->
