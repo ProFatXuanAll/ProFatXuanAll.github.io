@@ -189,7 +189,7 @@ paginate: 10
 
 # Build settings
 # highlighter: none
-theme: jekyll-theme-yat
+# theme: jekyll-theme-yat
 remote_theme: "jeffreytse/jekyll-theme-yat"
 markdown: CommonMarkGhPages
 markdown: kramdown
