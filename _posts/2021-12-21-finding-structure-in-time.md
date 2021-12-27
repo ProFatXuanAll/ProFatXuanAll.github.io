@@ -22,18 +22,6 @@ author: [
 |發表時間|1990|
 |論文連結|<https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1>|
 
-<!--
-  Define LaTeX command which will be used through out the writing.
-
-  Each command must be wrapped with $ signs.
-  We use "display: none;" to avoid redudant whitespaces.
- -->
-
-<p style="display: none;">
-</p>
-
-<!-- End LaTeX command define section. -->
-
 ## 重點
 
 - 世界上的語言以文字在句中的順序可以區分成兩種
