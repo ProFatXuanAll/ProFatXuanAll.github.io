@@ -187,6 +187,7 @@ author: [
 
 ## 重點
 
+- [此篇論文][論文]與 [LSTM-2000][LSTM2000] 都寫錯自己的數學公式，但我讓筆記內容儘量與論文原始內容相同，因此所有筆記都是以論文原始（錯誤）的數學公式為基礎，正確的數學公式可以看 [LSTM-2002][LSTM2002] 的論文或[我的筆記][note-LSTM2002]
 - 計算 **RNN** 梯度反向傳播的演算法包含 **BPTT** 或 **RTRL**
   - BPTT 全名為 **B**ack-**P**ropagation **T**hrought **T**ime
   - RTRL 全名為 **R**eal **T**ime **R**ecurrent **L**earning
@@ -694,7 +695,7 @@ $$
 符號對應請見下個小節。
 圖片來源：[論文][論文]。
 
-![paper-fig:1](https://i.imgur.com/uhS4AgH.png)
+![圖 1](https://i.imgur.com/uhS4AgH.png)
 
 <a name="paper-fig-2"></a>
 
@@ -702,7 +703,7 @@ $$
 線條真的多到讓人看不懂，看我整理過的公式比較好理解。
 圖片來源：[論文][論文]。
 
-![paper-fig:2](https://i.imgur.com/UQ5LAu8.png)
+![圖 2](https://i.imgur.com/UQ5LAu8.png)
 
 為了解決**梯度爆炸 / 消失**問題，作者決定以 Constant Error Carousel 為出發點（見 $\eqref{eq:33}$），提出 **3** 個主要的機制，並將這些機制的合體稱為**記憶單元（Memory Cell）**（見[圖 1](#paper-fig-1)）：
 
@@ -1603,14 +1604,15 @@ $$
 一個簡單的有限狀態機，能夠生成的字母包含 BEPSTVX。
 圖片來源：[論文][論文]。
 
-![paper-fig:3](https://i.imgur.com/frOl0Tf.png)
+![圖 3](https://i.imgur.com/frOl0Tf.png)
+
+<a name="paper-fig-4"></a>
 
 圖 4：Embedded Reber Grammar。
 一個簡單的有限狀態機，包含兩個完全相同的 Reber Grammar，開頭跟結尾只能是 BT...TE 與 BP...PE。
 圖片來源：[論文][論文]。
 
-<a name="paper-fig-4"></a>
-![paper-fig:4](https://i.imgur.com/SVfVbJN.png)
+![圖 4](https://i.imgur.com/SVfVbJN.png)
 
 #### 任務定義
 
@@ -1667,7 +1669,7 @@ $$
 表格 1：Embedded Reber Grammar 實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:1](https://i.imgur.com/51yPwmH.png)
+![表 1](https://i.imgur.com/51yPwmH.png)
 
 - LSTM + 丟棄梯度 + RTRL 在不同的實驗架構中都能解決任務
   - RNN + RTRL 無法完成
@@ -1735,7 +1737,7 @@ $$
 表格 2：無雜訊長時間差任務實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:2](https://i.imgur.com/638FPkg.png)
+![表 2](https://i.imgur.com/638FPkg.png)
 
 - 在 $p = 4$ 時使用 RNN + RTRL 時部份實驗能夠預測序列
   - 序列很短時 RNN 還是有能力完成任務
@@ -1846,7 +1848,7 @@ $$
 表格 3：有雜訊超長時間差任務實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:3](https://i.imgur.com/j8e0W2U.png)
+![表 3](https://i.imgur.com/j8e0W2U.png)
 
 - 其他方法沒有辦法完成任務，因此不列入表格比較
 - 輸入序列長度可到達 $1000$
@@ -1900,7 +1902,7 @@ $$
 表格 4：Two-Sequence Problem 實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:4](https://i.imgur.com/e1OKDP5.png)
+![表 4](https://i.imgur.com/e1OKDP5.png)
 
 - 偏差項初始化的數值其實不需要這麼準確
 - LSTM 能夠快速解決任務
@@ -1913,7 +1915,7 @@ $$
 表格 5：Two-Sequence Problem + 雜訊實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:5](https://i.imgur.com/DEkS8ST.png)
+![表 5](https://i.imgur.com/DEkS8ST.png)
 
 實驗設計與 LSTM 完全與實驗 3a 相同，但對於序列 $\opseq$ 前 $N$ 個實數加上雜訊（與實驗 2a 相同的高斯分佈）。
 
@@ -1931,7 +1933,7 @@ $$
 表格 6：強化版 Two-Sequence Problem 實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:6](https://i.imgur.com/1eXhAr4.png)
+![表 6](https://i.imgur.com/1eXhAr4.png)
 
 實驗設計與 LSTM 完全與實驗 3b 相同，但進行以下修改
 
@@ -2009,7 +2011,7 @@ $$
 表格 7：加法任務實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:7](https://i.imgur.com/pGuMKyt.png)
+![表 7](https://i.imgur.com/pGuMKyt.png)
 
 - LSTM 能夠達成任務目標
   - 不超過 $3$ 筆以上預測錯誤的資料
@@ -2050,7 +2052,7 @@ $$
 表格 8：乘法任務實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:8](https://i.imgur.com/bi9jJ3W.png)
+![表 8](https://i.imgur.com/bi9jJ3W.png)
 
 - LSTM 能夠達成任務目標
   - 在 $n_{\opseq} = 140$ 時不超過 $170$ 筆以上預測錯誤的資料
@@ -2112,7 +2114,7 @@ $$
 表格 9：Temporal Order with 4 Classes 任務實驗結果。
 表格來源：[論文][論文]。
 
-![paper-table:9](https://i.imgur.com/ucyQoeQ.png)
+![表 9](https://i.imgur.com/ucyQoeQ.png)
 
 - LSTM 的平均誤差低於 $0.1$
   - 沒有超過 $3$ 筆以上的預測錯誤
@@ -2154,3 +2156,7 @@ $$
 
 [Pytorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html?highlight=lstm#torch.nn.LSTM
 [論文]: https://ieeexplore.ieee.org/abstract/document/6795963
+[LSTM2000]: https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM
+[note-LSTM2000]: /deep%20learning/model%20architecture/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html
+[LSTM2002]: https://www.jmlr.org/papers/v3/gers02a.html
+[note-LSTM2002]: /deep%20learning/model%20architecture/2021/12/28/learning-precise-timing-with-lstm-recurrent-networks.html

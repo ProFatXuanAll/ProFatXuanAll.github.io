@@ -59,7 +59,7 @@ author: [
 圖 1：Elman Net 架構。
 圖片來源：[論文][論文]。
 
-![paper-fig:1](https://i.imgur.com/0kJih5k.png)
+![圖 1](https://i.imgur.com/0kJih5k.png)
 
 提出的架構概念如下
 
@@ -103,7 +103,7 @@ author: [
 圖 2：序列版 XOR 實驗分析。
 圖片來源：[論文][論文]。
 
-![paper-fig:2](https://i.imgur.com/Fs6mGLJ.png)
+![圖 2](https://i.imgur.com/Fs6mGLJ.png)
 
 - 模型在無法預測時誤差較高，可以預測時誤差較低，見[圖 2](#paper-fig-2)
   - 圖中的實驗結果只分析前 $12$ 個 bits，以 $1200$ 次實驗結果平均
@@ -159,21 +159,21 @@ author: [
 圖 3：字母序列輸出 $6$ 個 bits 的平均誤差實驗結果。
 圖片來源：[論文][論文]。
 
-![paper-fig:3](https://i.imgur.com/yLHWxfr.png)
+![圖 3](https://i.imgur.com/yLHWxfr.png)
 
 <a name="paper-fig-4"></a>
 
 圖 4：字母序列輸出第 $1$ 個 bit 的誤差實驗結果。
 圖片來源：[論文][論文]。
 
-![paper-fig:4](https://i.imgur.com/BvnBbEV.png)
+![圖 4](https://i.imgur.com/BvnBbEV.png)
 
 <a name="paper-fig-5"></a>
 
 圖 5：字母序列輸出第 $4$ 個 bit 的誤差實驗結果。
 圖片來源：[論文][論文]。
 
-![paper-fig:5](https://i.imgur.com/U1U1joV.png)
+![圖 5](https://i.imgur.com/U1U1joV.png)
 
 - 模型的平均誤差在無法預測時較高，可以預測時較低，見[圖 3](#paper-fig-3)
 - 第 $1$ 個 bit 的規則是完全可以預測的
@@ -226,7 +226,7 @@ author: [
 圖 6：字母層級語言模型預測誤差，圖中只顯示一部份字母語言序列（many years ago a boy and girl lived by the sea they played happily m）。
 圖片來源：[論文][論文]。
 
-![paper-fig:6](https://i.imgur.com/nVD0jMO.png)
+![圖 6](https://i.imgur.com/nVD0jMO.png)
 
 - 模型誤差在出現新的單字時較高，在預測單字字母時較低，見[圖 6](#paper-fig-6)
 - 大多數時可以依靠誤差進行斷字（當誤差相對上升時就可以斷字），但仍有部份單字不是用此規則
@@ -242,21 +242,21 @@ author: [
 圖 7：單字層級語言模型所使用的單字種類，共有 $13$ 種，只考慮名詞與動詞。
 圖片來源：[論文][論文]。
 
-![paper-fig:7](https://i.imgur.com/Dv9knWh.png)
+![圖 7](https://i.imgur.com/Dv9knWh.png)
 
 <a name="paper-fig-8"></a>
 
 圖 8：字母層級語言模型訓練資料生成模版。
 圖片來源：[論文][論文]。
 
-![paper-fig:8](https://i.imgur.com/dko5W1S.png)
+![圖 8](https://i.imgur.com/dko5W1S.png)
 
 <a name="paper-fig-9"></a>
 
 圖 9：部份訓練資料範例。
 圖片來源：[論文][論文]。
 
-![paper-fig:9](https://i.imgur.com/ByfVIn0.png)
+![圖 9](https://i.imgur.com/ByfVIn0.png)
 
 - 使用[圖 7](#paper-fig-7) 的單字與[圖 8](#paper-fig-8) 的模版生成訓練資料
   - 每筆訓練資料只會包含 $2 \sim 3$ 個字
@@ -309,7 +309,7 @@ author: [
 圖 10：群集分析結果。
 圖片來源：[論文][論文]。
 
-![paper-fig:10](https://i.imgur.com/7WnWsXM.png)
+![圖 10](https://i.imgur.com/7WnWsXM.png)
 
 - 將每個時間點產生所得的隱藏單元儲存起來
   - 總共儲存 $27354 \times 150$ bits
@@ -333,7 +333,7 @@ author: [
 圖 11：模型泛化能力測試結果。
 圖片來源：[論文][論文]。
 
-![paper-fig:11](https://i.imgur.com/Fs5W81y.png)
+![圖 11](https://i.imgur.com/Fs5W81y.png)
 
 - 加入完全無意義的新字 `zog`，並以第 $30$ 個 bit 為 $1$ 的 one-hot vector 進行表達
   - 將所有 `man` 出現的位置都替換成 `zog`
@@ -347,8 +347,8 @@ author: [
 圖 12：模型泛化能力測試結果。
 圖片來源：[論文][論文]。
 
-![paper-fig:12-1](https://i.imgur.com/RNwrZKv.png)
-![paper-fig:12-2](https://i.imgur.com/RIV0mL3.png)
+![圖 12-1](https://i.imgur.com/RNwrZKv.png)
+![圖 12-2](https://i.imgur.com/RIV0mL3.png)
 
 - 由於分析 4-1 的結果是以隱藏層**平均**向量進行分析，而平均運算將前文的概念去除，因此無法判斷模型是否擁有上下文感知（context sensitive）能力
 - 使用平均進行實驗在計算上是比較實際的，但真的要分析前後文內容只能依靠單筆資料的計算結果進行分析

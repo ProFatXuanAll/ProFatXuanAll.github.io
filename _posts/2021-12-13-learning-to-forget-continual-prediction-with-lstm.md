@@ -165,6 +165,7 @@ author: [
 
 <!-- End LaTeX command define section. -->
 
+- [此篇論文][論文]與[原版 LSTM][LSTM1997] 都寫錯自己的數學公式，但我讓筆記內容儘量與論文原始內容相同，因此所有筆記都是以論文原始（錯誤）的數學公式為基礎，正確的數學公式可以看 [LSTM-2002][LSTM2002] 的論文或[我的筆記][note-LSTM2002]
 - [原版 LSTM][LSTM1997] 沒有遺忘閘門，現今常用的 LSTM 都有遺忘閘門，概念由這篇論文提出
 - 包含多個子序列的**連續輸入**會讓 LSTM 的記憶單元內部狀態沒有上下界
   - 現實中的大多數資料並不存在好的分割序列演算法，導致輸入給模型的資料通常都包含多個子序列
@@ -198,6 +199,7 @@ author: [
 |$s^{\cell{k}}(t)$|第 $t$ 個時間點的第 $k$ 個**記憶單元內部狀態**|$\dcell$|$s^{\cell{k}}(0) = 0$，$k$ 的範圍為 $k = 1, \dots, \ncell$|
 |$y^{\cell{k}}(t)$|第 $t$ 個時間點的第 $k$ 個**記憶單元輸出**|$\dcell$|$y^{\cell{k}}(0) = 0$，$k$ 的範圍為 $k = 1, \dots, \ncell$|
 |$y(t + 1)$|第 $t + 1$ 個時間點的**輸出**|$\dout$|由 $t$ 時間點的**輸入**與**記憶單元輸出**透過**全連接**產生，因此沒有 $y(0)$|
+|$\hat{y}(t + 1)$|第 $t + 1$ 個時間點的**預測目標**|$\dout$||
 
 |符號|意義|下標範圍|
 |-|-|-|
@@ -207,6 +209,7 @@ author: [
 |$s_i^{\cell{k}}(t)$|第 $t$ 個時間點的第 $k$ 個**記憶單元**的第 $i$ 個**內部狀態**|$i = 1, \dots, \dcell$|
 |$y_i^{\cell{k}}(t)$|第 $t$ 個時間點的第 $k$ 個**記憶單元**的第 $i$ 個**輸出**|$i = 1, \dots, \dcell$|
 |$y_i(t)$|第 $t$ 個時間點的第 $i$ 個**輸出**|$i = 1, \dots, \dout$|
+|$\hat{y}_i(t)$|第 $t$ 個時間點的第 $i$ 個**預測目標**|$i = 1, \dots, \dout$|
 
 |參數|意義|輸出維度|輸入維度|
 |-|-|-|-|
@@ -450,7 +453,7 @@ $$
 圖 1：在原始 LSTM 架構上增加遺忘閘門。
 圖片來源：[論文][論文]。
 
-![paper-fig:1](https://i.imgur.com/ILRsaEU.png)
+![圖 1](https://i.imgur.com/ILRsaEU.png)
 
 作者提出在模型中加入**遺忘閘門**（**forget gate**），概念是讓**記憶單元內部狀態**能夠進行重設。
 
@@ -603,7 +606,7 @@ $$
 圖 2：Continual Embedded Reber Grammar。
 圖片來源：[論文][論文]。
 
-![paper-fig:2](https://i.imgur.com/rhHtVRN.png)
+![圖 2](https://i.imgur.com/rhHtVRN.png)
 
 ### 任務定義
 
@@ -626,7 +629,7 @@ $$
 圖 3：LSTM 架構。
 圖片來源：[論文][論文]。
 
-![paper-fig:3](https://i.imgur.com/uUJjmSz.png)
+![圖 3](https://i.imgur.com/uUJjmSz.png)
 
 |參數|數值（或範圍）|備註|
 |-|-|-|
@@ -653,7 +656,7 @@ $$
 圖 4：Continual Embedded Reber Grammar 實驗結果。
 圖片來源：[論文][論文]。
 
-![paper-fig:4](https://i.imgur.com/uu9Nccj.png)
+![圖 4](https://i.imgur.com/uu9Nccj.png)
 
 - [原始 LSTM][LSTM1997] 在有手動進行計算狀態的重置時表現非常好，但當沒有手動重置時完全無法執行任務
   - 就算讓記憶單元內部狀態進行 decay 也無濟於事
@@ -670,21 +673,21 @@ $$
 圖 5：[原版 LSTM][LSTM1997] 記憶單元內部狀態的累加值。
 圖片來源：[論文][論文]。
 
-![paper-fig:5](https://i.imgur.com/qwU4pnG.png)
+![圖 5](https://i.imgur.com/qwU4pnG.png)
 
 <a name="paper-fig-6"></a>
 
 圖 6：LSTM 加上遺忘閘門後第三個記憶單元內部狀態。
 圖片來源：[論文][論文]。
 
-![paper-fig:6](https://i.imgur.com/jtLnfu2.png)
+![圖 6](https://i.imgur.com/jtLnfu2.png)
 
 <a name="paper-fig-7"></a>
 
 圖 7：LSTM 加上遺忘閘門後第一個記憶單元內部狀態。
 圖片來源：[論文][論文]。
 
-![paper-fig:7](https://i.imgur.com/K1mp9rg.png)
+![圖 7](https://i.imgur.com/K1mp9rg.png)
 
 - 觀察[原版 LSTM][LSTM1997] 的記憶單元內部狀態，可以發現在不進行手動重設的狀態下，記憶單元內部狀態的數值只會不斷的累加（朝向極正或極負前進）
 - 觀察架上遺忘閘門後 LSTM 的記憶單元內部狀態，可以發現模型學會自動重設
@@ -737,7 +740,7 @@ $$
 圖 8：Continual Noisy Temporal Order Problem 實驗結果。
 圖片來源：[論文][論文]。
 
-![paper-fig:8](https://i.imgur.com/VV5wQVG.png)
+![圖 8](https://i.imgur.com/VV5wQVG.png)
 
 - [圖 8](#paper-fig-8) 中的註解 a 應該寫錯了，應該改為 correct classification of 100 successive NTO sequences
 - 實驗再次驗證原版 LSTM 無法解決連續輸入，但使用輸入閘門後就能夠解決問題
@@ -746,3 +749,5 @@ $$
 [LSTM1997]: https://ieeexplore.ieee.org/abstract/document/6795963
 [note-LSTM1997]: /deep%20learning/model%20architecture/optimization/2021/11/14/long-short-term-memory.html
 [論文]: https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM
+[LSTM2002]: https://www.jmlr.org/papers/v3/gers02a.html
+[note-LSTM2002]: /deep%20learning/model%20architecture/2021/12/28/learning-precise-timing-with-lstm-recurrent-networks.html
