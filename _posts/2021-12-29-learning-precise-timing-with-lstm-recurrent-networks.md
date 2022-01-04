@@ -183,7 +183,9 @@ author: [
 
 ## 重點
 
-- [原版 LSTM][LSTM1997] 與 [LSTM-2000][LSTM2000] 都沒有 peephole connections，現今常用的 LSTM 也沒有使用 peephole connections
+- [原版 LSTM][LSTM1997] 與 [LSTM-2000][LSTM2000] 都沒有 peephole connections
+  - 論文提議的 peephole connections 是只連接到相同的記憶單元
+  - 現今常用的 LSTM 使用 peephole connections 的方法是全連接，例如 [PyTorch 實作的 LSTM][PyTorch-LSTM] 就是一個例子
   - [原版 LSTM][LSTM1997] 細節可以看[我的筆記][note-LSTM1997]
   - [LSTM-2000][LSTM2000] 細節可以看[我的筆記][note-LSTM2000]
 - 這篇論文終於把過去兩篇論文寫錯的數學式改對了
@@ -964,3 +966,4 @@ $$
 [note-LSTM2000]: /deep%20learning/model%20architecture/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html
 [論文]: https://www.jmlr.org/papers/v3/gers02a.html
 [bp]: /deep%20learning/optimization/2021/12/07/learning-representations-by-backpropagating-errors.html
+[PyTorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html
