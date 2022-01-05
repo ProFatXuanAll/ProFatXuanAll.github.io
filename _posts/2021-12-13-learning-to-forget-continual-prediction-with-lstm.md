@@ -165,7 +165,7 @@ author: [
 
 <!-- End LaTeX command define section. -->
 
-- [此篇論文][論文]與[原版 LSTM][LSTM1997] 都寫錯自己的數學公式，但我讓筆記內容儘量與論文原始內容相同，因此所有筆記都是以論文原始（錯誤）的數學公式為基礎，正確的數學公式可以看 [LSTM-2002][LSTM2002] 的論文或[我的筆記][note-LSTM2002]
+- [此篇論文][論文]與[原版 LSTM][LSTM1997] 都寫錯自己的數學公式，但我的筆記內容主要以正確版本為主，原版 LSTM 可以參考[我的筆記][note-LSTM1997]
 - [原版 LSTM][LSTM1997] 沒有遺忘閘門，現今常用的 LSTM 都有遺忘閘門，概念由這篇論文提出
 - 包含多個子序列的**連續輸入**會讓 LSTM 的記憶單元內部狀態沒有上下界
   - 現實中的大多數資料並不存在好的分割序列演算法，導致輸入給模型的資料通常都包含多個子序列
@@ -208,8 +208,8 @@ author: [
 |$y_k^{\opog}(t)$|第 $t$ 個時間點第 $k$ 個記憶單元的**輸出閘門**|$k = 1, \dots, \ncell$|
 |$s_i^{\cell{k}}(t)$|第 $t$ 個時間點的第 $k$ 個**記憶單元**的第 $i$ 個**內部狀態**|$i = 1, \dots, \dcell$|
 |$y_i^{\cell{k}}(t)$|第 $t$ 個時間點的第 $k$ 個**記憶單元**的第 $i$ 個**輸出**|$i = 1, \dots, \dcell$|
-|$y_i(t)$|第 $t$ 個時間點的第 $i$ 個**輸出**|$i = 1, \dots, \dout$|
-|$\hat{y}_i(t)$|第 $t$ 個時間點的第 $i$ 個**預測目標**|$i = 1, \dots, \dout$|
+|$y_i(t + 1)$|第 $t + 1$ 個時間點的第 $i$ 個**輸出**|$i = 1, \dots, \dout$|
+|$\hat{y}_i(t + 1)$|第 $t + 1$ 個時間點的第 $i$ 個**預測目標**|$i = 1, \dots, \dout$|
 
 |參數|意義|輸出維度|輸入維度|
 |-|-|-|-|
@@ -303,15 +303,15 @@ $$
 
 注意第 $k$ 個記憶單元輸出**共享輸出閘門** $y_k^{\opog}(t + 1)$。
 
-產生 $t + 1$ 時間點的**輸出**是透過 $t$ 時間點的**輸入**與**記憶單元輸出**（見 $\eqref{3}$）而得（注意不是 $t + 1$ 時間點）
+產生 $t + 1$ 時間點的**輸出**是透過 $t$ 時間點的**輸入**與 $t + 1$ 時間點的**記憶單元輸出**（見 $\eqref{3}$）而得
 
 $$
 \begin{align*}
 \opnet^{\opout}(t + 1) & = \wout \cdot \begin{pmatrix}
 x(t) \\
-y^{\cell{1}}(t) \\
+y^{\cell{1}}(t + 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t)
+y^{\cell{\ncell}}(t + 1)
 \end{pmatrix} \\
 y(t + 1) & = f^{\opout}(\opnet^{\opout}(t + 1)) = \begin{pmatrix}
 \fnetout{1}{t + 1} \\
@@ -321,6 +321,8 @@ y(t + 1) & = f^{\opout}(\opnet^{\opout}(t + 1)) = \begin{pmatrix}
 \end{pmatrix}
 \end{align*} \tag{4}\label{4}
 $$
+
+[這篇論文][論文]與[原版 LSTM 的論文][LSTM1997] 都不小心寫成 $t$ 時間點的記憶單元輸出，在 [LSTM-2002][LSTM2002] 才終於寫對。
 
 ### 最佳化
 
@@ -344,9 +346,9 @@ $$
 \pd{\oploss(t + 1)}{\wout_{i, j}} & = \pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wout_{i, j}} \\
 & = \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \begin{pmatrix}
 x(t) \\
-y^{\cell{1}}(t) \\
+y^{\cell{1}}(t + 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t)
+y^{\cell{\ncell}}(t + 1)
 \end{pmatrix}_j
 \end{align*} \tag{6}\label{6}
 $$
@@ -359,15 +361,15 @@ $$
 \begin{align*}
 & \pd{\oploss(t + 1)}{\wog_{k, q}} \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \\
-& \quad \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{y_k^{\opog}(t)}} \cdot \pd{y_k^{\opog}(t)}{\netog{k}{t}} \cdot \pd{\netog{k}{t}}{\wog_{k, q}}\Bigg] \\
+& \quad \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t + 1)} \cdot \pd{y_j^{\cell{k}}(t + 1)}{y_k^{\opog}(t + 1)}} \cdot \pd{y_k^{\opog}(t + 1)}{\netog{k}{t + 1}} \cdot \pd{\netog{k}{t + 1}}{\wog_{k, q}}\Bigg] \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-& \quad \pa{\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot \hcell{j}{k}{t}} \cdot \dfnetog{k}{t} \cdot \begin{pmatrix}
-x(t - 1) \\
-y^{\opig}(t - 1) \\
-y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+& \quad \pa{\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot \hcell{j}{k}{t + 1}} \cdot \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
+x(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\cell{1}}(t) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\cell{\ncell}}(t)
 \end{pmatrix}_q\Bigg]
 \end{align*} \tag{7}\label{7}
 $$
@@ -380,18 +382,18 @@ $$
 \begin{align*}
 & \pd{\oploss(t + 1)}{\wig_{k, q}} \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \\
-& \quad \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \pd{s_j^{\cell{k}}(t)}{\wig_{k, q}}}\Bigg] \\
-& = \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \Bigg(\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \\
-& \quad \quad \br{\pd{s_j^{\cell{k}}(t - 1)}{\wig_{k, q}} + \pd{s_j^{\cell{k}}(t)}{y_k^{\opig}(t)} \cdot \pd{y_k^{\opig}(t)}{\netig{k}{t}} \cdot \pd{\netig{k}{t}}{\wig_{k, q}}}\Bigg)\Bigg] \\
+& \quad \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t + 1)} \cdot \pd{y_j^{\cell{k}}(t + 1)}{s_j^{\cell{k}}(t + 1)} \cdot \pd{s_j^{\cell{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \Bigg(\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t + 1)} \cdot \pd{y_j^{\cell{k}}(t + 1)}{s_j^{\cell{k}}(t + 1)} \cdot \\
+& \quad \quad \br{\pd{s_j^{\cell{k}}(t)}{\wig_{k, q}} + \gnetcell{j}{k}{t + 1} \cdot \pd{y_k^{\opig}(t + 1)}{\netig{k}{t + 1}} \cdot \pd{\netig{k}{t + 1}}{\wig_{k, q}}}\Bigg)\Bigg] \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-& \quad \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t) \cdot \dhcell{j}{k}{t} \cdot \\
-& \quad \quad \br{\pd{s_j^{\cell{k}}(t - 1)}{\wig_{k, q}} + \gnetcell{j}{k}{t} \cdot \dfnetig{k}{t} \cdot \begin{pmatrix}
-x(t - 1) \\
-y^{\opig}(t - 1) \\
-y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+& \quad \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t + 1) \cdot \dhcell{j}{k}{t + 1} \cdot \\
+& \quad \quad \br{\pd{s_j^{\cell{k}}(t)}{\wig_{k, q}} + \gnetcell{j}{k}{t + 1} \cdot \dfnetig{k}{t + 1} \cdot \begin{pmatrix}
+x(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\cell{1}}(t) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\cell{\ncell}}(t)
 \end{pmatrix}_q}\Bigg)\Bigg]
 \end{align*} \tag{8}\label{8}
 $$
@@ -403,18 +405,18 @@ $$
 $$
 \begin{align*}
 & \pd{\oploss(t + 1)}{\wcell{k}_{p, q}} \\
-& \aptr \sum_{i = 1}^{\dout} \br{\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{y_p^{\cell{k}}(t)} \cdot \pd{y_p^{\cell{k}}(t)}{s_p^{\cell{k}}(t)} \cdot \pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}} \\
-& = \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{y_p^{\cell{k}}(t)} \cdot \pd{y_p^{\cell{k}}(t)}{s_p^{\cell{k}}(t)} \cdot \\
-& \quad \quad \pa{\pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + \pd{s_p^{\cell{k}}(t)}{\gnetcell{j}{k}{t}} \cdot \pd{\gnetcell{j}{k}{t}}{\netcell{j}{k}{t}} \cdot \pd{\netcell{j}{k}{t}}{\wcell{k}_{p, q}}}\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \br{\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{y_p^{\cell{k}}(t + 1)} \cdot \pd{y_p^{\cell{k}}(t + 1)}{s_p^{\cell{k}}(t + 1)} \cdot \pd{s_p^{\cell{k}}(t + 1)}{\wcell{k}_{p, q}}} \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{y_p^{\cell{k}}(t + 1)} \cdot \pd{y_p^{\cell{k}}(t + 1)}{s_p^{\cell{k}}(t + 1)} \cdot \\
+& \quad \quad \pa{\pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}} + y_k^{\opig}(t + 1) \cdot \pd{\gnetcell{j}{k}{t + 1}}{\netcell{j}{k}{t + 1}} \cdot \pd{\netcell{j}{k}{t + 1}}{\wcell{k}_{p, q}}}\Bigg] \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot \\
-& \quad y_k^{\opog}(t) \cdot \dhcell{j}{k}{t} \cdot \\
-& \quad \br{\pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + y_k^{\opig}(t) \cdot \dgnetcell{p}{k}{t} \cdot \begin{pmatrix}
-x(t - 1) \\
-y^{\opig}(t - 1) \\
-y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+& \quad y_k^{\opog}(t + 1) \cdot \dhcell{j}{k}{t + 1} \cdot \\
+& \quad \br{\pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}} + y_k^{\opig}(t + 1) \cdot \dgnetcell{p}{k}{t + 1} \cdot \begin{pmatrix}
+x(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\cell{1}}(t) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\cell{\ncell}}(t)
 \end{pmatrix}_q}\Bigg]
 \end{align*} \tag{9}\label{9}
 $$
@@ -440,9 +442,9 @@ $$
 
 當一個輸入序列中包含多個獨立的子序列（例如一個文章段落有多個句子），則模型無法知道不同獨立子序列的起始點在哪裡（除非有明確的切斷序列演算法，但實際上不一定存在）。
 
-原始 LSTM 架構假設任意輸入序列都是由單一獨立序列組成，不會包含多個獨立的序列，因此會在每次序列**輸入時重設模型的計算狀態** $y^{\opig}(0), y^{\opog}(0), s^{\cell{k}}(0), y^{\cell{k}}(0)$，沒有**需要在計算過程中重設計算狀態的需求**。
+[原始 LSTM][LSTM1997] 架構假設任意輸入序列都是由單一獨立序列組成，不會包含多個獨立的序列，因此會在每次序列**輸入時重設模型的計算狀態** $y^{\opig}(0), y^{\opog}(0), s^{\cell{k}}(0), y^{\cell{k}}(0)$，沒有**需要在計算過程中重設計算狀態的需求**。
 
-但當輸入包含多個獨立的子序列時，且沒有明確的方法辨識不同獨立子序列的起始點時，LSTM 模型就必須要能夠在任意時間點 $t$ 重設計算狀態 $y^{\opig}(t), y^{\opog}(t), s^{\cell{k}}(t), y^{\cell{k}}(t)$ 的功能。
+但當輸入包含多個獨立的子序列時，且沒有明確的方法辨識不同獨立子序列的起始點時，LSTM 模型就必須要擁有能夠在任意時間點 $t$ **重設計算狀態** $y^{\opig}(t), y^{\opog}(t), s^{\cell{k}}(t), y^{\cell{k}}(t)$ 的功能。
 
 ## 遺忘閘門
 
@@ -522,19 +524,19 @@ $$
 \begin{align*}
 & \pd{\oploss(t + 1)}{\wfg_{k, q}} \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \\
-& \quad \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \pd{s_j^{\cell{k}}(t)}{\wfg_{k, q}}}\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \Bigg(\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \\
-& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\wfg_{k, q}} + s_j^{\cell{k}}(t - 1) \cdot \pd{y_k^{\opfg}(t)}{\netfg{k}{t}} \cdot \pd{\netfg{k}{t}}{\wfg_{k, q}}}\Bigg)\Bigg] \\
+& \quad \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t + 1)} \cdot \pd{y_j^{\cell{k}}(t + 1)}{s_j^{\cell{k}}(t + 1)} \cdot \pd{s_j^{\cell{k}}(t + 1)}{\wfg_{k, q}}}\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t + 1)}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \Bigg(\sum_{j = 1}^{\dcell} \pd{\netout{i}{t + 1}}{y_j^{\cell{k}}(t + 1)} \cdot \pd{y_j^{\cell{k}}(t + 1)}{s_j^{\cell{k}}(t + 1)} \cdot \\
+& \quad \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_j^{\cell{k}}(t)}{\wfg_{k, q}} + s_j^{\cell{k}}(t) \cdot \pd{y_k^{\opfg}(t + 1)}{\netfg{k}{t + 1}} \cdot \pd{\netfg{k}{t + 1}}{\wfg_{k, q}}}\Bigg)\Bigg] \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-& \quad \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t) \cdot \dhcell{j}{k}{t} \cdot \\
-& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\wfg_{k, q}}  + s_j^{\cell{k}}(t - 1) \cdot \dfnetog{k}{t} \cdot \begin{pmatrix}
-x(t - 1) \\
-y^{\opfg}(t - 1) \\
-y^{\opig}(t - 1) \\
-y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+& \quad \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t + 1) \cdot \dhcell{j}{k}{t + 1} \cdot \\
+& \quad \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_j^{\cell{k}}(t)}{\wfg_{k, q}}  + s_j^{\cell{k}}(t) \cdot \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
+x(t) \\
+y^{\opfg}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\cell{1}}(t) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\cell{\ncell}}(t)
 \end{pmatrix}_q}\Bigg)\Bigg]
 \end{align*} \tag{14}\label{14}
 $$
@@ -549,15 +551,15 @@ $$
 \begin{align*}
 & \pd{\oploss(t + 1)}{\wig_{k, q}} \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-& \quad \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t) \cdot \dhcell{j}{k}{t} \cdot \\
-& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\wig_{k, q}} + \gnetcell{j}{k}{t} \cdot \dfnetig{k}{t} \cdot \begin{pmatrix}
-x(t - 1) \\
-y^{\opfg}(t - 1) \\
-y^{\opig}(t - 1) \\
-y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+& \quad \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t + 1) \cdot \dhcell{j}{k}{t + 1} \cdot \\
+& \quad \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_j^{\cell{k}}(t)}{\wig_{k, q}} + \gnetcell{j}{k}{t + 1} \cdot \dfnetig{k}{t + 1} \cdot \begin{pmatrix}
+x(t) \\
+y^{\opfg}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\cell{1}}(t) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\cell{\ncell}}(t)
 \end{pmatrix}_q}\Bigg)\Bigg]
 \end{align*} \tag{15}\label{15}
 $$
@@ -570,31 +572,27 @@ $$
 \begin{align*}
 & \pd{\oploss(t + 1)}{\wcell{k}_{p, q}} \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot \\
-& \quad y_k^{\opog}(t) \cdot \dhcell{j}{k}{t} \cdot \\
-& \quad \br{y_k^{\opfg}(t) \cdot \pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + y_k^{\opig}(t) \cdot \dgnetcell{p}{k}{t} \cdot \begin{pmatrix}
-x(t - 1) \\
-y^{\opfg}(t - 1) \\
-y^{\opig}(t - 1) \\
-y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+& \quad y_k^{\opog}(t + 1) \cdot \dhcell{j}{k}{t + 1} \cdot \\
+& \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}} + y_k^{\opig}(t + 1) \cdot \dgnetcell{p}{k}{t + 1} \cdot \begin{pmatrix}
+x(t) \\
+y^{\opfg}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\cell{1}}(t) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\cell{\ncell}}(t)
 \end{pmatrix}_q}\Bigg]
 \end{align*} \tag{16}\label{16}
 $$
 
 $\eqref{14}$ 式就是論文的 3.10 式，其中 $1 \leq k \leq \ncell$， $1 \leq p \leq \dcell$ 且 $1 \leq q \leq \din + \ncell \cdot (3 + \dcell)$。
 
-**注意錯誤**：根據論文的 2.5 式，論文中的 3.4 式 $\pd{y^k(t)}{y^l(t)}$ 應改為 $\pd{y^k(t)}{y^l(t - 1)}$，與 $y^l(t - 1)$ 相關的運算符號時間應該一起更改為 $t - 1$。
+**注意錯誤**：根據論文中的 3.4 式，論文 2.5 式的 $t - 1$ 應該改成 $t$。
 
-**注意錯誤**：根據論文的 2.5 式，論文中的 3.6 式 $h(s_{c_j^v}(t))$ 應改為 $h(s_{c_j^v}(t - 1))$。
-
-**注意錯誤**：根據論文的 2.5 式，論文中的 3.7 式 $\pd{E(t)}{s_{c_j^v}(t)}$ 應改為 $\pd{E(t)}{s_{c_j^v}(t - 1)}$。
-
-根據 $\eqref{14}\eqref{15}\eqref{16}$，當遺忘閘門 $y_k^{\opfg}(t) \approx 0$ （關閉）時，不只記憶單元 $s^{\cell{k}}(t)$ 會重設，與其相關的梯度也會重設，因此更新時需要額外紀錄以下的項次
+根據 $\eqref{14}\eqref{15}\eqref{16}$，當遺忘閘門 $y_k^{\opfg}(t + 1) \approx 0$ （關閉）時，不只記憶單元 $s^{\cell{k}}(t + 1)$ 會重設，與其相關的梯度也會重設，因此更新時需要額外紀錄以下的項次
 
 $$
-\pd{s_i^{\cell{k}}(t)}{\wfg_{k, q}}, \pd{s_i^{\cell{k}}(t)}{\wig_{k, q}}, \pd{s_i^{\cell{k}}(t)}{\wcell{k}_{p, q}}
+\pd{s_i^{\cell{k}}(t + 1)}{\wfg_{k, q}}, \pd{s_i^{\cell{k}}(t + 1)}{\wig_{k, q}}, \pd{s_i^{\cell{k}}(t + 1)}{\wcell{k}_{p, q}}
 $$
 
 同樣的概念在[原始 LSTM][LSTM1997] 中也有出現，細節可以看[我的筆記][note-LSTM1997]。
