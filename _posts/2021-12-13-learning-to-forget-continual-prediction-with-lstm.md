@@ -750,4 +750,4 @@ $$
 [note-LSTM1997]: /deep%20learning/model%20architecture/optimization/2021/11/14/long-short-term-memory.html
 [論文]: https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM
 [LSTM2002]: https://www.jmlr.org/papers/v3/gers02a.html
-[note-LSTM2002]: /deep%20learning/model%20architecture/2021/12/28/learning-precise-timing-with-lstm-recurrent-networks.html
+[note-LSTM2002]: /deep%20learning/model%20architecture/2021/12/29/learning-precise-timing-with-lstm-recurrent-networks.html
