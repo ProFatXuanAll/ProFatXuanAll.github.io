@@ -2281,6 +2281,7 @@ $$
 ![表 9](https://i.imgur.com/ucyQoeQ.png)
 
 - LSTM 的平均誤差低於 $0.1$
+
   - 沒有超過 $3$ 筆以上的預測錯誤
 - LSTM 可能使用以下的方法進行解答
   - 擁有 $2$ 個記憶單元時，依照順序記住出現的資訊
@@ -2321,6 +2322,4 @@ $$
 [Pytorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html?highlight=lstm#torch.nn.LSTM
 [論文]: https://ieeexplore.ieee.org/abstract/document/6795963
 [LSTM2000]: https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM
-[note-LSTM2000]: /deep%20learning/model%20architecture/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html
 [LSTM2002]: https://www.jmlr.org/papers/v3/gers02a.html
-[note-LSTM2002]: /deep%20learning/model%20architecture/2021/12/29/learning-precise-timing-with-lstm-recurrent-networks.html

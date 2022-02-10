@@ -961,9 +961,9 @@ $$
   - 這表示模型**初始計算狀態**應該也被當成**參數**一起訓練
 
 [LSTM1997]: https://ieeexplore.ieee.org/abstract/document/6795963
-[note-LSTM1997]: /deep%20learning/model%20architecture/optimization/2021/11/14/long-short-term-memory.html
 [LSTM2000]: https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM
-[note-LSTM2000]: /deep%20learning/model%20architecture/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html
+[note-LSTM1997]: {% link _posts/2021-11-14-long-short-term-memory.md %}
+[note-LSTM2000]: {% link _posts/2021-12-13-learning-to-forget-continual-prediction-with-lstm.md %}
 [論文]: https://www.jmlr.org/papers/v3/gers02a.html
-[bp]: /deep%20learning/optimization/2021/12/07/learning-representations-by-backpropagating-errors.html
+[bp]: {% link _posts/2021-12-07-learning-representations-by-backpropagating-errors.md %}
 [PyTorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html
