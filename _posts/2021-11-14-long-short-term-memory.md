@@ -164,18 +164,6 @@ author: [
   <!-- Net input of cell unit. -->
   $\providecommand{\netcell}{}$
   $\renewcommand{\netcell}[3]{\opnet_{#1}^{\blk{#2}}(#3)}$
-  <!-- Net input of cell unit with activatiton g. -->
-  $\providecommand{\gnetcell}{}$
-  $\renewcommand{\gnetcell}[3]{g_{#1}^{\blk{#2}}\big(\netcell{#1}{#2}{#3}\big)}$
-  <!-- Derivative of g with respect to net input of cell unit. -->
-  $\providecommand{\dgnetcell}{}$
-  $\renewcommand{\dgnetcell}[3]{g_{#1}^{\blk{#2}}{'}\big(\netcell{#1}{#2}{#3}\big)}$
-  <!-- Cell unit with activatiton h. -->
-  $\providecommand{\hcell}{}$
-  $\renewcommand{\hcell}[3]{h_{#1}^{\blk{k}}\big(s_{#1}^{\blk{#2}}(#3)\big)}$
-  <!-- Derivative of h with respect to cell unit. -->
-  $\providecommand{\dhcell}{}$
-  $\renewcommand{\dhcell}[3]{h_{#1}^{\blk{k}}{'}\big(s_{#1}^{\blk{#2}}(#3)\big)}$
 
   <!-- Gradient approximation by truncating gradient. -->
   $\providecommand{\aptr}{}$
@@ -795,6 +783,16 @@ $$
 因此我決定改用我認為是正確的版本撰寫後續的筆記，即 $t + 1$ 時間點的**總輸出**與 $t$ 時間點的**外部輸入**和 $t + 1$ 時間點的**計算狀態**有關。
 
 注意 $\eqref{32} \eqref{33}$ 沒有使用偏差項（bias term），但後續的分析會提到可以使用偏差項進行計算缺陷的修正。
+
+### 參數結構
+
+|參數|意義|輸出維度|輸入維度|
+|-|-|-|-|
+|$\whid$|產生**隱藏單元**的全連接參數|$\dhid$|$\din + \dhid + \nblk \cdot (2 + \dblk)$|
+|$\wig$|產生**輸入閘門**的全連接參數|$\nblk$|$\din + \dhid + \nblk \cdot (2 + \dblk)$|
+|$\wog$|產生**輸出閘門**的全連接參數|$\nblk$|$\din + \dhid + \nblk \cdot (2 + \dblk)$|
+|$\wblk{k}$|產生第 $k$ 個**記憶單元區塊淨輸入**的全連接參數|$\dblk$|$\din + \dhid + \nblk \cdot (2 + \dblk)$|
+|$\wout$|產生**輸出**的全連接參數|$\dblk$|$\din + \dhid + \nblk \cdot \dblk$|
 
 ## 丟棄部份模型單元的梯度
 
