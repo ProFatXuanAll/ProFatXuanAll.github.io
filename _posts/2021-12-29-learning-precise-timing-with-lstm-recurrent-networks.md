@@ -43,9 +43,9 @@ author: [
   <!-- Operator out. -->
   $\providecommand{\opout}{}$
   $\renewcommand{\opout}{\operatorname{out}}$
-  <!-- Operator cell. -->
-  $\providecommand{\opcell}{}$
-  $\renewcommand{\opcell}{\operatorname{cell}}$
+  <!-- Operator cell block. -->
+  $\providecommand{\opblk}{}$
+  $\renewcommand{\opblk}{\operatorname{block}}$
   <!-- Operator cell multiplicative forget gate. -->
   $\providecommand{\opfg}{}$
   $\renewcommand{\opfg}{\operatorname{fg}}$
@@ -87,17 +87,17 @@ author: [
   <!-- Output dimension. -->
   $\providecommand{\dout}{}$
   $\renewcommand{\dout}{d_{\opout}}$
-  <!-- Cell dimension. -->
-  $\providecommand{\dcell}{}$
-  $\renewcommand{\dcell}{d_{\opcell}}$
+  <!-- Cell block dimension. -->
+  $\providecommand{\dblk}{}$
+  $\renewcommand{\dblk}{d_{\opblk}}$
 
-  <!-- Number of cells. -->
-  $\providecommand{\ncell}{}$
-  $\renewcommand{\ncell}{n_{\opcell}}$
+  <!-- Number of cell blocks. -->
+  $\providecommand{\nblk}{}$
+  $\renewcommand{\nblk}{n_{\opblk}}$
 
   <!-- Cell block k. -->
-  $\providecommand{\cell}{}$
-  $\renewcommand{\cell}[1]{\opcell^{#1}}$
+  $\providecommand{\blk}{}$
+  $\renewcommand{\blk}[1]{\opblk^{#1}}$
 
   <!-- Weight of multiplicative forget gate. -->
   $\providecommand{\wfg}{}$
@@ -115,8 +115,8 @@ author: [
   $\providecommand{\uog}{}$
   $\renewcommand{\uog}{u^{\opog}}$
   <!-- Weight of cell units. -->
-  $\providecommand{\wcell}{}$
-  $\renewcommand{\wcell}[1]{w^{\cell{#1}}}$
+  $\providecommand{\wblk}{}$
+  $\renewcommand{\wblk}[1]{w^{\blk{#1}}}$
   <!-- Weight of output units. -->
   $\providecommand{\wout}{}$
   $\renewcommand{\wout}{w^{\opout}}$
@@ -159,20 +159,17 @@ author: [
   $\renewcommand{\dfnetout}[2]{f_{#1}^{\opout}{'}\big(\netout{#1}{#2}\big)}$
 
   <!-- Net input of cell unit. -->
-  $\providecommand{\netcell}{}$
-  $\renewcommand{\netcell}[3]{\opnet_{#1}^{\cell{#2}}(#3)}$
+  $\providecommand{\netblk}{}$
+  $\renewcommand{\netblk}[3]{\opnet_{#1}^{\blk{#2}}(#3)}$
   <!-- Net input of cell unit with activatiton g. -->
-  $\providecommand{\gnetcell}{}$
-  $\renewcommand{\gnetcell}[3]{g_{#1}^{\cell{#2}}\big(\netcell{#1}{#2}{#3}\big)}$
+  $\providecommand{\gnetblk}{}$
+  $\renewcommand{\gnetblk}[3]{g_{#1}\big(\netblk{#1}{#2}{#3}\big)}$
   <!-- Derivative of g with respect to net input of cell unit. -->
-  $\providecommand{\dgnetcell}{}$
-  $\renewcommand{\dgnetcell}[3]{g_{#1}^{\cell{#2}}{'}\big(\netcell{#1}{#2}{#3}\big)}$
+  $\providecommand{\dgnetblk}{}$
+  $\renewcommand{\dgnetblk}[3]{g_{#1}'\big(\netblk{#1}{#2}{#3}\big)}$
   <!-- Cell unit with activatiton h. -->
-  $\providecommand{\hcell}{}$
-  $\renewcommand{\hcell}[3]{h_{#1}^{\cell{k}}\big(s_{#1}^{\cell{#2}}(#3)\big)}$
-  <!-- Derivative of h with respect to cell unit. -->
-  $\providecommand{\dhcell}{}$
-  $\renewcommand{\dhcell}[3]{h_{#1}^{\cell{k}}{'}\big(s_{#1}^{\cell{#2}}(#3)\big)}$
+  $\providecommand{\hblk}{}$
+  $\renewcommand{\hblk}[3]{h_{#1}\big(s_{#1}^{\blk{#2}}(#3)\big)}$
 
   <!-- Gradient approximation by truncating gradient. -->
   $\providecommand{\aptr}{}$
@@ -209,42 +206,42 @@ author: [
 |符號|意義|備註|
 |-|-|-|
 |$\din$|**輸入層**的維度|數值範圍為 $\Z^+$|
-|$\dcell$|**記憶單元**的維度|數值範圍為 $\Z^+$|
-|$\ncell$|**記憶單元**的個數|數值範圍為 $\Z^+$|
+|$\dblk$|**記憶單元**的維度|數值範圍為 $\Z^+$|
+|$\nblk$|**記憶單元**的個數|數值範圍為 $\Z^+$|
 |$\dout$|**輸出層**的維度|數值範圍為 $\Z^+$|
 |$T$|輸入序列的長度|數值範圍為 $\Z^+$|
 
-以下所有符號的時間 $t$ 範圍為 $t = 1, \dots, T$
+以下所有符號的時間 $t$ 範圍為 $t \in \set{1, \dots, T}$
 
 |符號|意義|維度|備註|
 |-|-|-|-|
 |$x(t)$|第 $t$ 個時間點的**輸入**|$\din$||
-|$y^{\opfg}(t - 1)$|第 $t - 1$ 個時間點的**遺忘閘門**|$\ncell$|$y^{\opfg}(0) = 0$，同一個記憶單元**共享遺忘閘門**|
-|$y^{\opig}(t - 1)$|第 $t - 1$ 個時間點的**輸入閘門**|$\ncell$|$y^{\opig}(0) = 0$，同一個記憶單元**共享輸入閘門**|
-|$y^{\opog}(t - 1)$|第 $t - 1$ 個時間點的**輸出閘門**|$\ncell$|$y^{\opog}(0) = 0$，同一個記憶單元**共享輸出閘門**|
-|$s^{\cell{k}}(t - 1)$|第 $t - 1$ 個時間點的第 $k$ 個**記憶單元內部狀態**|$\dcell$|$s^{\cell{k}}(0) = 0$，$k$ 的範圍為 $k = 1, \dots, \ncell$|
-|$y^{\cell{k}}(t - 1)$|第 $t - 1$ 個時間點的第 $k$ 個**記憶單元輸出**|$\dcell$|$y^{\cell{k}}(0) = 0$，$k$ 的範圍為 $k = 1, \dots, \ncell$|
+|$y^{\opfg}(t - 1)$|第 $t - 1$ 個時間點的**遺忘閘門**|$\nblk$|$y^{\opfg}(0) = 0$，同一個記憶單元**共享遺忘閘門**|
+|$y^{\opig}(t - 1)$|第 $t - 1$ 個時間點的**輸入閘門**|$\nblk$|$y^{\opig}(0) = 0$，同一個記憶單元**共享輸入閘門**|
+|$y^{\opog}(t - 1)$|第 $t - 1$ 個時間點的**輸出閘門**|$\nblk$|$y^{\opog}(0) = 0$，同一個記憶單元**共享輸出閘門**|
+|$s^{\blk{k}}(t - 1)$|第 $t - 1$ 個時間點的第 $k$ 個**記憶單元區塊內部狀態**|$\dblk$|$s^{\blk{k}}(0) = 0$ 且 $k \in \set{1, \dots, \nblk}$|
+|$y^{\blk{k}}(t - 1)$|第 $t - 1$ 個時間點的第 $k$ 個**記憶單元區塊輸出**|$\dblk$|$y^{\blk{k}}(0) = 0$ 且 $k \in \set{1, \dots, \nblk}$|
 |$y(t)$|第 $t$ 個時間點的**輸出**|$\dout$|由 $t$ 時間點的**輸入**與**記憶單元輸出**透過**全連接**產生，因此沒有 $y(0)$|
 |$\hat{y}(t)$|第 $t$ 個時間點的**預測目標**|$\dout$||
 
 |符號|意義|下標範圍|
 |-|-|-|
-|$x_j(t)$|第 $t$ 個時間點的第 $j$ 個**輸入**|$j = 1, \dots, \din$|
-|$y_k^{\opfg}(t - 1)$|第 $t - 1$ 個時間點第 $k$ 個記憶單元的**遺忘閘門**|$k = 1, \dots, \ncell$|
-|$y_k^{\opig}(t - 1)$|第 $t - 1$ 個時間點第 $k$ 個記憶單元的**輸入閘門**|$k = 1, \dots, \ncell$|
-|$y_k^{\opog}(t - 1)$|第 $t - 1$ 個時間點第 $k$ 個記憶單元的**輸出閘門**|$k = 1, \dots, \ncell$|
-|$s_i^{\cell{k}}(t - 1)$|第 $t - 1$ 個時間點的第 $k$ 個**記憶單元**的第 $i$ 個**內部狀態**|$i = 1, \dots, \dcell$|
-|$y_i^{\cell{k}}(t - 1)$|第 $t - 1$ 個時間點的第 $k$ 個**記憶單元**的第 $i$ 個**輸出**|$i = 1, \dots, \dcell$|
-|$y_i(t)$|第 $t$ 個時間點的第 $i$ 個**輸出**|$i = 1, \dots, \dout$|
-|$\hat{y}_i(t)$|第 $t$ 個時間點的第 $i$ 個**預測目標**|$i = 1, \dots, \dout$|
+|$x_j(t)$|第 $t$ 個時間點的第 $j$ 個**輸入**|$j \in \set{1, \dots, \din}$|
+|$y_k^{\opfg}(t - 1)$|第 $t - 1$ 個時間點第 $k$ 個記憶單元區塊的**遺忘閘門**|$k \in \set{1, \dots, \nblk}$|
+|$y_k^{\opig}(t - 1)$|第 $t - 1$ 個時間點第 $k$ 個記憶單元區塊的**輸入閘門**|$k \in \set{1, \dots, \nblk}$|
+|$y_k^{\opog}(t - 1)$|第 $t - 1$ 個時間點第 $k$ 個記憶單元區塊的**輸出閘門**|$k \in \set{1, \dots, \nblk}$|
+|$s_i^{\blk{k}}(t - 1)$|第 $t - 1$ 個時間點的第 $k$ 個**記憶單元區塊**的第 $i$ 個**記憶單元內部狀態**|$i \in \set{1, \dots, \dblk}$|
+|$y_i^{\blk{k}}(t - 1)$|第 $t - 1$ 個時間點的第 $k$ 個**記憶單元區塊**的第 $i$ 個**記憶單元輸出**|$i \in \set{1, \dots, \dblk}$|
+|$y_i(t)$|第 $t$ 個時間點的第 $i$ 個**輸出**|$i \in \set{1, \dots, \dout}$|
+|$\hat{y}_i(t)$|第 $t$ 個時間點的第 $i$ 個**預測目標**|$i \in \set{1, \dots, \dout}$|
 
 |參數|意義|輸出維度|輸入維度|
 |-|-|-|-|
-|$\wfg$|產生**遺忘閘門**的全連接參數|$\ncell$|$\din + \ncell \cdot (3 + \dcell)$|
-|$\wig$|產生**輸入閘門**的全連接參數|$\ncell$|$\din + \ncell \cdot (3 + \dcell)$|
-|$\wog$|產生**輸出閘門**的全連接參數|$\ncell$|$\din + \ncell \cdot (3 + \dcell)$|
-|$\wcell{k}$|產生第 $k$ 個**記憶單元淨輸入**的全連接參數|$\dcell$|$\din + \ncell \cdot (3 + \dcell)$|
-|$\wout$|產生**輸出**的全連接參數|$\dcell$|$\din + \ncell \cdot \dcell$|
+|$\wfg$|產生**遺忘閘門**的全連接參數|$\nblk$|$\din + \nblk \cdot (3 + \dblk)$|
+|$\wig$|產生**輸入閘門**的全連接參數|$\nblk$|$\din + \nblk \cdot (3 + \dblk)$|
+|$\wog$|產生**輸出閘門**的全連接參數|$\nblk$|$\din + \nblk \cdot (3 + \dblk)$|
+|$\wblk{k}$|產生第 $k$ 個**記憶單元淨輸入**的全連接參數|$\dblk$|$\din + \nblk \cdot (3 + \dblk)$|
+|$\wout$|產生**輸出**的全連接參數|$\dblk$|$\din + \nblk \cdot \dblk$|
 
 定義 $\sigma$ 為 sigmoid 函數 $\sigma(x) = \frac{1}{1 + e^{-x}}$
 
@@ -253,8 +250,8 @@ author: [
 |$f_k^{\opfg}$|第 $k$ 個**遺忘閘門**的啟發函數|$\sigma$|$[0, 1]$|
 |$f_k^{\opig}$|第 $k$ 個**輸入閘門**的啟發函數|$\sigma$|$[0, 1]$|
 |$f_k^{\opog}$|第 $k$ 個**輸出閘門**的啟發函數|$\sigma$|$[0, 1]$|
-|$g_i^{\cell{k}}$|第 $k$ 個**記憶單元**第 $i$ 個**內部狀態**的啟發函數|$4\sigma - 2$|$[-2, 2]$|
-|$h_i^{\cell{k}}$|第 $k$ 個**記憶單元**第 $i$ 個**輸出**的啟發函數|$2\sigma - 1$|$[-1, 1]$|
+|$g_i^{\blk{k}}$|第 $k$ 個**記憶單元**第 $i$ 個**內部狀態**的啟發函數|$4\sigma - 2$|$[-2, 2]$|
+|$h_i^{\blk{k}}$|第 $k$ 個**記憶單元**第 $i$ 個**輸出**的啟發函數|$2\sigma - 1$|$[-1, 1]$|
 |$f_i^{\opout}$|第 $i$ 個**輸出**的啟發函數|$\sigma$|$[0, 1]$|
 
 在 $t$ 時間點時得到**輸入** $x(t)$，產生 $t$ 時間點**遺忘閘門** $y^{\opfg}(t)$、**輸入閘門** $y^{\opig}(t)$ 與**輸出閘門** $y^{\opog}(t)$ 的方法如下
@@ -267,66 +264,51 @@ x(t) \\
 y^{\opfg}(t - 1) \\
 y^{\opig}(t - 1) \\
 y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+y^{\blk{1}}(t - 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\blk{\nblk}}(t - 1)
 \end{pmatrix} \\
-y^g(t) & = f^g(\opnet^g(t)) = \begin{pmatrix}
-f_1^g(\opnet_1^g(t)) \\
-f_2^g(\opnet_2^g(t)) \\
-\vdots \\
-f_{\ncell}^g(\opnet_{\ncell}^g(t))
-\end{pmatrix}
+y^g(t) & = f^g(\opnet^g(t))
 \end{align*} \tag{1}\label{1}
 $$
 
 - 注意與[以前的筆記][note-LSTM2000]不同，這裡是產生 $t$ 時間點的資訊而不是 $t + 1$
 - 注意是以 $t$ 時間點的輸入（不是 $t - 1$）與 $t - 1$ 時間點的計算狀態產生 $t$ 時間點的計算狀態
 
-利用 $\eqref{1}$ 產生 $t$ 時間點的**記憶單元內部狀態** $s^{\cell{k}}(t)$ 方法如下
+利用 $\eqref{1}$ 產生 $t$ 時間點的**記憶單元內部狀態** $s^{\blk{k}}(t)$ 方法如下
 
 $$
 \begin{align*}
-\opnet^{\cell{k}}(t) & = \wcell{k} \cdot \begin{pmatrix}
+k & \in \set{1, \dots, \nblk} \\
+\opnet^{\blk{k}}(t) & = \wblk{k} \cdot \begin{pmatrix}
 x(t) \\
 y^{\opfg}(t - 1) \\
 y^{\opig}(t - 1) \\
 y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+y^{\blk{1}}(t - 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
-\end{pmatrix} && k = 1, \dots, \ncell \\
-s^{\cell{k}}(t) & = y_k^{\opfg}(t) \cdot s^{\cell{k}}(t - 1) + y_k^{\opig}(t) \cdot g^{\cell{k}}(\opnet^{\cell{k}}(t)) && k = 1, \dots, \ncell \\
-& = \begin{pmatrix}
-y_k^{\opfg}(t) \cdot s_1^{\cell{k}}(t - 1) + y_k^{\opig}(t) \cdot \gnetcell{1}{k}{t} \\
-y_k^{\opfg}(t) \cdot s_2^{\cell{k}}(t - 1) + y_k^{\opig}(t) \cdot \gnetcell{2}{k}{t} \\
-\vdots \\
-y_k^{\opfg}(t) \cdot s_{\dcell}^{\cell{k}}(t - 1) + y_k^{\opig}(t) \cdot \gnetcell{\dcell}{k}{t}
-\end{pmatrix}
+y^{\blk{\nblk}}(t - 1)
+\end{pmatrix} \\
+s^{\blk{k}}(t) & = y_k^{\opfg}(t) \cdot s^{\blk{k}}(t - 1) + y_k^{\opig}(t) \cdot g^{\blk{k}}(\opnet^{\blk{k}}(t))
 \end{align*} \tag{2}\label{2}
 $$
 
 注意第 $k$ 個記憶單元內部狀態**共享遺忘閘門** $y_k^{\opfg}(t)$ 與**輸入閘門** $y_k^{\opig}(t)$。
 
-利用 $\eqref{1}\eqref{2}$ 產生 $t$ 時間點的**記憶單元輸出** $y^{\cell{k}}(t)$ 方法如下
+利用 $\eqref{1}\eqref{2}$ 產生 $t$ 時間點的**記憶單元輸出** $y^{\blk{k}}(t)$ 方法如下
 
 $$
 \begin{align*}
-y^{\cell{k}}(t) & = y_k^{\opog}(t) \cdot h^{\cell{k}}(s^{\cell{k}}(t)) && k = 1, \dots, \ncell \\
-& = \begin{pmatrix}
-y_k^{\opog}(t) \cdot \hcell{1}{k}{t} \\
-y_k^{\opog}(t) \cdot \hcell{2}{k}{t} \\
-\vdots \\
-y_k^{\opog}(t) \cdot \hcell{\dcell}{k}{t}
-\end{pmatrix}
+k & \in \set{1, \dots, \nblk} \\
+y^{\blk{k}}(t) & = y_k^{\opog}(t) \cdot h^{\blk{k}}(s^{\blk{k}}(t))
 \end{align*} \tag{3}\label{3}
 $$
 
 注意第 $k$ 個記憶單元輸出**共享輸出閘門** $y_k^{\opog}(t)$。
-由於實驗結果作者認為 $h^{\cell{k}}$ 不是很重要，因此 $\eqref{3}$ 中的式子改為
+由於實驗結果作者認為 $h^{\blk{k}}$ 不是很重要，因此 $\eqref{3}$ 中的式子改為
 
 $$
-y^{\cell{k}}(t) = y_k^{\opog}(t) \cdot s^{\cell{k}}(t) \quad k = 1, \dots, \ncell \tag{4}\label{4}
+y^{\blk{k}}(t) = y_k^{\opog}(t) \cdot s^{\blk{k}}(t) \quad k = 1, \dots, \nblk \tag{4}\label{4}
 $$
 
 產生 $t$ 時間點的**輸出**是透過 $t$ 時間點的**輸入**與**記憶單元輸出**（見 $\eqref{4}$）而得（注意是 $t$ 時間點不是 $t - 1$，代表[原版 LSTM][LSTM1997] 與 [LSTM-2000][LSTM2000] 都寫錯了）
@@ -335,16 +317,11 @@ $$
 \begin{align*}
 \opnet^{\opout}(t) & = \wout \cdot \begin{pmatrix}
 x(t) \\
-y^{\cell{1}}(t) \\
+y^{\blk{1}}(t) \\
 \vdots \\
-y^{\cell{\ncell}}(t)
+y^{\blk{\nblk}}(t)
 \end{pmatrix} \\
-y(t) & = f^{\opout}(\opnet^{\opout}(t)) = \begin{pmatrix}
-\fnetout{1}{t} \\
-\fnetout{2}{t} \\
-\vdots \\
-\fnetout{\dout}{t}
-\end{pmatrix}
+y(t) & = f^{\opout}(\opnet^{\opout}(t))
 \end{align*} \tag{5}\label{5}
 $$
 
@@ -372,102 +349,104 @@ $$
 \pd{\oploss(t)}{\wout_{i, j}} & = \pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pd{\netout{i}{t}}{\wout_{i, j}} \\
 & = \big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \begin{pmatrix}
 x(t) \\
-y^{\cell{1}}(t) \\
+y^{\blk{1}}(t) \\
 \vdots \\
-y^{\cell{\ncell}}(t)
+y^{\blk{\nblk}}(t)
 \end{pmatrix}_j
 \end{align*} \tag{7}\label{7}
 $$
 
-其中 $1 \leq i \leq \dout$ 且 $1 \leq j \leq \din + \ncell \cdot \dcell$。
+其中 $1 \leq i \leq \dout$ 且 $1 \leq j \leq \din + \nblk \cdot \dblk$。
 
 #### 輸出閘門參數的剩餘梯度
 
 $$
 \begin{align*}
 \pd{\oploss(t)}{\wog_{k, q}} & \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \\
-& \quad \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{y_k^{\opog}(t)}} \cdot \pd{y_k^{\opog}(t)}{\netog{k}{t}} \cdot \pd{\netog{k}{t}}{\wog_{k, q}}\Bigg] \\
+& \quad \pa{\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{y_k^{\opog}(t)}} \cdot \pd{y_k^{\opog}(t)}{\netog{k}{t}} \cdot \pd{\netog{k}{t}}{\wog_{k, q}}\Bigg] \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \\
-& \quad \pa{\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot s_j^{\cell{k}}(t)} \cdot \dfnetog{k}{t} \cdot \begin{pmatrix}
+& \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot s_j^{\blk{k}}(t)} \cdot \dfnetog{k}{t} \cdot \begin{pmatrix}
 x(t) \\
 y^{\opfg}(t - 1) \\
 y^{\opig}(t - 1) \\
 y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+y^{\blk{1}}(t - 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\blk{\nblk}}(t - 1)
 \end{pmatrix}_q\Bigg]
 \end{align*} \tag{8}\label{8}
 $$
 
-其中 $1 \leq k \leq \ncell$ 且 $1 \leq q \leq \din + \ncell \cdot (3 + \dcell)$。
+其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \din + \nblk \cdot (3 + \dblk)$。
 
 #### 輸入閘門參數的剩餘梯度
 
 $$
 \begin{align*}
 & \pd{\oploss(t)}{\wig_{k, q}} \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \pd{s_j^{\cell{k}}(t)}{\wig_{k, q}}}\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \Bigg(\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \\
-& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\wig_{k, q}} + \pd{s_j^{\cell{k}}(t)}{y_k^{\opig}(t)} \cdot \pd{y_k^{\opig}(t)}{\netig{k}{t}} \cdot \pd{\netig{k}{t}}{\wig_{k, q}}}\Bigg)\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t) \cdot \\
-& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\wig_{k, q}} + \gnetcell{j}{k}{t} \cdot \dfnetig{k}{t} \cdot \begin{pmatrix}
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pa{\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{s_j^{\blk{k}}(t)} \cdot \pd{s_j^{\blk{k}}(t)}{\wig_{k, q}}}\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \Bigg(\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{s_j^{\blk{k}}(t)} \cdot \\
+& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\blk{k}}(t - 1)}{\wig_{k, q}} + \pd{s_j^{\blk{k}}(t)}{y_k^{\opig}(t)} \cdot \pd{y_k^{\opig}(t)}{\netig{k}{t}} \cdot \pd{\netig{k}{t}}{\wig_{k, q}}}\Bigg)\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \Bigg(\sum_{j = 1}^{\dblk} \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t) \cdot \\
+& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\blk{k}}(t - 1)}{\wig_{k, q}} + \gnetblk{j}{k}{t} \cdot \dfnetig{k}{t} \cdot \begin{pmatrix}
 x(t) \\
+y^{\opfg}(t - 1) \\
 y^{\opig}(t - 1) \\
 y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+y^{\blk{1}}(t - 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\blk{\nblk}}(t - 1)
 \end{pmatrix}_q}\Bigg)\Bigg]
 \end{align*} \tag{9}\label{9}
 $$
 
-其中 $1 \leq k \leq \ncell$ 且 $1 \leq q \leq \din + \ncell \cdot (3 + \dcell)$。
+其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \din + \nblk \cdot (3 + \dblk)$。
 
 #### 遺忘閘門參數的剩餘梯度
 
 $$
 \begin{align*}
 & \pd{\oploss(t)}{\wfg_{k, q}} \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \pd{s_j^{\cell{k}}(t)}{\wfg_{k, q}}}\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \Bigg(\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \\
-& \quad \quad \br{\pd{y_k^{\opfg}(t)}{\netfg{k}{t}} \cdot \pd{\netfg{k}{t}}{\wfg_{k, q}} \cdot s_j^{\cell{k}}(t - 1) + y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\wfg_{k, q}}}\Bigg)\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t) \cdot \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pa{\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{s_j^{\blk{k}}(t)} \cdot \pd{s_j^{\blk{k}}(t)}{\wfg_{k, q}}}\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \Bigg(\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{s_j^{\blk{k}}(t)} \cdot \\
+& \quad \quad \br{\pd{y_k^{\opfg}(t)}{\netfg{k}{t}} \cdot \pd{\netfg{k}{t}}{\wfg_{k, q}} \cdot s_j^{\blk{k}}(t - 1) + y_k^{\opfg}(t) \cdot \pd{s_j^{\blk{k}}(t - 1)}{\wfg_{k, q}}}\Bigg)\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \Bigg(\sum_{j = 1}^{\dblk} \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t) \cdot \\
 & \quad \quad \br{\dfnetfg{k}{t} \cdot \begin{pmatrix}
 x(t) \\
+y^{\opfg}(t - 1) \\
 y^{\opig}(t - 1) \\
 y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+y^{\blk{1}}(t - 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
-\end{pmatrix}_q \cdot s_j^{\cell{k}}(t - 1) + y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\wfg_{k, q}}}\Bigg)\Bigg]
+y^{\blk{\nblk}}(t - 1)
+\end{pmatrix}_q \cdot s_j^{\blk{k}}(t - 1) + y_k^{\opfg}(t) \cdot \pd{s_j^{\blk{k}}(t - 1)}{\wfg_{k, q}}}\Bigg)\Bigg]
 \end{align*} \tag{10}\label{10}
 $$
 
-其中 $1 \leq k \leq \ncell$ 且 $1 \leq q \leq \din + \ncell \cdot (3 + \dcell)$。
+其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \din + \nblk \cdot (3 + \dblk)$。
 
 #### 記憶單元淨輸入參數的剩餘梯度
 
 $$
 \begin{align*}
-& \pd{\oploss(t)}{\wcell{k}_{p, q}} \\
-& \aptr \sum_{i = 1}^{\dout} \br{\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pd{\netout{i}{t}}{y_p^{\cell{k}}(t)} \cdot \pd{y_p^{\cell{k}}(t)}{s_p^{\cell{k}}(t)} \cdot \pd{s_p^{\cell{k}}(t)}{\wcell{k}_{p, q}}} \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pd{\netout{i}{t}}{y_p^{\cell{k}}(t)} \cdot \pd{y_p^{\cell{k}}(t)}{s_p^{\cell{k}}(t)} \cdot \\
-& \quad \quad \pa{f_k^{\opfg}(t) \cdot \pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + \pd{s_p^{\cell{k}}(t)}{\gnetcell{j}{k}{t}} \cdot \pd{\gnetcell{j}{k}{t}}{\netcell{j}{k}{t}} \cdot \pd{\netcell{j}{k}{t}}{\wcell{k}_{p, q}}}\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t) \cdot \\
-& \quad \br{f_k^{\opfg}(t) \cdot \pd{s_p^{\cell{k}}(t - 1)}{\wcell{k}_{p, q}} + y_k^{\opig}(t) \cdot \dgnetcell{p}{k}{t} \cdot \begin{pmatrix}
+& \pd{\oploss(t)}{\wblk{k}_{p, q}} \\
+& \aptr \sum_{i = 1}^{\dout} \br{\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pd{\netout{i}{t}}{y_p^{\blk{k}}(t)} \cdot \pd{y_p^{\blk{k}}(t)}{s_p^{\blk{k}}(t)} \cdot \pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}}} \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pd{\netout{i}{t}}{y_p^{\blk{k}}(t)} \cdot \pd{y_p^{\blk{k}}(t)}{s_p^{\blk{k}}(t)} \cdot \\
+& \quad \quad \pa{f_k^{\opfg}(t) \cdot \pd{s_p^{\blk{k}}(t - 1)}{\wblk{k}_{p, q}} + \pd{s_p^{\blk{k}}(t)}{\gnetblk{j}{k}{t}} \cdot \pd{\gnetblk{j}{k}{t}}{\netblk{j}{k}{t}} \cdot \pd{\netblk{j}{k}{t}}{\wblk{k}_{p, q}}}\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t) \cdot \\
+& \quad \br{f_k^{\opfg}(t) \cdot \pd{s_p^{\blk{k}}(t - 1)}{\wblk{k}_{p, q}} + y_k^{\opig}(t) \cdot \dgnetblk{p}{k}{t} \cdot \begin{pmatrix}
 x(t) \\
 y^{\opfg}(t - 1) \\
 y^{\opig}(t - 1) \\
 y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+y^{\blk{1}}(t - 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
+y^{\blk{\nblk}}(t - 1)
 \end{pmatrix}_q}\Bigg]
 \end{align*} \tag{11}\label{11}
 $$
 
-其中 $1 \leq k \leq \ncell$， $1 \leq p \leq \dcell$ 且 $1 \leq q \leq \din + \ncell \cdot (3 + \dcell)$。
+其中 $1 \leq k \leq \nblk$， $1 \leq p \leq \dblk$ 且 $1 \leq q \leq \din + \nblk \cdot (3 + \dblk)$。
 
 #### 梯度下降
 
@@ -479,7 +458,7 @@ $$
 \wog_{k, q} & \leftarrow \wog_{k, q} - \alpha \cdot \pd{\oploss(t)}{\wog_{k, q}} \\
 \wig_{k, q} & \leftarrow \wig_{k, q} - \alpha \cdot \pd{\oploss(t)}{\wig_{k, q}} \\
 \wfg_{k, q} & \leftarrow \wig_{k, q} - \alpha \cdot \pd{\oploss(t)}{\wfg_{k, q}} \\
-\wcell{k}_{p, q} & \leftarrow \wcell{k}_{p, q} - \alpha \cdot \pd{\oploss(t)}{\wcell{k}_{p, q}}
+\wblk{k}_{p, q} & \leftarrow \wblk{k}_{p, q} - \alpha \cdot \pd{\oploss(t)}{\wblk{k}_{p, q}}
 \end{align*} \tag{12}\label{12}
 $$
 
@@ -511,20 +490,20 @@ $$
 $$
 \begin{align*}
 g & \in \set{\opfg, \opig} \\
-\opnet_k^g(t) & = \sum_{q = 1}^{\din + \ncell \cdot (3 + \dcell)} w_{k, q}^g \cdot \begin{pmatrix}
+\opnet_k^g(t) & = \sum_{q = 1}^{\din + \nblk \cdot (3 + \dblk)} w_{k, q}^g \cdot \begin{pmatrix}
 x(t) \\
 y^{\opfg}(t - 1) \\
 y^{\opig}(t - 1) \\
 y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+y^{\blk{1}}(t - 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
-\end{pmatrix}_q + u_k^g \odot s^{\cell{k}}(t - 1) \\
+y^{\blk{\nblk}}(t - 1)
+\end{pmatrix}_q + u_k^g \odot s^{\blk{k}}(t - 1) \\
 y^g(t) & = f^g(\opnet^g(t))
 \end{align*} \tag{13}\label{13}
 $$
 
-其中 $\ufg_k, \uig_k$ 的維度為 $1 \times \dcell$，$k$ 的範圍為 $1, \dots, \ncell$。
+其中 $\ufg_k, \uig_k$ 的維度為 $1 \times \dblk$，$k$ 的範圍為 $1, \dots, \nblk$。
 
 $\eqref{13}$ 的計算表示 $t$ 時間點的**遺忘閘門**與**輸入閘門**會與 $t - 1$ 時間點的**記憶單元內部狀態相連**，並且閘門只會與對應的記憶單元連接。
 
@@ -532,20 +511,20 @@ $\eqref{2}$ 的計算方法不變，在完成 $\eqref{2}$ 的計算後以 $t$ �
 
 $$
 \begin{align*}
-\opnet_k^{\opog}(t) & = \sum_{q = 1}^{\din + \ncell \cdot (3 + \dcell)} \wog_{k, q} \cdot \begin{pmatrix}
+\opnet_k^{\opog}(t) & = \sum_{q = 1}^{\din + \nblk \cdot (3 + \dblk)} \wog_{k, q} \cdot \begin{pmatrix}
 x(t) \\
 y^{\opfg}(t - 1) \\
 y^{\opig}(t - 1) \\
 y^{\opog}(t - 1) \\
-y^{\cell{1}}(t - 1) \\
+y^{\blk{1}}(t - 1) \\
 \vdots \\
-y^{\cell{\ncell}}(t - 1)
-\end{pmatrix}_q + \uog_k \odot s^{\cell{k}}(t) \\
+y^{\blk{\nblk}}(t - 1)
+\end{pmatrix}_q + \uog_k \odot s^{\blk{k}}(t) \\
 y^{\opog}(t) & = f^{\opog}(\opnet^{\opog}(t))
 \end{align*} \tag{14}\label{14}
 $$
 
-其中 $u_k^{\opog}$ 的維度為 $1 \times \dcell$，$k$ 的範圍為 $1, \dots, \ncell$。
+其中 $u_k^{\opog}$ 的維度為 $1 \times \dblk$，$k$ 的範圍為 $1, \dots, \nblk$。
 
 $\eqref{14}$ 的計算表示 $t$ 時間點的**輸出閘門**會與 $t$ 時間點的**記憶單元內部狀態相連**，並且閘門只會與對應的記憶單元連接。
 
@@ -560,43 +539,43 @@ $\eqref{14}$ 的計算表示 $t$ 時間點的**輸出閘門**會與 $t$ 時間�
 $$
 \begin{align*}
 \pd{\oploss(t)}{\uog_{k, q}} & \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \\
-& \quad \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{y_k^{\opog}(t)}} \cdot \pd{y_k^{\opog}(t)}{\netog{k}{t}} \cdot \pd{\netog{k}{t}}{\uog_{k, q}}\Bigg] \\
+& \quad \pa{\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{y_k^{\opog}(t)}} \cdot \pd{y_k^{\opog}(t)}{\netog{k}{t}} \cdot \pd{\netog{k}{t}}{\uog_{k, q}}\Bigg] \\
 & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \\
-& \quad \pa{\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot s_j^{\cell{k}}(t)} \cdot \dfnetog{k}{t} \cdot s_q^{\cell{k}}(t)\Bigg]
+& \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot s_j^{\blk{k}}(t)} \cdot \dfnetog{k}{t} \cdot s_q^{\blk{k}}(t)\Bigg]
 \end{align*} \tag{15}\label{15}
 $$
 
-其中 $1 \leq k \leq \ncell$ 且 $1 \leq q \leq \dcell$，$\eqref{15}$ 式就是論文的 24 式。
+其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \dblk$，$\eqref{15}$ 式就是論文的 24 式。
 
 #### 輸入閘門參數的剩餘梯度
 
 $$
 \begin{align*}
 & \pd{\oploss(t)}{\uig_{k, q}} \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \pd{s_j^{\cell{k}}(t)}{\uig_{k, q}}}\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \Bigg(\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \\
-& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\uig_{k, q}} + \pd{s_j^{\cell{k}}(t)}{y_k^{\opig}(t)} \cdot \pd{y_k^{\opig}(t)}{\netig{k}{t}} \cdot \pd{\netig{k}{t}}{\uig_{k, q}}}\Bigg)\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t) \cdot \\
-& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\uig_{k, q}} + \gnetcell{j}{k}{t} \cdot \dfnetig{k}{t} \cdot s_q^{\cell{k}}(t - 1)}\Bigg)\Bigg]
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pa{\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{s_j^{\blk{k}}(t)} \cdot \pd{s_j^{\blk{k}}(t)}{\uig_{k, q}}}\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \Bigg(\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{s_j^{\blk{k}}(t)} \cdot \\
+& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\blk{k}}(t - 1)}{\uig_{k, q}} + \pd{s_j^{\blk{k}}(t)}{y_k^{\opig}(t)} \cdot \pd{y_k^{\opig}(t)}{\netig{k}{t}} \cdot \pd{\netig{k}{t}}{\uig_{k, q}}}\Bigg)\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \Bigg(\sum_{j = 1}^{\dblk} \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t) \cdot \\
+& \quad \quad \br{y_k^{\opfg}(t) \cdot \pd{s_j^{\blk{k}}(t - 1)}{\uig_{k, q}} + \gnetblk{j}{k}{t} \cdot \dfnetig{k}{t} \cdot s_q^{\blk{k}}(t - 1)}\Bigg)\Bigg]
 \end{align*} \tag{16}\label{16}
 $$
 
-其中 $1 \leq k \leq \ncell$ 且 $1 \leq q \leq \dcell$，$\eqref{16}$ 式就是論文的 22 式。
+其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \dblk$，$\eqref{16}$ 式就是論文的 22 式。
 
 #### 遺忘閘門參數的剩餘梯度
 
 $$
 \begin{align*}
 & \pd{\oploss(t)}{\ufg_{k, q}} \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pa{\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \pd{s_j^{\cell{k}}(t)}{\ufg_{k, q}}}\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \Bigg(\sum_{j = 1}^{\dcell} \pd{\netout{i}{t}}{y_j^{\cell{k}}(t)} \cdot \pd{y_j^{\cell{k}}(t)}{s_j^{\cell{k}}(t)} \cdot \\
-& \quad \quad \br{\pd{y_k^{\opfg}(t)}{\netfg{k}{t}} \cdot \pd{\netfg{k}{t}}{\ufg_{k, q}} \cdot s_j^{\cell{k}}(t - 1) + y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\ufg_{k, q}}}\Bigg)\Bigg] \\
-& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \Bigg(\sum_{j = 1}^{\dcell} \wout_{i, \din + (k - 1) \cdot \dcell + j} \cdot y_k^{\opog}(t) \cdot \\
-& \quad \quad \br{\dfnetfg{k}{t} \cdot s_q^{\cell{k}}(t - 1) \cdot s_j^{\cell{k}}(t - 1) + y_k^{\opfg}(t) \cdot \pd{s_j^{\cell{k}}(t - 1)}{\ufg_{k, q}}}\Bigg)\Bigg]
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \pa{\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{s_j^{\blk{k}}(t)} \cdot \pd{s_j^{\blk{k}}(t)}{\ufg_{k, q}}}\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\pd{\oploss(t)}{y_i(t)} \cdot \pd{y_i(t)}{\netout{i}{t}} \cdot \Bigg(\sum_{j = 1}^{\dblk} \pd{\netout{i}{t}}{y_j^{\blk{k}}(t)} \cdot \pd{y_j^{\blk{k}}(t)}{s_j^{\blk{k}}(t)} \cdot \\
+& \quad \quad \br{\pd{y_k^{\opfg}(t)}{\netfg{k}{t}} \cdot \pd{\netfg{k}{t}}{\ufg_{k, q}} \cdot s_j^{\blk{k}}(t - 1) + y_k^{\opfg}(t) \cdot \pd{s_j^{\blk{k}}(t - 1)}{\ufg_{k, q}}}\Bigg)\Bigg] \\
+& \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t) - \hat{y}_i(t)\big) \cdot \dfnetout{i}{t} \cdot \Bigg(\sum_{j = 1}^{\dblk} \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t) \cdot \\
+& \quad \quad \br{\dfnetfg{k}{t} \cdot s_q^{\blk{k}}(t - 1) \cdot s_j^{\blk{k}}(t - 1) + y_k^{\opfg}(t) \cdot \pd{s_j^{\blk{k}}(t - 1)}{\ufg_{k, q}}}\Bigg)\Bigg]
 \end{align*} \tag{17}\label{17}
 $$
 
-其中 $1 \leq k \leq \ncell$ 且 $1 \leq q \leq \dcell$，$\eqref{17}$ 式就是論文的 23 式。
+其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \dblk$，$\eqref{17}$ 式就是論文的 23 式。
 
 #### 梯度下降
 
@@ -628,22 +607,22 @@ $$
 |參數|數值（或範圍）|備註|
 |-|-|-|
 |$\din$|$1$||
-|$\ncell$|$1$||
-|$\dcell$|$1$||
+|$\nblk$|$1$||
+|$\dblk$|$1$||
 |$\dout$|$1$||
-|$\dim(\wcell{1})$|$\dcell \times [\din + \ncell \cdot \dcell + 1]$|只與輸入和記憶單元輸出相接，有額外使用偏差項|
-|$\dim(\wfg)$|$\ncell \times [\din + \ncell \cdot \dcell + 1]$|只與輸入和記憶單元輸出相接，有額外使用偏差項|
-|$\dim(\wig)$|$\ncell \times [\din + \ncell \cdot \dcell + 1]$|只與輸入和記憶單元輸出相接，有額外使用偏差項|
-|$\dim(\wog)$|$\ncell \times [\din + \ncell \cdot \dcell + 1]$|只與輸入和記憶單元輸出相接，有額外使用偏差項|
-|$\dim(\ufg_k)$|$1 \times \dcell$||
-|$\dim(\uig_k)$|$1 \times \dcell$||
-|$\dim(\uog_k)$|$1 \times \dcell$||
-|$\dim(\wout)$|$\dout \times [\ncell \cdot \dcell + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
+|$\dim(\wblk{1})$|$\dblk \times [\din + \nblk \cdot \dblk + 1]$|只與輸入和記憶單元輸出相接，有額外使用偏差項|
+|$\dim(\wfg)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|只與輸入和記憶單元輸出相接，有額外使用偏差項|
+|$\dim(\wig)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|只與輸入和記憶單元輸出相接，有額外使用偏差項|
+|$\dim(\wog)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|只與輸入和記憶單元輸出相接，有額外使用偏差項|
+|$\dim(\ufg_k)$|$1 \times \dblk$||
+|$\dim(\uig_k)$|$1 \times \dblk$||
+|$\dim(\uog_k)$|$1 \times \dblk$||
+|$\dim(\wout)$|$\dout \times [\nblk \cdot \dblk + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
 |遺忘閘門偏差項初始值|$-2$|[LSTM-2000][LSTM2000] 採用的初始值為正數，這裡居然用負數|
 |輸入閘門偏差項初始值|$0$|[原版 LSTM][LSTM1997] 採用的初始值為負數，這裡居然用 $0$|
 |輸出閘門偏差項初始值|$2$|[原版 LSTM][LSTM1997] 採用的初始值為負數，這裡居然用正數|
 |參數初始化範圍|$[-0.1, 0.1]$||
-|$g^{\cell{k}}$|$g^{\cell{k}}(x) = x$|identity mapping|
+|$g^{\blk{k}}$|$g^{\blk{k}}(x) = x$|identity mapping|
 |$f^{\opout}$|$\sigma$|只有在模擬週期函數任務中採用 identity mapping|
 |Learning rate|$10^{-5}$||
 |總參數量|$17$||
@@ -742,7 +721,7 @@ $$
 ![圖 7-2](https://i.imgur.com/4GoR9TE.png)
 
 - 透過實驗觀察發現 [LSTM-2000][LSTM2000] 學會兩種不同的方法進行凸波延遲偵測
-  - [LSTM-2000][LSTM2000] 可以在每個時間點都增加記憶單元內部狀態 $s^{\cell{1}}$ 一點點，而預測值可以靠累加結果轉換而得（見[圖 6](#paper-fig-6) 左半）
+  - [LSTM-2000][LSTM2000] 可以在每個時間點都增加記憶單元內部狀態 $s^{\blk{1}}$ 一點點，而預測值可以靠累加結果轉換而得（見[圖 6](#paper-fig-6) 左半）
   - [LSTM-2000][LSTM2000] 可以學會模擬振盪器，並根據振盪的次數進行預測（見[圖 6](#paper-fig-6) 右半）
 - 從[圖 6](#paper-fig-6) 的下半可以發現[LSTM-2000][LSTM2000] 的輸出閘門維持在 $1$ 的狀態
   - 作者認為由於預測行為很少發生，因此維持輸出並不會影響表現
