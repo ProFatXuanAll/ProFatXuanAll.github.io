@@ -1,11 +1,11 @@
 ---
 layout: ML-note
-title:  "Local Feedback Multilayered Networks"
-date:   2021-11-30 14:21:00 +0800
+title: "Local Feedback Multilayered Networks"
+date: 2021-11-30 14:21:00 +0800
 categories: [
-  Deep Learning,
+  Gradient Descent,
   Model Architecture,
-  Optimization,
+  Neural Network,
 ]
 tags: [
   RNN,

@@ -1,11 +1,11 @@
 ---
 layout: ML-note
-title:  "A time-delay neural network architecture for isolated word recognition"
-date:   2021-12-06 12:28:00 +0800
+title: "A time-delay neural network architecture for isolated word recognition"
+date: 2021-12-06 12:28:00 +0800
 categories: [
-  Deep Learning,
+  Gradient Descent,
   Model Architecture,
-  Optimization,
+  Neural Network,
 ]
 tags: [
   RNN,

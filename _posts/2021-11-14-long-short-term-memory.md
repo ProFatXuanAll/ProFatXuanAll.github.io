@@ -1,11 +1,11 @@
 ---
 layout: ML-note
-title:  "Long Short-Term Memory"
-date:   2021-11-14 15:28:00 +0800
+title: "Long Short-Term Memory"
+date: 2021-11-14 15:28:00 +0800
 categories: [
-  Deep Learning,
+  Gradient Descent,
   Model Architecture,
-  Optimization,
+  Neural Network,
 ]
 tags: [
   LSTM,

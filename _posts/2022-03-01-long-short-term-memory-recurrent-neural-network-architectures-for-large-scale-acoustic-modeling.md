@@ -1,14 +1,14 @@
 ---
 layout: ML-note
-title:  "Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling"
-date:   2022-03-01 19:42:00 +0800
+title: "Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling"
+date: 2022-03-01 19:42:00 +0800
 categories: [
-  Deep Learning,
   Model Architecture,
+  Neural Network,
 ]
 tags: [
-  RNN,
   LSTM,
+  LSTMP,
 ]
 author: [
   Hasim Sak,
@@ -93,7 +93,7 @@ f_t & = \sigma(W_{f x} \cdot x_t + W_{f r} \cdot r_{t - 1} + W_{f c} \odot c_{t 
 c_t & = f_t \odot c_{t - 1} + i_t \odot \tanh(W_{c x} \cdot x_t + W_{c m} \cdot r_{t - 1} + b_c) \\
 o_t & = \sigma(W_{o x} \cdot x_t + W_{o r} \cdot r_{t - 1} + W_{o c} \odot c_t + b_o) \\
 m_t & = o_t \odot \tanh(c_t) \\
-r_t & = W_{r m} m_t \\
+r_t & = W_{r m} \cdot m_t \\
 y_t & = \operatorname{softmax}(W_{y r} r_t + b_y)
 \end{align*} \tag{1}\label{1}
 $$
@@ -191,6 +191,5 @@ $$
 
 [Eigen]: http://eigen.tuxfamily.org
 [LSTM2002]: https://www.jmlr.org/papers/v3/gers02a.html
-[PyTorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html
 [pub43895]: https://research.google/pubs/pub43895/
 [論文]: https://research.google/pubs/pub43905/

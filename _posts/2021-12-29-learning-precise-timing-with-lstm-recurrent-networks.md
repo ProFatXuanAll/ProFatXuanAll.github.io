@@ -1,10 +1,10 @@
 ---
 layout: ML-note
-title:  "Learning Precise Timing with LSTM Recurrent Networks"
-date:   2021-12-29 16:28:00 +0800
+title: "Learning Precise Timing with LSTM Recurrent Networks"
+date: 2021-12-29 16:28:00 +0800
 categories: [
-  Deep Learning,
   Model Architecture,
+  Neural Network,
 ]
 tags: [
   RNN,

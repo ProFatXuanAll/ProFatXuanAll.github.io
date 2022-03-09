@@ -1,10 +1,10 @@
 ---
 layout: ML-note
-title:  "Learning representations by back-propagating errors"
-date:   2021-12-07 15:15:00 +0800
+title: "Learning representations by back-propagating errors"
+date: 2021-12-07 15:15:00 +0800
 categories: [
-  Deep Learning,
-  Optimization,
+  Gradient Descent,
+  Neural Network,
 ]
 tags: [
   Back-Propagation,

@@ -1,14 +1,14 @@
 ---
 layout: ML-note
-title:  "Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary Speech Recognition"
-date:   2022-03-01 16:01:00 +0800
+title: "Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary Speech Recognition"
+date: 2022-03-01 16:01:00 +0800
 categories: [
-  Deep Learning,
   Model Architecture,
+  Neural Network,
 ]
 tags: [
-  RNN,
   LSTM,
+  LSTMP,
 ]
 author: [
   Hasim Sak,
@@ -29,6 +29,7 @@ author: [
 
 - 此篇論文被 ICASSP reject，因為頁數太少（含 reference 只有 5 頁）
   - 這篇論文真的就只跑兩個實驗
+  - 後續作品為[這篇][pub43905]
 - 此論文實驗結果說明 LSTM 可以套用到字典量大的語音辨識
   - 字典量大代表對應的 phoneme states 變多，真正的難題是如何將輸入特徵對應到 phoneme states
   - 過去使用傳統 RNN 模型的論文只能在字典量小的語音辨識資料集上表現不錯
@@ -324,10 +325,10 @@ $$
   - 如果使用 [LSTM-2002][LSTM2002] 而不是作者的架構，則表現會比 DNN 還差
   - 單純的增加 DNN 的層數也可以讓表現變好
 
-[pub43905]: https://research.google/pubs/pub43905/
-[PyTorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html
+[Eigen]: http://eigen.tuxfamily.org
 [LSTM1997]: https://ieeexplore.ieee.org/abstract/document/6795963
 [LSTM2000]: https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM
 [LSTM2002]: https://www.jmlr.org/papers/v3/gers02a.html
+[PyTorch-LSTM]: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html
+[pub43905]: https://research.google/pubs/pub43905/
 [論文]: https://research.google/pubs/pub43895/
-[Eigen]: http://eigen.tuxfamily.org

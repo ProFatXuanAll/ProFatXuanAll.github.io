@@ -1,10 +1,10 @@
 ---
 layout: ML-note
-title:  "Finding Structure in Time"
-date:   2021-12-21 18:47:00 +0800
+title: "Finding Structure in Time"
+date: 2021-12-21 18:47:00 +0800
 categories: [
-  Deep Learning,
   Model Architecture,
+  Neural Network,
 ]
 tags: [
   RNN,

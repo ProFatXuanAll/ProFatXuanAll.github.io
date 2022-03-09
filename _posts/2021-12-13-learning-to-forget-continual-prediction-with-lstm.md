@@ -1,10 +1,10 @@
 ---
 layout: ML-note
-title:  "Learning to Forget: Continual Prediction with LSTM"
-date:   2021-12-13 14:09:00 +0800
+title: "Learning to Forget: Continual Prediction with LSTM"
+date: 2021-12-13 14:09:00 +0800
 categories: [
-  Deep Learning,
   Model Architecture,
+  Neural Network,
 ]
 tags: [
   RNN,
