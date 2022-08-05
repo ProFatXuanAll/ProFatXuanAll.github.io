@@ -56,7 +56,7 @@
 <p style="display: none;">
   <!-- Fields. -->
   $\newcommand{\field}[1]{\mathbb{#1}}$
-  <!-- Natural number field. -->
+  <!-- Natural number set. -->
   $\providecommand{\N}{}$
   $\renewcommand{\N}{\field{N}}$
   <!-- Rational field. -->
@@ -65,7 +65,7 @@
   <!-- Real field. -->
   $\providecommand{\R}{}$
   $\renewcommand{\R}{\field{R}}$
-  <!-- Integer field. -->
+  <!-- Integer set. -->
   $\providecommand{\Z}{}$
   $\renewcommand{\Z}{\field{Z}}$
   <!-- Parenthese. -->
@@ -94,7 +94,7 @@
   $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
   <!-- Partial derivative. -->
   $\providecommand{\pd}{}$
-  $\renewcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
   <!-- Sign function. -->
   $\DeclareMathOperator{\sign}{sign}$
   <!-- Diagonal function. -->
@@ -105,5 +105,30 @@
   $\DeclareMathOperator*{\argmin}{argmin}$
   <!-- Softmax. -->
   $\DeclareMathOperator{\softmax}{softmax}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
 
 </p>
