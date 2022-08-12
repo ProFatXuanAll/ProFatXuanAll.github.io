@@ -1,16 +1,16 @@
 ---
 layout: ML-note
-title: "Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation
-"
+title: "Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation"
 date: 2022-03-08 14:39:00 +0800
 categories: [
-  Machine Translation,
-  Model Architecture,
-  Neural Network,
+  Text Modeling,
 ]
 tags: [
-  RNN,
   GRU,
+  RNN,
+  machine translation,
+  model architecture,
+  neural network,
 ]
 author: [
   Kyunghyun Cho,

@@ -3,16 +3,18 @@ layout: ML-note
 title: "Long Short-Term Memory"
 date: 2021-11-14 15:28:00 +0800
 categories: [
-  Gradient Descent,
-  Model Architecture,
-  Neural Network,
+  General Sequence Modeling,
+  Optimization,
 ]
 tags: [
+  BPTT,
   LSTM,
   RTRL,
-  BPTT,
-  Gradient Explosion,
-  Gradient Vanishing,
+  gradient descent,
+  gradient explosion,
+  gradient vanishing,
+  model architecture,
+  neural network,
 ]
 author: [
   Sepp Hochreiter,

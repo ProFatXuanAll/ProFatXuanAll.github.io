@@ -3,12 +3,13 @@ layout: ML-note
 title: "Learning Precise Timing with LSTM Recurrent Networks"
 date: 2021-12-29 16:28:00 +0800
 categories: [
-  Model Architecture,
-  Neural Network,
+  General Sequence Modeling,
 ]
 tags: [
   RNN,
   LSTM,
+  model architecture,
+  neural network,
 ]
 author: [
   Felix A. Gers,

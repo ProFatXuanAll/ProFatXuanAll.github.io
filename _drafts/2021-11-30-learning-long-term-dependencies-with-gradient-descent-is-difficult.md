@@ -3,15 +3,17 @@ layout: ML-note
 title: "Learning long-term dependencies with gradient descent is difficult"
 date: 2021-11-30 12:28:00 +0800
 categories: [
-  Neural Network,
-  Gradient Descent,
+  Optimization,
 ]
 tags: [
+  BPTT,
   RNN,
   RTRL,
-  BPTT,
-  Gradient Explosion,
-  Gradient Vanishing,
+  gradient descent,
+  gradient explosion,
+  gradient vanishing,
+  model architecture,
+  neural network,
   note-is-under-construction,
 ]
 author: [

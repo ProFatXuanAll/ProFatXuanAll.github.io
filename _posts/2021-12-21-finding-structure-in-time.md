@@ -3,12 +3,13 @@ layout: ML-note
 title: "Finding Structure in Time"
 date: 2021-12-21 18:47:00 +0800
 categories: [
-  Model Architecture,
-  Neural Network,
+  Text Modeling,
 ]
 tags: [
   RNN,
   Elman Net,
+  model architecture,
+  neural network,
 ]
 author: [
   Jeffrey L. Elman,

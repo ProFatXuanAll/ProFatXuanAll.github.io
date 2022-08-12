@@ -3,13 +3,14 @@ layout: ML-note
 title: "Local Feedback Multilayered Networks"
 date: 2021-11-30 14:21:00 +0800
 categories: [
-  Gradient Descent,
-  Model Architecture,
-  Neural Network,
+  General Sequence Modeling,
 ]
 tags: [
   RNN,
   BPTT,
+  gradient descent,
+  model architecture,
+  neural network,
   note-is-under-construction,
 ]
 author: [

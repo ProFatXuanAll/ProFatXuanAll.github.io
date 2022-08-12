@@ -4,10 +4,10 @@ title: "A Standard Corpus of Edited Present-Day American English"
 date: 2022-08-06 02:07:00 +0800
 categories: [
   Dataset,
-  Part-of-speech,
 ]
 tags: [
   Brown Corpus,
+  part of speech,
 ]
 author: [
   W. Nelson Francis,
@@ -102,14 +102,14 @@ author: [
 - Function words（功能詞）
   - 範圍包含 closed lexcial classes（封閉式詞彙）與 grammatical classes（語法詞彙），closed 的意思是指不常有新的詞彙加入
   - 此類別包含
-    - Determiners（定詞）
+    - Determiners（限定詞）
     - Prepositions（介系詞）
     - Conjunctions（連接詞）
     - Pronouns（代名詞）
 - Certain important individual words（特殊詞）
   - （反義副詞）*not*
   - Existential（存在副詞） *there*
-  - Infinitival（不定詞）*to*
+  - Infinitival（不定式）*to*
   - *do*、*be*、*have*
 - Punctuation marks of syntactic significance（含有重要語法結構標點符號）
 - Inflectional morphemes（詞根不變的變形）
@@ -139,7 +139,7 @@ author: [
 
 ### Noun Phrase
 
-Noun pharse（名詞片語）由 determiner sector（定詞片段）+ modifier sector（修飾詞片段）+ head（頭）所組成。
+Noun pharse（名詞片語）由 determiner sector（限定詞片段）+ modifier sector（修飾詞片段）+ head（頭）所組成。
 
 > The (noun phrase) model for this consists of a head preceded by a determiner sector and a modifier sector.
 
@@ -166,7 +166,7 @@ Determiner sector 的中心為 determiner，主要包含三個種類：
 
 出現在 determiner 之前的詞包含：
 
-- Pre-quantifiers（量詞前置詞）
+- Pre-quantifiers（限定詞前置量詞）
   - 例如：*all*、*half*
   - 標記為 `ABN`
 - Both（描述雙數）
@@ -176,7 +176,7 @@ Determiner sector 的中心為 determiner，主要包含三個種類：
 
 出現在 determinier 之後，modifier 之前的詞包含：
 
-- Post-determinier（定詞後置詞）
+- Post-determinier（限定詞後置詞）
   - 主要都是 quantifier（量詞），例如：*many*、*more*、*most*、*several*、*single*
   - 也包含 particularizers，例如：*past*、*next*、*some*、*only*
   - 標記為 `AP`
@@ -201,7 +201,7 @@ Modifier sector 最簡單的形式是以三種類別構成：
 - Participles（由分詞組成修飾詞），包含
   - Present participles（現在分詞），標記為 `VBG`
   - Past participles（過去分詞），標記為 `VBN`
-- Nomials（由名稱組成修飾詞），標記與 head 規則相同
+- Nominals（由名稱組成修飾詞），標記與 head 規則相同
 - Compounding（由多個詞複合組成修飾詞），標記規則複雜
 
 由 Adjective 組成的 modifier 前後可以加上以下內容：
@@ -310,10 +310,10 @@ Compound words（複合詞）作為修飾詞的規則超級複雜，原因是複
 Personal pronouns（人身代名詞）的標記皆由 `PP` 開頭，額外接上一個字母代表不同的情況。
 額外的字母可以是 case（主格、所有格、受格）、concord（與動詞結合的變化）或 number（第一、二、三人稱）。
 
-- 3rd person singular nominative pronoun（第三人稱代名詞主格）
+- 3rd person singular nominative pronoun（第三人稱單數代名詞主格）
   - 例如：*he*、*she*、*it*、*one*
   - 標記為 `PPS`
-- Nominative personal pronoun other than 3rd person singular（非第三人稱代名詞主格）
+- Nominative personal pronoun other than 3rd person singular（非第三人稱單數代名詞主格）
   - 例如：*I*、*we*、*they*、*you*
   - 標記為 `PPSS`
 - Objective personal pronoun（任意人稱代名詞受格）
@@ -338,7 +338,7 @@ Personal pronouns（人身代名詞）的標記皆由 `PP` 開頭，額外接上
   - 例如：*anyone*、*everyone\'s*、*nobody*、*somebody\'s*
   - 沒有 *\'s* 標記為 `PN`
   - 有 *\'s* 標記為 `PN$`
-- Demonstrative pronouns（指事代詞）被當成 determiners（定詞）
+- Demonstrative pronouns（指事代詞）被當成 determiners（限定詞）
   - 例如：*this*、*that*
   - Singular determiner 標記為 `DT`
   - Singular or plural determiner 標記為 `DTI`
@@ -357,10 +357,10 @@ Adverbials（副詞片語）可以由單個 adverb（副詞）組成或是由多
 - Inflectional superlative adverb
   - 例如：he swim *fastest* among others
   - 標記為 `RBT`
-- Nominal adverb（名詞副詞），主要與時間或地點相關，本身為 adverb 卻常常作為 nominals 使用
+- Nominal adverb（名詞性副詞），主要與時間或地點相關，本身為 adverb 卻常常作為 nominals 使用
   - 例如：*here*、*then*、*indoors*
   - 標記為 `RN`
-- Advervial nouns（副詞名詞），主要與時間或地點相關，本身為 noun 卻常常作為 adverbial 使用
+- Advervial nouns（副詞性名詞），主要與時間或地點相關，本身為 noun 卻常常作為 adverbial 使用
   - 例如：*home*、*east*、*Tuesday*
   - 標記為 `NR`
 

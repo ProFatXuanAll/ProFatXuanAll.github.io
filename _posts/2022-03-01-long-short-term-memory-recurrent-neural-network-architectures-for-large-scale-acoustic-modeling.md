@@ -3,12 +3,13 @@ layout: ML-note
 title: "Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling"
 date: 2022-03-01 19:42:00 +0800
 categories: [
-  Model Architecture,
-  Neural Network,
+  Acoustic Modeling,
 ]
 tags: [
   LSTM,
   LSTMP,
+  model architecture,
+  neural network,
 ]
 author: [
   Hasim Sak,

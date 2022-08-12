@@ -3,12 +3,13 @@ layout: ML-note
 title: "Learning to Forget: Continual Prediction with LSTM"
 date: 2021-12-13 14:09:00 +0800
 categories: [
-  Model Architecture,
-  Neural Network,
+  General Sequence Modeling,
 ]
 tags: [
   RNN,
   LSTM,
+  model architecture,
+  neural network,
 ]
 author: [
   Felix A. Gers,

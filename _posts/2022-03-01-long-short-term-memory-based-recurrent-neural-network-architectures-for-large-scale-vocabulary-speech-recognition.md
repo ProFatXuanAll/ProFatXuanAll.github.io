@@ -3,12 +3,13 @@ layout: ML-note
 title: "Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary Speech Recognition"
 date: 2022-03-01 16:01:00 +0800
 categories: [
-  Model Architecture,
-  Neural Network,
+  Acoustic Modeling,
 ]
 tags: [
   LSTM,
   LSTMP,
+  model architecture,
+  neural network,
 ]
 author: [
   Hasim Sak,

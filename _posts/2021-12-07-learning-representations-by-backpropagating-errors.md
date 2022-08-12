@@ -3,11 +3,12 @@ layout: ML-note
 title: "Learning representations by back-propagating errors"
 date: 2021-12-07 15:15:00 +0800
 categories: [
-  Gradient Descent,
-  Neural Network,
+  Optimization,
 ]
 tags: [
-  Back-Propagation,
+  back-propagation,
+  gradient descent,
+  neural network,
 ]
 author: [
   David E. Rumelhart,
