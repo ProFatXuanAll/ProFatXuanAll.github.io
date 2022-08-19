@@ -753,7 +753,7 @@ Fidditch 的特性如下：
 - Brown Corpus 完全依照 Penn Treebank 的規則重新進行標記
 - 作者估算 POS 標記誤差為 $3\%$
 
-[LDC]: https://www.ldc.upenn.edu/
+[LDC]: https://catalog.ldc.upenn.edu/LDC93T1
 [論文]: https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf
 [詞性標記參考手冊]: https://repository.upenn.edu/cgi/viewcontent.cgi?article=1603&context=cis_reports
 [語法成份分析標記參考手冊]: http://languagelog.ldc.upenn.edu/myl/PennTreebank1995.pdf
