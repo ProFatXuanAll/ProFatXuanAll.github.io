@@ -10,14 +10,15 @@
   MathJax = {
     loader: {
       load: [
-        '[tex]/ams',                // Equivalent to `\usepackage{amsmath}`.
-        '[tex]/cancel',             // Equivalent to `\usepackage{cancel}`.
-        '[tex]/mathtools',          // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
       ]
     },
     tex: {
       // Extensions to use.
-      packages: { '[+]': ['ams', 'cancel', 'mathtools'] },
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
       // Start/end delimiter pairs for in-line math.
       inlineMath: [
         ['$', '$'],
@@ -105,6 +106,15 @@
   $\DeclareMathOperator*{\argmin}{argmin}$
   <!-- Softmax. -->
   $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
 
   <!-- Algorithm related tools. -->
   <!-- Procedure statement. -->
@@ -130,5 +140,9 @@
   <!-- Return statement. -->
   $\providecommand{\algoReturn}{}$
   $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
 
 </p>
