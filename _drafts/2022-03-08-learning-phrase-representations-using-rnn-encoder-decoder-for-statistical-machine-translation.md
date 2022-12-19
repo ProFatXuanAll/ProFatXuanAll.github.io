@@ -45,6 +45,14 @@ author: [
   $\newcommand{\enc}{\operatorname{enc}}$
   <!-- Operator decoder. -->
   $\newcommand{\dec}{\operatorname{dec}}$
+  <!-- h with tilde. -->
+  $\newcommand{\htilde}{\widetilde{h}}$
+  <!-- e but bold. -->
+  $\newcommand{\eb}{\mathbf{e}}$
+  <!-- f but bold. -->
+  $\newcommand{\fb}{\mathbf{f}}$
+  <!-- x but bold. -->
+  $\newcommand{\xb}{\mathbf{x}}$
 
 </p>
 
@@ -70,25 +78,25 @@ author: [
 
 #### 目標函數
 
-令資料集為 $D$，令 $i \in \set{1, \dots, \abs{D}}$，資料集中的每一筆資料以 $(x^{(i)}, y^{(i)})$ 表示。
+令資料集為 $D$，令 $i \in \set{1, \dots, \abs{D}}$，資料集中的每一筆資料以 $\pa{x^{(i)}, y^{(i)}}$ 表示。
 
 資料集 $D$ 中的每一筆資料都是一個成對的序列，在這篇論文中專指翻譯的配對文字，因此 $x^{(i)}$ 是翻譯輸入文字，$y^{(i)}$ 是翻譯結果，希望能夠透過訓練演算法找到一個模型參數 $\theta^{\star}$ 能夠滿足翻譯機率值最大化，即
 
 $$
 \begin{align*}
-\theta^{\star} & = \argmax_{\theta} \pa{\prod_{i = 1}^{\abs{D}} P\pa{y^{(i)}|x^{(i)} ; \theta}}^{\frac{1}{\abs{D}}} \\
-& = \argmax_{\theta} \pa{\log \pa{\prod_{i = 1}^{\abs{D}} P\pa{y^{(i)}|x^{(i)} ; \theta}}^{\frac{1}{\abs{D}}}} \\
-& = \argmax_{\theta} \pa{\frac{1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \log P\pa{y^{(i)}|x^{(i)} ; \theta}} \\
-& = \argmin_{\theta} \pa{\frac{-1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \log P\pa{y^{(i)}|x^{(i)} ; \theta}}.
+\theta^{\star} & = \argmax_{\theta} \pa{\prod_{i = 1}^{\abs{D}} \Pr\pa{y^{(i)}|x^{(i)} ; \theta}}^{\frac{1}{\abs{D}}} \\
+& = \argmax_{\theta} \pa{\log \pa{\prod_{i = 1}^{\abs{D}} \Pr\pa{y^{(i)}|x^{(i)} ; \theta}}^{\frac{1}{\abs{D}}}} \\
+& = \argmax_{\theta} \pa{\frac{1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \log \Pr\pa{y^{(i)}|x^{(i)} ; \theta}} \\
+& = \argmin_{\theta} \pa{\frac{-1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \log \Pr\pa{y^{(i)}|x^{(i)} ; \theta}}.
 \end{align*} \tag{1}\label{1}
 $$
 
-令 $T_x^{(i)}$ 為 $x^{(i)}$ 的文字長度（已斷詞），$T_y^{(i)}$ 為 $y^{(i)}$ 的文字長度（已斷詞），則 $x^{(i)}$ 與 $y^{(i)}$ 可以表示為
+令 $T_{x^{(i)}}$ 為 $x^{(i)}$ 的文字長度（由單詞組成），$T_{y^{(i)}}$ 為 $y^{(i)}$ 的文字長度（由單詞組成），則 $x^{(i)}$ 與 $y^{(i)}$ 可以表示為
 
 $$
 \begin{align*}
-x^{(i)} & = (x_1^{(i)}, x_2^{(i)}, \dots, x_{T_x^{(i)}}^{(i)}) \\
-y^{(i)} & = (y_1^{(i)}, y_2^{(i)}, \dots, y_{T_y^{(i)}}^{(i)})
+x^{(i)} & = (x_1^{(i)}, x_2^{(i)}, \dots, x_{T_{x^{(i)}}}^{(i)}) \\
+y^{(i)} & = (y_1^{(i)}, y_2^{(i)}, \dots, y_{T_{y^{(i)}}}^{(i)})
 \end{align*}
 $$
 
@@ -96,8 +104,9 @@ $$
 
 $$
 \begin{align*}
-\frac{-1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \log P\pa{y^{(i)}|x^{(i)} ; \theta} & = \frac{-1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \log \pa{\prod_{j = 1}^{T_y^{(i)}} P\pa{y_j^{(i)}|x_1^{(i)}, \dots, x_{T_x^{(i)}}^{(i)} ; \theta}}^{\frac{1}{T_y^{(i)}}} \\
-& = \frac{-1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \pa{\frac{1}{T_y^{(i)}} \sum_{j = 1}^{T_y^{(i)}} \log P\pa{y_j^{(i)}|x_1^{(i)}, \dots, x_{T_x^{(i)}}^{(i)} ; \theta}}.
+& \frac{-1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \log \Pr\pa{y^{(i)}|x^{(i)} ; \theta} \\
+& = \frac{-1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \log \pa{\prod_{j = 1}^{T_y^{(i)}} \Pr\pa{y_j^{(i)}|x^{(i)}, y_1^{(i)}, \dots, y_{j - 1}^{(i)} ; \theta}}^{\frac{1}{T_y^{(i)}}} \\
+& = \frac{-1}{\abs{D}} \sum_{i = 1}^{\abs{D}} \pa{\frac{1}{T_y^{(i)}} \sum_{j = 1}^{T_y^{(i)}} \log \Pr\pa{y_j^{(i)}|x^{(i)}, y_1^{(i)}, \dots, y_{j - 1}^{(i)} ; \theta}}.
 \end{align*} \tag{2}\label{2}
 $$
 
@@ -143,7 +152,7 @@ $$
   - 例如計算摘要結果的可能性
   - 通常是用來評估訓練結果，不需要額外的 decoding algorithm
 
-### GRU
+### Gated Recurrent Units
 
 <a name="paper-fig-2"></a>
 
@@ -152,24 +161,26 @@ $$
 
 ![圖 2](https://i.imgur.com/60ejrGT.png)
 
+#### 架構定義
+
 當時比較常見的 RNN 都是採用 LSTM，而這篇論文提出 LSTM 的簡化版本，稱為 Gated Recurrent Units（GRU），在保留 LSTM 的閘門機制同時簡化計算的複雜度，作者認為 GRU 比 LSTM 容易實作。
 
-新提出的架構想要保留 [LSTM-1997][LSTM1997] 中的 output gate，並重新命名為 reset gate，定義如下
+新提出的架構想要保留 [LSTM-1997][LSTM1997] 中的 output gate，並重新命名為 **reset gate**，定義如下
 
 $$
-r_t = \sigma\pa{W^r \cdot \mathbf{x}_t + U^r \cdot h_{t - 1}} \tag{5}\label{5}
+r_t = \sigma\pa{W^r \cdot \xb_t + U^r \cdot h_{t - 1}} \tag{5}\label{5}
 $$
 
-- $\mathbf{x}_t$ 是文字 $x_t$ 的 word embedding
+- $\xb_t$ 是文字 $x_t$ 的 word embedding
 - $W^r$ 與 $U^r$ 是可訓練參數，後續我們會探討參數的維度
 - 以 $r_t$ 代表時間點 $t$ 計算所得的 reset gate
 - $\sigma$ 是 sigmoid 函數，這邊是 elementwise 的版本，意即向量中的每個維度各自進行 sigmoid
-- 論文中沒有在 $\eqref{5}$ 中加入偏差向（bias），但實作上都會使用 bias
+- 論文中沒有在 $\eqref{5}$ 中加入偏差向（bias），但實作上都會使用 bias（例如 [Pytorch 實作的 GRU][Pytorch-GRU]）
 
 接著利用 $\eqref{5}$ 計算所得的 reset gate 計算 GRU 的**淨輸入**
 
 $$
-\tilde{h}_t = \phi\pa{W \cdot \mathbf{x}_t + U (r_t \odot h_{t - 1})} \tag{6}\label{6}
+\htilde_t = \phi\pa{W \cdot \xb_t + U (r_t \odot h_{t - 1})} \tag{6}\label{6}
 $$
 
 - $\phi$ 是一個 elementwise activation function，通常設 $\phi = \tanh$
@@ -177,48 +188,79 @@ $$
 - Reset gate 與前次遞迴狀態進行 elementwise product，在計算上賦與的意義為**透過 reset gate 決定是否讓過去的資訊參與當前的計算**
   - 當過去的資訊不重要時，應該要讓 reset gate 關閉，即 $r_t \approx \mathbf{0}$
   - Reset gate 是針對過去遞迴資訊進行重設，這也是為什麼我認為 reset gate 在模擬 [LSTM-1997][LSTM1997] 中的 output gate 的原因（注意不是 [LSTM-2000][LSTM2000] 中的 forget gate）
-- 論文中沒有在 $\eqref{6}$ 中加入偏差向（bias），但實作上都會使用 bias
+- 論文中沒有在 $\eqref{6}$ 中加入偏差向（bias），但實作上都會使用 bias（例如 [Pytorch 實作的 GRU][Pytorch-GRU]）
+- 作者認為**在學習短距離資訊時 reset gate 應該要保持開啟**
 
 得到 $\eqref{6}$ 中的淨輸入後，作者認為需要有一個**控制輸入內容的閘門機制**，因此定義以下符號
 
 $$
 \begin{align*}
-z_t & = \sigma\pa{W^z \cdot \mathbf{x} + U^z \cdot h_{t - 1}} \\
-h_t & = z_t \odot h_{t - 1} + (\mathbf{1} - z_t) \odot \tilde{h}_t
+z_t & = \sigma\pa{W^z \cdot \xb_t + U^z \cdot h_{t - 1}} \\
+h_t & = z_t \odot h_{t - 1} + (\mathbf{1} - z_t) \odot \htilde_t
 \end{align*} \tag{7}\label{7}
 $$
 
 - $\mathbf{1}$ 是一個向量，向量中的每個維度都是 $1$
 - $W^z$ 與 $U^z$ 是可訓練參數，後續我們會探討參數的維度
-- $z_t$ 稱為 update gate，與 [LSTM-1997][LSTM1997] 中的 input gate 概念不同，並不是決定是否讓 $\tilde{h}_t$ 參與遞迴過程，而是**決定參與的比例**
-  - 當過去的資訊不重要時，應該要讓 update gate 關閉，即 $z_t \approx \mathbf{0}$ 且 $h_t \approx \tilde{h}_t$
+- $z_t$ 稱為 update gate，與 [LSTM-1997][LSTM1997] 中的 input gate 概念不同，並不是決定是否讓 $\htilde_t$ 參與遞迴過程，而是**決定參與的比例**
+  - 當過去的資訊不重要時，應該要讓 update gate 關閉，即 $z_t \approx \mathbf{0}$ 且 $h_t \approx \htilde_t$
   - 同時讓 update gate 扮演 [LSTM-1997][LSTM1997] 中的 input gate 與 [LSTM-2000][LSTM2000] 中的 forget gate
   - 在 [Highway Network][HighwayNetwork] 中也有使用類似的架構
 - 觀察 $\eqref{7}$ 的第二個式子可以發現 GRU 中的 $h_t$ 同時扮演了 [LSTM-1997][LSTM1997] 中的 memory cell output 與 memory cell internal state
   - 計算上 GRU 架構比 LSTM 架構精減許多
   - 將 GRU 類比於 memory cell 時，可以發現每個 memory cell 的維度都為 $1$，概念比較接近 [LSTMP][LSTMP]
   - 從後續的參數推論也可以發現 GRU 架構的參數數量比 LSTM 架構少
+- 作者認為**在學習長距離資訊時 update gate 應該要保持開啟**
 
-令 $d_x$ 為 $\mathbf{x}_t$ 的維度，$d_h$ 為 $h_t$ 的維度，根據 $\eqref{5} \eqref{6} \eqref{7}$ 我們可以推得
+#### 參數維度
+
+令 $d_x$ 為 $\xb_t$ 的維度，$d_h$ 為 $h_t$ 的維度，根據 $\eqref{5} \eqref{6} \eqref{7}$ 我們可以推得
 
 |參數或節點|維度|理由|
 |-|-|-|
 |$z_t$|$\R^{d_h}$|$\odot$ is elementwise product and $z_t \odot h_{t - 1}$ is well-defined|
-|$W^z$|$\R^{d_h \times d_x}$|$\sigma$ is elementwise activation, $z_t \in \R^{d_h}$ and $\mathbf{x}_t \in \R^{d_x}$|
+|$W^z$|$\R^{d_h \times d_x}$|$\sigma$ is elementwise activation, $z_t \in \R^{d_h}$ and $\xb_t \in \R^{d_x}$|
 |$U^z$|$\R^{d_h \times d_h}$|$\sigma$ is elementwise activation, $z_t \in \R^{d_h}$ and $h_{t - 1} \in \R^{d_h}$|
-|$\tilde{h}_t$|$\R^{d_h}$|$\odot$ is elementwise product and $(\mathbf{1} - z_t) \odot \tilde{h}_t$ is well-defined|
+|$\htilde_t$|$\R^{d_h}$|$\odot$ is elementwise product and $(\mathbf{1} - z_t) \odot \htilde_t$ is well-defined|
 |$r_t$|$\R^{d_h}$|$\odot$ is elementwise product and $r_t \odot h_{t - 1}$ is well-defined|
-|$W^r$|$\R^{d_h \times d_x}$|$\sigma$ is elementwise activation, $r_t \in \R^{d_h}$ and $\mathbf{x}_t \in \R^{d_x}$|
+|$W^r$|$\R^{d_h \times d_x}$|$\sigma$ is elementwise activation, $r_t \in \R^{d_h}$ and $\xb_t \in \R^{d_x}$|
 |$U^r$|$\R^{d_h \times d_h}$|$\sigma$ is elementwise activation, $r_t \in \R^{d_h}$ and $h_{t - 1} \in \R^{d_h}$|
-|$W$|$\R^{d_h \times d_x}$|$\phi$ is elementwise activation, $\tilde{h}_t \in \R^{d_h}$ and $\mathbf{x}_t \in \mathbf{R}^{d_x}$|
-|$U$|$\R^{d_h \times d_h}$|$\phi$ is elementwise activation, $\tilde{h}_t \in \R^{d_h}$ and $r_t \in \mathbf{R}^{d_h}$|
+|$W$|$\R^{d_h \times d_x}$|$\phi$ is elementwise activation, $\htilde_t \in \R^{d_h}$ and $\xb_t \in \mathbf{R}^{d_x}$|
+|$U$|$\R^{d_h \times d_h}$|$\phi$ is elementwise activation, $\htilde_t \in \R^{d_h}$ and $r_t \in \mathbf{R}^{d_h}$|
 
 作者說根據實驗當 $\phi = \tanh$ 時如果不採用任何的 gate 就無法得到任何有意義的計算結果。
+
+#### 總結
+
+整體演算法可以整理為
+
+$$
+\begin{align*}
+& \algoProc{GRU}(h_0, \xb) \\
+& \hspace{1em} \algoFor{t \in \set{1, \dots, T}} \\
+& \hspace{2em} r_t \algoEq \sigma\pa{W^r \cdot \xb_t + U^r h_{t - 1}} \\
+& \hspace{2em} \htilde_t \algoEq \phi\pa{W \cdot \xb_t + U \pa{r_t \odot h_{t - 1}}} \\
+& \hspace{2em} z_t \algoEq \sigma\pa{W^z \cdot \xb_t + U^z h_{t - 1}} \\
+& \hspace{2em} h_t \algoEq z_t \odot h_{t - 1} + \pa{\mathbf{1} - z_t} \odot \htilde_t \\
+& \hspace{1em} \algoEndFor \\
+& \hspace{1em} \algoReturn \cat\pa{h_1, \dots, h_T} \\
+& \algoEndProc
+\end{align*}
+$$
+
+## 統計機器翻譯
+
+定義輸入句子為 $\eb = \pa{\eb_1, \dots, \eb_{T_\eb}}$，統計機器翻譯（statistical machine translation）的目標為找到一句翻譯 $\fb = \pa{\fb_1, \dots, \fb_{T_\fb}}$ 並滿足翻譯機率 $\Pr(\fb \vert \eb)$ 的最大化，即
+
+$$
+\max \Pr(\fb \vert \eb) \propto \max \Pr(\eb \vert \fb) \cdot \Pr(\fb)
+$$
 
 [HighwayNetwork]: https://arxiv.org/abs/1505.00387
 [LSTM1997]: https://ieeexplore.ieee.org/abstract/document/6795963
 [LSTM2000]: https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM
 [LSTM2002]: https://www.jmlr.org/papers/v3/gers02a.html
 [LSTMP]: https://research.google/pubs/pub43905/
+[Pytorch-GRU]: https://pytorch.org/docs/stable/generated/torch.nn.GRU.html?highlight=gru#torch.nn.GRU
 [論文]: https://aclanthology.org/D14-1179/
 

@@ -104,8 +104,6 @@
   $\DeclareMathOperator*{\argmax}{argmax}$
   <!-- Argmin. -->
   $\DeclareMathOperator*{\argmin}{argmin}$
-  <!-- Softmax. -->
-  $\DeclareMathOperator{\softmax}{softmax}$
   <!-- Limit in display mode.  This should only be used in inline mode. -->
   $\providecommand{\Lim}{}$
   $\renewcommand{\Lim}{\lim\limits}$
@@ -115,6 +113,12 @@
   <!-- Sum in display mode.  This should only be used in inline mode. -->
   $\providecommand{\Sum}{}$
   $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
 
   <!-- Algorithm related tools. -->
   <!-- Procedure statement. -->
@@ -127,6 +131,9 @@
   $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
   $\providecommand{\algoEndIf}{}$
   $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
   <!-- For statement. -->
   $\providecommand{\algoFor}{}$
   $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$

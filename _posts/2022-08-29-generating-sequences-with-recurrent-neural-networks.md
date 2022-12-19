@@ -140,15 +140,15 @@ $$
 \begin{align*}
 & \algoProc{SeqModel}(\xb, h_0^1, \dots, h_0^N) \\
 & \hspace{1em} \algoFor{t \in \set{1, \dots, T}} \\
-& \hspace{2em} h_t^1 = \Hc(W_{i h^1} x_t + W_{h^1 h^1} h_{t-1}^1 + b_h^1) && \tag{1}\label{1} \\
+& \hspace{2em} h_t^1 \algoEq \Hc(W_{i h^1} x_t + W_{h^1 h^1} h_{t-1}^1 + b_h^1) && \tag{1}\label{1} \\
 & \hspace{2em} \algoFor{n \in \set{2, \dots, N}} \\
-& \hspace{3em} h_t^n = \Hc(W_{i h^n} x_t + W_{h^{n-1} h^n} h_t^{n-1} + W_{h^n h^n} h_{t-1}^n + b_h^n) && \tag{2}\label{2} \\
+& \hspace{3em} h_t^n \algoEq \Hc(W_{i h^n} x_t + W_{h^{n-1} h^n} h_t^{n-1} + W_{h^n h^n} h_{t-1}^n + b_h^n) && \tag{2}\label{2} \\
 & \hspace{2em} \algoEndFor \\
-& \hspace{2em} \yh_t = b_y + \sum_{n = 1}^N W_{h^n y} h_t^n && \tag{3}\label{3} \\
-& \hspace{2em} y_t = \Yc(\yh_t) && \tag{4}\label{4} \\
+& \hspace{2em} \yh_t \algoEq b_y + \sum_{n = 1}^N W_{h^n y} h_t^n && \tag{3}\label{3} \\
+& \hspace{2em} y_t \algoEq \Yc(\yh_t) && \tag{4}\label{4} \\
 & \hspace{1em} \algoEndFor \\
-& \hspace{1em} \Pr(\xb) = \prod_{t = 1}^T \Pr(x_{t+1} \vert y_t) && \tag{5}\label{5} \\
-& \hspace{1em} \Lc(\xb) = -\sum_{t = 1}^T \log \Pr(x_{t+1} \vert y_t) && \tag{6}\label{6} \\
+& \hspace{1em} \Pr(\xb) \algoEq \prod_{t = 1}^T \Pr(x_{t+1} \vert y_t) && \tag{5}\label{5} \\
+& \hspace{1em} \Lc(\xb) \algoEq -\sum_{t = 1}^T \log \Pr(x_{t+1} \vert y_t) && \tag{6}\label{6} \\
 & \hspace{1em} \algoReturn \Pr(\xb), \Lc(\xb) \\
 & \algoEndProc
 \end{align*}
@@ -177,11 +177,11 @@ $$
 $$
 \begin{align*}
 & \algoProc{LSTM}(x_t, h_{t-1}, c_{t-1}) \\
-& \hspace{1em} i_t = \sigma(W_{x i} x_t + W_{h i} h_{t-1} + W_{c i} \odot c_{t - 1} + b_i) && \tag{7}\label{7} \\
-& \hspace{1em} f_t = \sigma(W_{x f} x_t + W_{h f} h_{t-1} + W_{c f} \odot c_{t - 1} + b_f) && \tag{8}\label{8} \\
-& \hspace{1em} c_t = f_t \odot c_{t-1} + i_t \odot \tanh(W_{x c} x_t + W_{h c} h_{t-1} + b_c) && \tag{9}\label{9} \\
-& \hspace{1em} o_t = \sigma(W_{x o} x_t + W_{h o} h_{t-1} + W_{c o} c_t + b_o) && \tag{10}\label{10} \\
-& \hspace{1em} h_t = o_t \odot \tanh(c_t) && \tag{11}\label{11} \\
+& \hspace{1em} i_t \algoEq \sigma(W_{x i} x_t + W_{h i} h_{t-1} + W_{c i} \odot c_{t - 1} + b_i) && \tag{7}\label{7} \\
+& \hspace{1em} f_t \algoEq \sigma(W_{x f} x_t + W_{h f} h_{t-1} + W_{c f} \odot c_{t - 1} + b_f) && \tag{8}\label{8} \\
+& \hspace{1em} c_t \algoEq f_t \odot c_{t-1} + i_t \odot \tanh(W_{x c} x_t + W_{h c} h_{t-1} + b_c) && \tag{9}\label{9} \\
+& \hspace{1em} o_t \algoEq \sigma(W_{x o} x_t + W_{h o} h_{t-1} + W_{c o} c_t + b_o) && \tag{10}\label{10} \\
+& \hspace{1em} h_t \algoEq o_t \odot \tanh(c_t) && \tag{11}\label{11} \\
 & \hspace{1em} \algoReturn h_t, c_t \\
 & \algoEndProc
 \end{align*}
