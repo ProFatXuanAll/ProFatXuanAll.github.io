@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Finding Structure in Time | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="Finding Structure in Time" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="目標 提出 Elman Net 作者 Jeffrey L. Elman 期刊/會議名稱 Cognitive Science 發表時間 1990 論文連結 https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1" />
+<meta property="og:description" content="目標 提出 Elman Net 作者 Jeffrey L. Elman 期刊/會議名稱 Cognitive Science 發表時間 1990 論文連結 https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1" />
+<link rel="canonical" href="/text%20modeling/2021/12/21/finding-structure-in-time.html" />
+<meta property="og:url" content="/text%20modeling/2021/12/21/finding-structure-in-time.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-12-21T18:47:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Finding Structure in Time" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2021-12-21T18:47:00+08:00","datePublished":"2021-12-21T18:47:00+08:00","description":"目標 提出 Elman Net 作者 Jeffrey L. Elman 期刊/會議名稱 Cognitive Science 發表時間 1990 論文連結 https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1","headline":"Finding Structure in Time","mainEntityOfPage":{"@type":"WebPage","@id":"/text%20modeling/2021/12/21/finding-structure-in-time.html"},"url":"/text%20modeling/2021/12/21/finding-structure-in-time.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] [] -->
+  
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Finding Structure in Time</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2021-12-21T18:47:00+08:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Dec 21, 2021
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_article_words] 4683 -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 29 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#RNN">#RNN</a><a class="post-tag" href="/tags.html#Elman Net">#Elman Net</a><a class="post-tag" href="/tags.html#model architecture">#model architecture</a><a class="post-tag" href="/tags.html#neural network">#neural network</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!-- Setup mathjax auto rendering. -->
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目標</td>
+      <td>提出 Elman Net</td>
+    </tr>
+    <tr>
+      <td>作者</td>
+      <td>Jeffrey L. Elman</td>
+    </tr>
+    <tr>
+      <td>期刊/會議名稱</td>
+      <td>Cognitive Science</td>
+    </tr>
+    <tr>
+      <td>發表時間</td>
+      <td>1990</td>
+    </tr>
+    <tr>
+      <td>論文連結</td>
+      <td><a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="section">重點</h2>
+
+<ul>
+  <li>世界上的語言以文字在句中的順序可以區分成兩種
+    <ul>
+      <li>Fixed word-order：文字的順序是有規則的，例如英文
+        <ul>
+          <li>需要考慮語法結構（syntactic structure）、謂詞（<a href="https://en.wikipedia.org/wiki/Predicate_(grammar)">predicate</a>）語意限制（<a href="https://en.wikipedia.org/wiki/Selection_(linguistics)">selective restrictions</a>）、次範疇化（<a href="https://en.wikipedia.org/wiki/Subcategorization">subcategorization</a>）、論元（<a href="https://en.wikipedia.org/wiki/Valency_(linguistics)">valency</a>）、對話（discourse）等</li>
+          <li>Chomsky 認為文字順序非線性（linear order），雖然人類只能觀測到線性順序，但大腦會自動轉換成非線性順序進行理解</li>
+        </ul>
+      </li>
+      <li>Free word-order：文字的順序替換規則較為自由，但不完全隨機</li>
+    </ul>
+  </li>
+  <li>在此論文之前的語言學研究認為所有語句都可以轉換成語法樹（syntactic tree），但不特別探討時間順序問題
+    <ul>
+      <li>作者認為在 parsing 任務仍然表現很差的情況下，此一假設不太適當</li>
+    </ul>
+  </li>
+  <li>在此論文之前的研究中，大多數的研究嘗試以 RNN 模型解決時間序列問題通常是隨著時間增加輸入維度</li>
+  <li>作者提出 Elman Net，使用隱藏層的計算結果進行回饋，就是現在常見的 RNN 架構
+    <ul>
+      <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.RNNCell.html">PyTorch 的 RNN</a> 模型就是基於 Elman Net 進行實作</li>
+    </ul>
+  </li>
+  <li>作者評估語言模型（language model）的方法不是困惑度（perplexity），而是期望值最大化（expectation maximization）
+    <ul>
+      <li>也許現在（2021）年的 pre-train model 該考慮一下期望值最大化的評估手段</li>
+    </ul>
+  </li>
+  <li>根據實驗結果，作者認為以 <strong>distributed representation</strong> 表達<strong>語言</strong>能夠同時學會<strong>字符</strong>（<strong>token</strong>）與<strong>種類</strong>（<strong>type</strong>）的知識
+    <ul>
+      <li>傳統 symbolic systems 需要手動定義字符與種類的差異</li>
+      <li>Distributed representation 比 symbolic systems 還要強大</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-1">以空間代表時間產生的問題</h2>
+
+<p>若時間序列 $x = x_1, \dots, x_T$，$T$ 為該序列的長度，則常見的時間序列處理方法為將每個時間的 $x_t$ 的輸入以一個維度作為代表，因此輸入維度就會與序列長度 $T$ 相同。</p>
+
+<p>以上的架構可以想成空間資訊描述時間資訊，但此方法有不少問題</p>
+
+<ul>
+  <li>模型一定要在取得所有輸入後才能計算，除了跟人類的行為不太一樣以外，模型<strong>沒有辦法自己知道什麼時候已經取得所有輸入</strong></li>
+  <li><strong>輸入維度固定</strong>代表訓練的過程必須要選擇<strong>最長</strong>的輸入序列作為模型輸入維度，除了<strong>浪費計算資源</strong>以外，在測試時<strong>過長的輸入就無法被處理</strong></li>
+  <li>輸入架構同時隱含<strong>距離關係</strong>，因此無法辨別<strong>相對時間差</strong>的觀念
+    <ul>
+      <li>當兩個輸入序列只有<strong>時間差上的差異</strong>，則直接將完整輸入序列丟進模型會導致模型無法區分相對時間的差異</li>
+      <li>例如：<code class="language-plaintext highlighter-rouge">011100000</code> 與 <code class="language-plaintext highlighter-rouge">000111000</code> 兩個序列，時間差為 $2$，但以向量直接表達時兩者的歐式距離為 $2$，此距離差異可能代表完全無關的資料</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="elman-net">Elman Net</h2>
+
+<p><a name="paper-fig-1"></a></p>
+
+<p>圖 1：Elman Net 架構。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/0kJih5k.png" alt="圖 1" /></p>
+
+<p>提出的架構概念如下</p>
+
+<ul>
+  <li>模型共有三層：輸入層 + 隱藏層 + 輸出層</li>
+  <li>序列資料按照時間依序輸入至模型</li>
+  <li>隱藏層會再作為下個時間點的輸入回饋到隱藏層
+    <ul>
+      <li>回饋的隱藏層額外稱為 <strong>Context Units</strong>，由於所有的隱藏單元都會回饋，因此 Context Units 與隱藏單元的個數一樣多</li>
+      <li>回饋的方法是全連接</li>
+      <li>Context Units 初始值設定為 $0.5$，理由是作者採用的啟發函數（activation function）數值範圍落在 $[0, 1]$ 之間（論文沒寫但應該是 sigmoid）</li>
+    </ul>
+  </li>
+  <li>最佳化的方法就是 BPTT</li>
+</ul>
+
+<h2 id="xor">實驗 1：序列版 XOR</h2>
+
+<h3 id="section-2">任務定義</h3>
+
+<p>傳統的兩層神經網路（輸入層 + 輸出層）是無法解決 XOR 問題，一定要額外使用隱藏層才有辦法解決。</p>
+
+<p>輸入只會是由 2 bits 組成的序列 $\set{00, 01, 10, 11}$，當輸入為 $\set{00, 11}$ 時輸出為 $0$，輸入為 $\set{01, 10}$ 時輸出為 $1$。</p>
+
+<p>序列版的 XOR 任務就是將 $N$ 組 XOR 的輸入輸出串接在一起（三個 bits 為一組），總共長度為 $3N$ bits，目標為在輸入一個 bit 之後預測下個 bit。</p>
+
+<ul>
+  <li>神經網路每個時間點收到的訊號就只有 $1$ 個 bit</li>
+  <li>實驗所採用的 $N = 1000$，即輸入序列由 $3000$ bits 所組成</li>
+  <li>最佳化目標為最小平方差（MSE）</li>
+  <li>以 $N = 3$ 為例，XOR 序列可以是 $110011101$
+    <ul>
+      <li>第一跟第二個 bits 為 $11$，因此第三個 bit 為 $0$；第四跟第五個 bits 為 $01$，因此第六個 bit 為 $1$；第七跟第八個 bits 為 $10$，因此第三個 bit 為 $1$。</li>
+      <li>第一個 bit 無法預測第二個 bit（是 $0$ 或 $1$ 的機率為 $50\%$），但第二個 bit 必須要透過第一個 bit 的資訊預測第三個 bit</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="elman-net-">Elman Net 架構</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>輸入層維度</td>
+      <td>$1$</td>
+      <td>一次只有 $1$ 個 bit 輸入</td>
+    </tr>
+    <tr>
+      <td>隱藏層維度</td>
+      <td>$2$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸出層維度</td>
+      <td>$1$</td>
+      <td>一次只有 $1$ 個 bit 輸出</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="section-3">實驗結果</h3>
+
+<p><a name="paper-fig-2"></a></p>
+
+<p>圖 2：序列版 XOR 實驗分析。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/Fs6mGLJ.png" alt="圖 2" /></p>
+
+<ul>
+  <li>模型在無法預測時誤差較高，可以預測時誤差較低，見<a href="#paper-fig-2">圖 2</a>
+    <ul>
+      <li>圖中的實驗結果只分析前 $12$ 個 bits，以 $1200$ 次實驗結果平均</li>
+      <li>至少要訓練 $600$ 次才可以達成上述結果</li>
+      <li>論文沒有著明最佳化所採用的學習率（learning rate）</li>
+    </ul>
+  </li>
+  <li>兩個隱藏單元在看到不同輸入 pattern 時維持開啟（接近 $1$）
+    <ul>
+      <li>當輸入都是由 $\set{000, 110}$ 組成時，其中一個隱藏單元維持開啟</li>
+      <li>當輸入都是由 $\set{011, 101}$ 組成時，另外一個隱藏單元維持開啟</li>
+      <li>與單純使用全連接層解決 XOR 的作法觀察到的隱藏單元現象不同，說明架構不同時對於類似的任務可以有不同的解法</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-4">實驗 2：字母序列</h2>
+
+<h3 id="section-5">任務定義</h3>
+
+<p><a name="paper-table-1"></a></p>
+
+<p>表 1：字母向量表達法與其意義。
+表格來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字母</th>
+      <th>consonant</th>
+      <th>vowel</th>
+      <th>interrupted</th>
+      <th>high</th>
+      <th>back</th>
+      <th>voiced</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">b</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">d</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">g</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">a</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">i</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">u</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>一個序列由 $6$ 個不同的字母組成，每個字母由 $6$ 個 bits 作為代表，細節請見<a href="#paper-table-1">表 1</a></li>
+  <li>首先由子音 <code class="language-plaintext highlighter-rouge">bdg</code> 生成總長度為 $1000$ 的隨機序列，接著將子音依照以下規則進行替換，產生的最終序列作為模型輸入
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">b</code> 換成 <code class="language-plaintext highlighter-rouge">ba</code></li>
+      <li><code class="language-plaintext highlighter-rouge">d</code> 換成 <code class="language-plaintext highlighter-rouge">dii</code></li>
+      <li><code class="language-plaintext highlighter-rouge">g</code> 換成 <code class="language-plaintext highlighter-rouge">guuu</code></li>
+    </ul>
+  </li>
+  <li>每個時間點輸入一個字母（6 bits），預測下一個時間點的字母
+    <ul>
+      <li>子音無法預測</li>
+      <li>當子音出現時母音可以預測</li>
+      <li>最後一個時間點的輸入預測目標是第一個時間點的輸入</li>
+    </ul>
+  </li>
+  <li>最佳化目標為最小平方差（MSE）</li>
+  <li>在同一個輸入序列（長度 $&gt; 1000$）上總共訓練 $200$ 次，測試時使用不同的序列（產生方法相同）進行測試</li>
+</ul>
+
+<h3 id="elman-net--1">Elman Net 架構</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>輸入層維度</td>
+      <td>$6$</td>
+      <td>一個字母有 $6$ 個 bits</td>
+    </tr>
+    <tr>
+      <td>隱藏層維度</td>
+      <td>$20$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸出層維度</td>
+      <td>$6$</td>
+      <td>一個字母有 $6$ 個 bits</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="section-6">實驗結果</h3>
+
+<p><a name="paper-fig-3"></a></p>
+
+<p>圖 3：字母序列輸出 $6$ 個 bits 的平均誤差實驗結果。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/yLHWxfr.png" alt="圖 3" /></p>
+
+<p><a name="paper-fig-4"></a></p>
+
+<p>圖 4：字母序列輸出第 $1$ 個 bit 的誤差實驗結果。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/BvnBbEV.png" alt="圖 4" /></p>
+
+<p><a name="paper-fig-5"></a></p>
+
+<p>圖 5：字母序列輸出第 $4$ 個 bit 的誤差實驗結果。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/U1U1joV.png" alt="圖 5" /></p>
+
+<ul>
+  <li>模型的平均誤差在無法預測時較高，可以預測時較低，見<a href="#paper-fig-3">圖 3</a></li>
+  <li>第 $1$ 個 bit 的規則是完全可以預測的
+    <ul>
+      <li>模型必須根據子音的類別（與第 $1, 4, 5$ 個 bits 有關）預測母音的個數</li>
+      <li>第 $1$ 個 bit 的預測誤差較低（見<a href="#paper-fig-4">圖 4</a>）說明模型能夠達成任務</li>
+    </ul>
+  </li>
+  <li>第 $4$ 個 bit 只能預測母音，無法預測子音
+    <ul>
+      <li>模型必須根據子音的類別（與第 $1, 4, 5$ 個 bits 有關）預測母音的個數</li>
+      <li>由於子音出現無規則，因此第 $4$ 個 bit 的預測誤差稍微高一點，見<a href="#paper-fig-5">圖 5</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-7">實驗 3：字母層級語言模型</h2>
+
+<p><a name="paper-table-2"></a></p>
+
+<p>表 2：字母向量表達法，每個字母以 $5$ bits 編碼。
+表格來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字母</th>
+      <th>bit</th>
+      <th>字母</th>
+      <th>bit</th>
+      <th>字母</th>
+      <th>bit</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">a</code></td>
+      <td><code class="language-plaintext highlighter-rouge">00001</code></td>
+      <td><code class="language-plaintext highlighter-rouge">b</code></td>
+      <td><code class="language-plaintext highlighter-rouge">00010</code></td>
+      <td><code class="language-plaintext highlighter-rouge">c</code></td>
+      <td><code class="language-plaintext highlighter-rouge">00011</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">d</code></td>
+      <td><code class="language-plaintext highlighter-rouge">00100</code></td>
+      <td><code class="language-plaintext highlighter-rouge">e</code></td>
+      <td><code class="language-plaintext highlighter-rouge">00101</code></td>
+      <td><code class="language-plaintext highlighter-rouge">f</code></td>
+      <td><code class="language-plaintext highlighter-rouge">00110</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">g</code></td>
+      <td><code class="language-plaintext highlighter-rouge">00111</code></td>
+      <td><code class="language-plaintext highlighter-rouge">h</code></td>
+      <td><code class="language-plaintext highlighter-rouge">01000</code></td>
+      <td><code class="language-plaintext highlighter-rouge">i</code></td>
+      <td><code class="language-plaintext highlighter-rouge">01001</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">j</code></td>
+      <td><code class="language-plaintext highlighter-rouge">01010</code></td>
+      <td><code class="language-plaintext highlighter-rouge">k</code></td>
+      <td><code class="language-plaintext highlighter-rouge">01011</code></td>
+      <td><code class="language-plaintext highlighter-rouge">l</code></td>
+      <td><code class="language-plaintext highlighter-rouge">01100</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">m</code></td>
+      <td><code class="language-plaintext highlighter-rouge">01101</code></td>
+      <td><code class="language-plaintext highlighter-rouge">n</code></td>
+      <td><code class="language-plaintext highlighter-rouge">01110</code></td>
+      <td><code class="language-plaintext highlighter-rouge">o</code></td>
+      <td><code class="language-plaintext highlighter-rouge">01111</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">p</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10000</code></td>
+      <td><code class="language-plaintext highlighter-rouge">q</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10001</code></td>
+      <td><code class="language-plaintext highlighter-rouge">r</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10010</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">s</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10011</code></td>
+      <td><code class="language-plaintext highlighter-rouge">t</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10100</code></td>
+      <td><code class="language-plaintext highlighter-rouge">u</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10101</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">v</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10110</code></td>
+      <td><code class="language-plaintext highlighter-rouge">w</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10111</code></td>
+      <td><code class="language-plaintext highlighter-rouge">x</code></td>
+      <td><code class="language-plaintext highlighter-rouge">11000</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">y</code></td>
+      <td><code class="language-plaintext highlighter-rouge">11001</code></td>
+      <td><code class="language-plaintext highlighter-rouge">z</code></td>
+      <td><code class="language-plaintext highlighter-rouge">11010</code></td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>使用簡單的單字（word）層級語言模型產生文字
+    <ul>
+      <li>可以產生的單字共有 $15$ 種</li>
+      <li>總共產生 $200$ 個句子，長度不一</li>
+      <li>每個句子包含最少 $4$ 個單字，最多 $9$ 個單字</li>
+    </ul>
+  </li>
+  <li>所有產生的句子串接在一起，產生總長為 $1270$ 個單字的序列，共由 $4963$ 個字母（letter）組成
+    <ul>
+      <li>由於英文只有 $26$ 個字母，因此每個字母以 $5$ bits 表達</li>
+    </ul>
+  </li>
+  <li>模型的任務為根據已經接收到的字母預測下個時間點的字母，即字母層級語言模型（letter-level language model）</li>
+  <li>總共訓練 $10$ 次，最佳化目標為最小平方差（MSE）</li>
+</ul>
+
+<h3 id="elman-net--2">Elman Net 架構</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>輸入層維度</td>
+      <td>$5$</td>
+      <td>一個字母有 $5$ 個 bits</td>
+    </tr>
+    <tr>
+      <td>隱藏層維度</td>
+      <td>$20$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸出層維度</td>
+      <td>$5$</td>
+      <td>一個字母有 $5$ 個 bits</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="section-8">實驗結果</h3>
+
+<p><a name="paper-fig-6"></a></p>
+
+<p>圖 6：字母層級語言模型預測誤差，圖中只顯示一部份字母語言序列（many years ago a boy and girl lived by the sea they played happily m）。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/nVD0jMO.png" alt="圖 6" /></p>
+
+<ul>
+  <li>模型誤差在出現新的單字時較高，在預測單字字母時較低，見<a href="#paper-fig-6">圖 6</a></li>
+  <li>大多數時可以依靠誤差進行斷字（當誤差相對上升時就可以斷字），但仍有部份單字不是用此規則
+    <ul>
+      <li>例如 they 的 y 誤差上升</li>
+      <li>在部份實驗（不包含在<a href="#paper-fig-6">圖 6</a>）中發現常見的單字序列有可能被當成可以連續預測的片段，導致誤差持續下降而無法斷字，作者認為此概念就像小孩在學習俗諺（idioms）一樣把俗諺當成單字使用</li>
+    </ul>
+  </li>
+  <li>作者認為不能只使用此模型進行斷字，必須同時考慮前後文，就如同語音辨識一樣
+    <ul>
+      <li>Elman Net 只是展示簡單的 RNN 能夠學到部份斷字的知識</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-9">實驗 4：單字層級語言模型</h2>
+
+<p><a name="paper-fig-7"></a></p>
+
+<p>圖 7：單字層級語言模型所使用的單字種類，共有 $13$ 種，只考慮名詞與動詞。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/Dv9knWh.png" alt="圖 7" /></p>
+
+<p><a name="paper-fig-8"></a></p>
+
+<p>圖 8：字母層級語言模型訓練資料生成模版。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/dko5W1S.png" alt="圖 8" /></p>
+
+<p><a name="paper-fig-9"></a></p>
+
+<p>圖 9：部份訓練資料範例。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/ByfVIn0.png" alt="圖 9" /></p>
+
+<ul>
+  <li>使用<a href="#paper-fig-7">圖 7</a> 的單字與<a href="#paper-fig-8">圖 8</a> 的模版生成訓練資料
+    <ul>
+      <li>每筆訓練資料只會包含 $2 \sim 3$ 個字</li>
+      <li>共有 $13$ 個不同類別的名詞與動詞，總共有 $29$ 個不同的單字</li>
+      <li>部份動詞會跨類別，例如 <code class="language-plaintext highlighter-rouge">break</code> 屬於破壞動詞 <code class="language-plaintext highlighter-rouge">VERB-DESTORY</code> 但也同時屬於及物動詞 <code class="language-plaintext highlighter-rouge">VERB-TRAN</code>（transitive）</li>
+    </ul>
+  </li>
+  <li>總共產生 $10000$ 筆訓練資料，每筆資料必須符合<a href="#paper-fig-8">圖 8</a> 的模版（selective restrictions），最後所有資料串接在一起形成長度為 $27354$ 的文字序列
+    <ul>
+      <li>每筆資料中的字由 $31$ bits 的 one-hot vector 代表</li>
+      <li>$31$ bits 的理由是後續的實驗會繼續使用相同的架構</li>
+      <li>總 bits 數為 $27354 \times 31 = 853554$</li>
+      <li>部份訓練資料範例請見<a href="#paper-fig-9">圖 9</a></li>
+    </ul>
+  </li>
+  <li>模型的任務為根據已經接收到的單字預測下個時間點的單字，即單字層級語言模型（word-level language model）
+    <ul>
+      <li>句子之間無明顯分割，模型無法預測下個句子的開頭</li>
+      <li>在句子中由於接續的動詞與名詞都有多個選項，模型也無法準確預測</li>
+      <li>但接續的單字仍然有固定的規則，模型必須學會該規則在輸入序列中的<strong>期望值</strong></li>
+      <li>因此訓練目標是 one-hot vector 的最小平方差（MSE），預測目標是期望值的 MSE</li>
+    </ul>
+  </li>
+  <li>期望值的計算方法如下
+    <ul>
+      <li>句子開頭的期望值為：句子開頭的出現次數除以 $10000$（總共有 $10000$ 個句子）</li>
+      <li>中間動詞的期望值為：中間動詞出現次數除以相同開頭名詞的出現次數</li>
+      <li>結尾名詞的期望值為：結尾名詞出現次數除以相同開頭名詞 + 動詞的出現次數</li>
+    </ul>
+  </li>
+  <li>總共訓練 $6$ 次
+    <ul>
+      <li>每次訓練的結尾會接續訓練的開始</li>
+      <li>評估方法為方均根差（Root Mean Square Error，RMSE）</li>
+      <li>RMSE 計算對象可以是 one-hot vector 或期望值</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="elman-net--3">Elman Net 架構</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>輸入層維度</td>
+      <td>$31$</td>
+      <td>一個單字有 $31$ 個 bits</td>
+    </tr>
+    <tr>
+      <td>隱藏層維度</td>
+      <td>$150$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸出層維度</td>
+      <td>$31$</td>
+      <td>一個單字有 $31$ 個 bits</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="section-10">實驗結果</h3>
+
+<ul>
+  <li>訓練後模型輸出與真實答案（one-hot vector）之間的 RMSE 為 $0.88$
+    <ul>
+      <li>作者發現由於輸出數字絕大部份為 $0$（sparse），因此模型很快就學會將輸出降為 $0$</li>
+      <li>模型的起始誤差為 $15.5$，最終誤差接近 $1$，在所有輸出都接近 $0$ 的狀況下作者認為 RMSE 為 $0.88$ 並不是什麼了不起的事</li>
+    </ul>
+  </li>
+  <li>訓練後模型輸出與期望值之間的 RMSE 為 $0.053$，標準差為 $0.1$</li>
+  <li>由於模型的輸出加總並不為 $1$（不像現代（2021）都有使用 softmax），因此使用 cosine similarity 評估
+    <ul>
+      <li>與期望值之間的 cosine similarity 為 $1$ 時仍然有可能 RMSE 不為 $0$</li>
+      <li>與期望值之間的平均 cosine similarity 為 $0.916$，標準差為 $0.123$</li>
+    </ul>
+  </li>
+  <li>不論是 RMSE 或 cosine similarity，模型表現都不錯
+    <ul>
+      <li>由於輸入彼此正交，模型只能透過共同出現統計次數（co-occurrence statistics）進行學習</li>
+      <li>模型有可能透過 co-occurrence 學會單字種類這種泛化能力（generalization），因此作者接下來對單字種類進行分析</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-11">分析 4-1：隱藏單元的群集</h3>
+
+<p><a name="paper-fig-10"></a></p>
+
+<p>圖 10：群集分析結果。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/7WnWsXM.png" alt="圖 10" /></p>
+
+<ul>
+  <li>將每個時間點產生所得的隱藏單元儲存起來
+    <ul>
+      <li>總共儲存 $27354 \times 150$ bits</li>
+      <li>注意是隱藏單元不是輸出單元</li>
+    </ul>
+  </li>
+  <li>將<strong>相同單字</strong>產生的隱藏單元加起來取平均，並將結果進行群集（clustering）分析
+    <ul>
+      <li>作者沒說群集分析採用什麼演算法與距離函數（metric）</li>
+    </ul>
+  </li>
+  <li>主要的群集以詞性區分，見<a href="#paper-fig-10">圖 10</a>
+    <ul>
+      <li>動詞的主要群集以及物動詞（transitive）、不及物動詞（intransitive）或兩者皆可進行區分</li>
+      <li>名詞的主要群集以可動物（animates）與不可動物（inanimate）進行區分
+        <ul>
+          <li>可動物的主要群集以人類（human）與非人類（nonhuman）進行區分</li>
+          <li>不可動物的主要群集以可破壞（breakable）、可實用（edibles）與非人類主詞（subjects of agentless ative verbs）進行區分</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>根據群集觀察結果可以推論模型學會以類別進行區分的泛化能力
+    <ul>
+      <li>即使模型無法準確預測單字（任務本身的特性），但仍能學會泛化能力</li>
+      <li>由於輸入並沒有給予類別資訊，並非如人類學習語言的過程，作者認為實驗結果非常有趣</li>
+      <li>作者強調群集結果不是絕對正確，因為部份群集可以同時在距離空間（metric space）上被分成不同群集，但同時共享相同特性</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-12">分析 4-2：模型泛化能力</h3>
+
+<p><a name="paper-fig-11"></a></p>
+
+<p>圖 11：模型泛化能力測試結果。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/Fs5W81y.png" alt="圖 11" /></p>
+
+<ul>
+  <li>加入完全無意義的新字 <code class="language-plaintext highlighter-rouge">zog</code>，並以第 $30$ 個 bit 為 $1$ 的 one-hot vector 進行表達
+    <ul>
+      <li>將所有 <code class="language-plaintext highlighter-rouge">man</code> 出現的位置都替換成 <code class="language-plaintext highlighter-rouge">zog</code></li>
+      <li>新的序列（$27354 \times 31$ 個 bits）直接輸入給模型，不做任何的訓練，並紀錄隱藏單元後進行與分析 4-1 相同的群集分析</li>
+    </ul>
+  </li>
+  <li>根據實驗結果發現 <code class="language-plaintext highlighter-rouge">zog</code> 與 <code class="language-plaintext highlighter-rouge">man</code> 的表現接近，說明模型擁有泛化</li>
+</ul>
+
+<h3 id="section-13">分析 4-3：上下文感知能力</h3>
+
+<p><a name="paper-fig-12"></a></p>
+
+<p>圖 12：模型泛化能力測試結果。
+圖片來源：<a href="https://onlinelibrary.wiley.com/doi/abs/10.1207/s15516709cog1402_1">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/RNwrZKv.png" alt="圖 12-1" />
+<img src="https://i.imgur.com/RIV0mL3.png" alt="圖 12-2" /></p>
+
+<ul>
+  <li>由於分析 4-1 的結果是以隱藏層<strong>平均</strong>向量進行分析，而平均運算將前文的概念去除，因此無法判斷模型是否擁有上下文感知（context sensitive）能力</li>
+  <li>使用平均進行實驗在計算上是比較實際的，但真的要分析前後文內容只能依靠單筆資料的計算結果進行分析
+    <ul>
+      <li>總共有 $27454$ 個 $150$ bits 的向量（包含 <code class="language-plaintext highlighter-rouge">zog</code>）</li>
+      <li>由於種類過多無法視覺化，但概念與<a href="#paper-fig-10">圖 10</a> 相同，只是群集同時考量前文</li>
+    </ul>
+  </li>
+  <li><a href="#paper-fig-10">圖 10</a> 證實模型學會了從 $29$ 種單字中找出類別資訊，<a href="#paper-fig-12">圖 12</a> 證實模型能夠區分類似的前後文
+    <ul>
+      <li>相同的單字在不同的前後文中會被分成不同的群集
+        <ul>
+          <li>模型能夠區分單字出現在開頭與結尾</li>
+        </ul>
+      </li>
+      <li>意義相同的單字會出現類似的群集</li>
+    </ul>
+  </li>
+  <li>根據實驗結果，作者認為以 <strong>distributed representation</strong> 表達<strong>語言</strong>能夠同時學會<strong>字符</strong>（<strong>token</strong>）與<strong>種類</strong>（<strong>type</strong>）的知識
+    <ul>
+      <li>傳統 symbolic systems 需要手動定義字符與種類的差異</li>
+      <li>Distributed representation 比 symbolic systems 還要強大</li>
+    </ul>
+  </li>
+</ul>
+
+
+
+<!-- Avoid copy by China, method 1. -->
+<script>
+  console.log(`
+台.灣.獨.立.香.港.獨.立.西.藏.獨.立.新.疆.獨.立.內.蒙.古.獨.立.......
+..... ... ................:fffffLt.............一.九.八.九.六.四
+... ,i111i;............. ;L111111LL....習.包.子.近.平.小.熊.維.尼
+...iLfttttff,  ..,::;;;;;Cftt11111C:...........中.國.武.漢.肺.炎
+..;C1111111tf:ittfttttttttttfffft1L,..........................
+. ff11111111fCtt11111111111111ttfC1 ..........................
+. tf11111111ft11111111111111111111tt;. .......................
+..:L11111111t11111111111111111111111fti, .....................
+.. ;Lt11111111111111111111111111111111tCt:, ..................
+... ,tf111111111111111111tLLLt111111111LG00t..................
+.... 1f11111111111111111LGLtt1111111111111tLt.................
+....:f11111111111111111tf1111111111111111111t.................
+... 1f111111111111111111111111111111tt11111t,.................
+... tt111111111111111111111111111111L11LG11f:.................
+... tt111111111111111111111tGC111111Lt108111tti:..............
+... if111111111111111111111f8C111111ttttttfft1ttt,............
+....,f111111111111111111111111111111111fG0088C11tf............
+.....tt111111111111111111111111111111110@888@0111f; ..........
+.....,f111111111111111111111111111111111C000CL111Li ..........
+......;f11111111111111111111tt11111111111111ft111L,...........
+...... tt111111111111111111tfGf111111111111ff111L; ...........
+.....;fCt11111111111111111111f0Cft1111111fLt111Li ............
+.... fCCLftt111111111111111111fGGGCLLfLfff1111t; .............
+.....:CLLCCCCLLftt1111111111111tfLCGGG0L1111fL;...............
+..... LLLLLLLLLCCCLLftt1111111111ttffttt1ttCCLGf..............
+.... iCLLLLLLLLLLLLLCCCLLftt11111111tfffft1fGCC; .............
+... ;CLLLLLLLLLLLLCLLLLLLLCCLLLLLLffft1111tLGLL:,.. ..........
+...:GLLLLLLLLLLLLLCCCCCLLLLLLLLLCCLLLLLLLLCCLGGLLf1i:,. ......
+.. iCLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCLCCLLLCCCti. ....
+...iCLLLLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCCLLLGCCCLi,...
+.. iCLLLLLLLLLLLLLLLLLLLLLLCCGCCCLLLLLLLLLLLLLLLCLLCGLCCCGCti,
+. :LLLLLLLLLLLLLLLLLLLLLLCLt111tffLLCCCCCLLLLLLLGCLGGCLftLCCCL
+.;CLLLLLLLLLLLLLLLLLLLLLCf11111111111tttffLLLLLLLLfLft111CCCCG
+;GLLLLLLLLLLCCLLLLLLLLLCt1111111111111111111111111111111111ttt
+.;CLLLLLLLLLLCCCLLLLLLCf11111111111111111111111111111111111111
+`)
+</script>
+
+<!-- Avoid copy by China, method 2. -->
+<!--
+台獨教父 Xi Jinping
+⣿⣿⣿⣿⣿⠟⠋⠄⠄⠄⠄⠄⠄⠄⢁⠈⢻⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⡀⠭⢿⣿⣿⣿⣿
+⣿⣿⣿⣿⡟⠄⢀⣾⣿⣿⣿⣷⣶⣿⣷⣶⣶⡆⠄⠄⠄⣿⣿⣿⣿
+⣿⣿⣿⣿⡇⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣇⣼⣿⣿⠿⠶⠙⣿⡟⠡⣴⣿⣽⣿⣧⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣾⣿⣿⣟⣭⣾⣿⣷⣶⣶⣴⣶⣿⣿⢄⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⡟⣩⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣹⡋⠘⠷⣦⣀⣠⡶⠁⠈⠁⠄⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⠃⣴⣶⡔⠒⠄⣠⢀⠄⠄⠄⡨⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣦⡘⠿⣷⣿⠿⠟⠃⠄⠄⣠⡇⠈⠻⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠟⠋⢁⣷⣠⠄⠄⠄⠄⣀⣠⣾⡟⠄⠄⠄⠄⠉⠙⠻
+⡿⠟⠋⠁⠄⠄⠄⢸⣿⣿⡯⢓⣴⣾⣿⣿⡟⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⠄⣿⡟⣷⠄⠹⣿⣿⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣸⣿⡷⡇⠄⣴⣾⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣿⣿⠃⣦⣄⣿⣿⣿⠇⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⢸⣿⠗⢈⡶⣷⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet
+六四天安門事件 The Tiananmen Square protests of 1989
+天安門大屠殺 The Tiananmen Square Massacre
+反右派鬥爭 The Anti-Rightist Struggle
+大躍進政策 The Great Leap Forward
+文化大革命 The Great Proletarian Cultural Revolution
+人權 Human Rights
+民運 Democratization
+自由 Freedom
+獨立 Independence
+多黨制 Multi-party system
+台灣 臺灣 Taiwan Formosa
+西藏 土伯特 唐古特 Tibet
+達賴喇嘛 Dalai Lama
+法輪功 Falun Dafa
+新疆維吾爾自治區 The Xinjiang Uyghur Autonomous Region
+諾貝爾和平獎 Nobel Peace Prize
+劉暁波 Liu Xiaobo
+民主 言論 思想 反共 反革命 抗議 運動 騷亂 暴亂 騷擾 擾亂 抗暴 平反 維權 示威游行 李洪志
+法輪大法 大法弟子 強制斷種 強制堕胎 民族淨化 人體實驗 肅清 胡耀邦 趙紫陽 魏京生 王丹
+還政於民 和平演變 激流中國 北京之春 大紀元時報 九評論共産黨 獨裁 專制 壓制 統一 監視 鎮壓
+迫害 侵略 掠奪 破壞 拷問 屠殺 活摘器官 誘拐 買賣人口
+Winnie the Pooh
+-->
+
+    </div>
+
+</article>
+<div class="post-nav"><a class="previous" href="/general%20sequence%20modeling/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html" title="Learning to Forget: Continual Prediction with LSTM">Learning to Forget: Continual Prediction with...</a><a class="next" href="/general%20sequence%20modeling/2021/12/29/learning-precise-timing-with-lstm-recurrent-networks.html" title="Learning Precise Timing with LSTM Recurrent Networks">Learning Precise Timing with LSTM Recurrent...</a></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/acoustic%20modeling/2022/03/01/long-short-term-memory-based-recurrent-neural-network-architectures-for-large-scale-vocabulary-speech-recognition.html" title="Learning Precise Timing with LSTM Recurrent Networks">Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary...</a></li><li><a class="post-link" href="/acoustic%20modeling/2021/12/06/a-time-delay-neural-network-architecture-for-isolated-word-recognition.html" title="Learning Precise Timing with LSTM Recurrent Networks">A time-delay neural network architecture for isolated word recognition</a></li><li><a class="post-link" href="/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html" title="Learning Precise Timing with LSTM Recurrent Networks">Building a Large Annotated Corpus of English : The Penn Treebank</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html" title="Learning Precise Timing with LSTM Recurrent Networks">Local Feedback Multilayered Networks</a></li></ul>
+    </div><div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>

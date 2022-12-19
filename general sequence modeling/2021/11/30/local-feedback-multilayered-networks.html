@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Local Feedback Multilayered Networks | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="Local Feedback Multilayered Networks" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="目標 分析 Local Feedback Multilayered Networks，證明該模型擁有遺忘行為，並認為遺忘行為是好現象 作者 Paolo Frasconi, Marco Gori, Giovanni Soda 期刊/會議名稱 Neural Computation 發表時間 1992 論文連結 https://direct.mit.edu/neco/article-abstract/4/1/120/5626/Local-Feedback-Multilayered-Networks" />
+<meta property="og:description" content="目標 分析 Local Feedback Multilayered Networks，證明該模型擁有遺忘行為，並認為遺忘行為是好現象 作者 Paolo Frasconi, Marco Gori, Giovanni Soda 期刊/會議名稱 Neural Computation 發表時間 1992 論文連結 https://direct.mit.edu/neco/article-abstract/4/1/120/5626/Local-Feedback-Multilayered-Networks" />
+<link rel="canonical" href="/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html" />
+<meta property="og:url" content="/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-11-30T14:21:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Local Feedback Multilayered Networks" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2021-11-30T14:21:00+08:00","datePublished":"2021-11-30T14:21:00+08:00","description":"目標 分析 Local Feedback Multilayered Networks，證明該模型擁有遺忘行為，並認為遺忘行為是好現象 作者 Paolo Frasconi, Marco Gori, Giovanni Soda 期刊/會議名稱 Neural Computation 發表時間 1992 論文連結 https://direct.mit.edu/neco/article-abstract/4/1/120/5626/Local-Feedback-Multilayered-Networks","headline":"Local Feedback Multilayered Networks","mainEntityOfPage":{"@type":"WebPage","@id":"/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html"},"url":"/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] [] -->
+  
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Local Feedback Multilayered Networks</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2021-11-30T14:21:00+08:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Nov 30, 2021
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_article_words] 10059 -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 1 hour 2 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#RNN">#RNN</a><a class="post-tag" href="/tags.html#BPTT">#BPTT</a><a class="post-tag" href="/tags.html#gradient descent">#gradient descent</a><a class="post-tag" href="/tags.html#model architecture">#model architecture</a><a class="post-tag" href="/tags.html#neural network">#neural network</a><a class="post-tag" href="/tags.html#note-is-under-construction">#note-is-under-construction</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!-- Setup mathjax auto rendering. -->
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目標</td>
+      <td>分析 Local Feedback Multilayered Networks，證明該模型擁有遺忘行為，並認為遺忘行為是<strong>好現象</strong></td>
+    </tr>
+    <tr>
+      <td>作者</td>
+      <td>Paolo Frasconi, Marco Gori, Giovanni Soda</td>
+    </tr>
+    <tr>
+      <td>期刊/會議名稱</td>
+      <td>Neural Computation</td>
+    </tr>
+    <tr>
+      <td>發表時間</td>
+      <td>1992</td>
+    </tr>
+    <tr>
+      <td>論文連結</td>
+      <td><a href="https://direct.mit.edu/neco/article-abstract/4/1/120/5626/Local-Feedback-Multilayered-Networks">https://direct.mit.edu/neco/article-abstract/4/1/120/5626/Local-Feedback-Multilayered-Networks</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!--
+  Define LaTeX command which will be used through out the writing.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+
+  <!-- Operators. -->
+  $\providecommand{\opin}{}$
+  $\renewcommand{\opin}{\operatorname{in}}$
+  $\providecommand{\ophid}{}$
+  $\renewcommand{\ophid}{\operatorname{hid}}$
+  $\providecommand{\opout}{}$
+  $\renewcommand{\opout}{\operatorname{out}}$
+  $\providecommand{\oploss}{}$
+  $\renewcommand{\oploss}{\operatorname{loss}}$
+  $\providecommand{\opnorm}{}$
+  $\renewcommand{\opnorm}{\operatorname{normal}}$
+  $\providecommand{\oprecur}{}$
+  $\renewcommand{\oprecur}[1]{\operatorname{recur}_{#1}}$
+
+  <!-- Dimensions. -->
+  $\providecommand{\din}{}$
+  $\renewcommand{\din}{d_{\opin}}$
+  $\providecommand{\dhid}{}$
+  $\renewcommand{\dhid}{d_{\ophid}}$
+  $\providecommand{\dout}{}$
+  $\renewcommand{\dout}{d_{\opout}}$
+
+  <!-- Weights. -->
+  $\providecommand{\whid}{}$
+  $\renewcommand{\whid}{w^{\ophid}}$
+  $\providecommand{\wout}{}$
+  $\renewcommand{\wout}{w^{\opout}}$
+  $\providecommand{\Wout}{}$
+  $\renewcommand{\Wout}{W^{\opout}}$
+
+  <!-- Self-connected weights. -->
+  $\providecommand{\uhid}{}$
+  $\renewcommand{\uhid}{u^{\ophid}}$
+  $\providecommand{\uout}{}$
+  $\renewcommand{\uout}{u^{\opout}}$
+  $\providecommand{\vhid}{}$
+  $\renewcommand{\vhid}{v^{\ophid}}$
+  $\providecommand{\vout}{}$
+  $\renewcommand{\vout}{v^{\opout}}$
+
+</p>
+
+<!-- End LaTeX command define section. -->
+
+<h2 id="section">重點</h2>
+
+<ul>
+  <li>分析 Local Feedback Multilayered Networks
+    <ul>
+      <li>是 RNN 模型的其中一種</li>
+      <li>作者認為 RNN 架構不需要全連結</li>
+      <li>Feedback connection 只能接到相同的來源</li>
+      <li>提出兩種不同的 feedback connection 架構，分別稱為<strong>淨輸入遞迴單元</strong>與<strong>啟發值遞迴單元</strong></li>
+      <li>提倡使用<strong>啟發值遞迴單元</strong></li>
+      <li>作者證明 Local Feedback Multilayered Networks 在特定條件下擁有<strong>遺忘行為</strong>（<strong>Forgetting Behavior</strong>）</li>
+    </ul>
+  </li>
+  <li>作者認為如果 RNN 模型擁有<strong>遺忘行為</strong>，則該 RNN 就等同於<strong>簡單的 MLP</strong>，但輸入是<strong>固定範圍</strong>的資訊
+    <ul>
+      <li>作者認為遺忘行為能夠幫助模型忘記<strong>較早期</strong>已經處理過的資訊，在<strong>語音辨識</strong>中是很重要的功能</li>
+      <li>從現在的角度來看，我覺得就像是使用 RNN 模擬一個簡單的 <strong>CNN</strong></li>
+    </ul>
+  </li>
+  <li>由於模型擁有遺忘行為，因此最佳化不需要計算完整的 BPTT，計算時間與空間不會隨著時間增加
+    <ul>
+      <li>此現象稱為 Local in both Space and Time</li>
+    </ul>
+  </li>
+  <li>提出<strong>儲存正負號</strong>（<strong>Information Latching</strong>）的概念
+    <ul>
+      <li>作者證明 Local Feedback Multilayered Networks 在特定條件下能夠儲存正負號</li>
+      <li>雖然模型會忘記過去的資訊，但可以永遠維持過去資訊計算所得的正負號</li>
+      <li>但此功能無法解決輸入較長的任務，例如無法模擬計數器</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-1">模型架構</h2>
+
+<p>論文提出的架構包含一個輸入層、<strong>多個</strong>隱藏層與一個輸出層。
+但論文中所有分析都是建立於只有<strong>一個</strong>隱藏層的前提，因此我們也只討論只有一層隱藏層的架構。</p>
+
+<p>定義以下符號</p>
+
+<ul>
+  <li>$T$ 代表輸入序列的<strong>長度</strong>
+    <ul>
+      <li>模型會按照 $t = 1, \dots T$ 的順序得到輸入，並產出輸出</li>
+    </ul>
+  </li>
+  <li>$I$ 代表所有輸入單元所形成的集合
+    <ul>
+      <li>第 $t$ 個時間點的所有輸入單元定義為 $x(t)$，維度為 $\din$</li>
+      <li>使用腳標 $x_k(t) \in I$ 代表 $t$ 時間點的第 $k$ 個輸入單元，$k = 1, \dots, \din$</li>
+    </ul>
+  </li>
+  <li>$H$ 代表所有隱藏單元所形成的集合
+    <ul>
+      <li>第 $t$ 個時間點的所有隱藏單元定義為 $h(t)$，維度為 $\dhid$</li>
+      <li>使用腳標 $h_j(t) \in H$ 代表 $t$ 時間點的第 $j$ 個隱藏單元，$j = 1, \dots, \dhid$</li>
+    </ul>
+  </li>
+  <li>$O$ 代表所有輸出單元所形成的集合
+    <ul>
+      <li>第 $t$ 個時間點的所有輸出單元定義為 $y(t)$，維度為 $\dout$</li>
+      <li>使用腳標 $y_i(t) \in O$ 代表 $t$ 時間點的第 $i$ 個輸出單元，$i = 1, \dots, \dout$</li>
+    </ul>
+  </li>
+  <li>$D$ 代表所有<strong>遞迴單元</strong>所形成的集合
+    <ul>
+      <li>論文定義所有遞迴單元只能是<strong>隱藏</strong>單元或是<strong>輸出</strong>單元，因此 $D \subseteq H \cup O$</li>
+      <li>所有動態單元只能與<strong>自己連接</strong>還有<strong>直接</strong>和<strong>輸入</strong>連接</li>
+      <li>與自己連接的方法有<strong>兩種</strong>
+        <ul>
+          <li>與淨輸入（net input）相連，我們稱為<strong>淨輸入遞迴單元</strong></li>
+          <li>與啟發值（activation）相連，我們稱為<strong>啟發值遞迴單元</strong></li>
+        </ul>
+      </li>
+      <li>論文又稱這些遞迴單元為<strong>動態</strong>單元</li>
+      <li>相對於動態單元，所有沒有進行遞迴的單元則被稱為<strong>靜態</strong>單元，我們以<strong>非遞迴</strong>單元稱呼</li>
+    </ul>
+  </li>
+  <li>隱藏層與輸出層使用的<strong>啟發函數</strong> $f : \R \to [-1, 1]$ 定義為 $f(a) = \tanh(a / 2)$</li>
+</ul>
+
+<h3 id="section-2">隱藏單元</h3>
+
+<p>若以遞迴與否加上遞迴方式進行區分，共有<strong>三</strong>種不同的隱藏單元，分別為</p>
+
+<ul>
+  <li>非遞迴隱藏單元，共有 $\opnorm(h)$ 個</li>
+  <li>淨輸入遞迴隱藏單元，共有 $\oprecur{1}(h)$ 個</li>
+  <li>啟發值遞迴隱藏單元，共有 $\oprecur{2}(h)$ 個</li>
+</ul>
+
+<p>因此 $\dhid = \opnorm(h) + \oprecur{1}(h) + \oprecur{2}(h)$。</p>
+
+<h4 id="section-3">非遞迴隱藏單元</h4>
+
+\[h_j(t) = f\pa{\whid_j \odot x(t)} = f\pa{\sum_{k = 1}^{\din} \whid_{j k} \cdot x_k(t)} \tag{1}\label{1}\]
+
+<ul>
+  <li>將 $t$ 時間點的輸入 $x(t)$ 透過<strong>全連接</strong>的方式計算 $t$ 時間點的第 $j$ 個<strong>隱藏單元</strong> $h_j(t)$
+    <ul>
+      <li>當隱藏單元的架構為 $\eqref{1}$ 時，我們以 $h_j(t) \in H \setminus D$ 進行表達</li>
+      <li>$j$ 的範圍為 $j = 1, \dots, \opnorm(h)$</li>
+    </ul>
+  </li>
+  <li>參數 $\whid$ 的維度為 $\dhid \times \din$，與 $\eqref{2} \eqref{3}$ 共享參數</li>
+  <li>$t$ 時間點的<strong>非遞迴隱藏單元</strong>唯一的訊號來源就是 $t$ 時間點的輸入 $x(t)$</li>
+  <li>$\eqref{1}$ 就是論文中的 2.1 式</li>
+</ul>
+
+<h4 id="section-4">淨輸入遞迴隱藏單元</h4>
+
+\[\begin{align*}
+\tilde{h}_j(0) &amp; = 0 \\
+\tilde{h}_j(t) &amp; = \uhid_j \cdot \tilde{h}_j(t - 1) + \whid_j \odot x(t) \\
+h_j(t) &amp; = f\pa{\tilde{h}_j(t)}
+\end{align*} \tag{2}\label{2}\]
+
+<ul>
+  <li>基於 $\eqref{1}$，但額外加上 $t - 1$ 時間點的第 $j$ 個<strong>淨輸入遞迴隱藏單元的淨輸入</strong> $\tilde{h}_j(t - 1)$
+    <ul>
+      <li>$\uhid$ 的維度為 $\oprecur{1}(h)$</li>
+      <li>$\uhid$ 的下標應該要從 $1$ 開始，但為了方便表達我們改成從 $\opnorm(h) + 1$ 開始</li>
+      <li>與 $\eqref{3}$ 的差別在於不是使用<strong>啟發值</strong>進行遞迴</li>
+      <li>與 $\eqref{1} \eqref{3}$ 共享參數 $\whid$</li>
+      <li>當隱藏單元的架構為 $\eqref{2}$ 時，我們以 $h_j(t) \in H \cap D$ 進行表達</li>
+      <li>$j$ 的範圍為 $j = \opnorm(h) + 1, \dots, \opnorm(h) + \oprecur{1}(h)$</li>
+    </ul>
+  </li>
+  <li>第 $j$ 個淨輸入遞迴隱藏單元的訊號來源共有兩種
+    <ul>
+      <li>$t$ 時間點的的輸入 $x(t)$</li>
+      <li>$t - 1$ 時間點的第 $j$ 個<strong>淨輸入遞迴隱藏單元的淨輸入</strong></li>
+    </ul>
+  </li>
+  <li><strong>遞迴</strong>的來源就是 $\tilde{h}_j(t - 1)$</li>
+  <li>$\eqref{2}$ 就是論文中的 2.2 式</li>
+</ul>
+
+<h4 id="section-5">啟發值遞迴隱藏單元</h4>
+
+\[\begin{align*}
+h_j(0) &amp; = 0 \\
+\bar{h}_j(t) &amp; = \vhid_j \cdot h_j(t - 1) + \whid_j \odot x(t) \\
+h_j(t) &amp; = f\pa{\bar{h}_j(t)}
+\end{align*} \tag{3}\label{3}\]
+
+<ul>
+  <li>基於 $\eqref{1}$，但額外加上 $t - 1$ 時間點的第 $j$ 個隱藏單元 $h_j(t - 1)$
+    <ul>
+      <li>$\vhid$ 的維度為 $\oprecur{2}(h)$</li>
+      <li>$\vhid$ 的下標應該要從 $1$ 開始，但為了方便表達我們改成從 $\opnorm(h) + \oprecur{1}(h) + 1$ 開始</li>
+      <li>與 $\eqref{2}$ 的差別在於不是使用<strong>淨輸入</strong>進行遞迴</li>
+      <li>與 $\eqref{1} \eqref{2}$ 共享參數 $\whid$</li>
+      <li>當隱藏單元的架構為 $\eqref{3}$ 時，我們以 $h_j(t) \in H \cap D$ 進行表達</li>
+      <li>$j$ 的範圍為 $j = \opnorm(h) + \oprecur{1}(h) + 1, \dots, \opnorm(h) + \oprecur{1}(h) + \oprecur{2}(h)$</li>
+    </ul>
+  </li>
+  <li>第 $j$ 個啟發值遞迴隱藏單元的訊號來源共有兩種
+    <ul>
+      <li>$t$ 時間點的的輸入 $x(t)$</li>
+      <li>$t - 1$ 時間點的第 $j$ 個<strong>隱藏單元</strong></li>
+    </ul>
+  </li>
+  <li><strong>遞迴</strong>的來源就是 $h_j(t - 1)$</li>
+  <li>$\eqref{3}$ 就是論文中的 2.3 式</li>
+</ul>
+
+<h3 id="section-6">輸出單元</h3>
+
+<p>若以遞迴與否加上遞迴方式進行區分，共有<strong>三</strong>種不同的輸出單元，分別為</p>
+
+<ul>
+  <li>非遞迴輸出單元，共有 $\opnorm(y)$ 個</li>
+  <li>淨輸入遞迴輸出單元，共有 $\oprecur{1}(y)$ 個</li>
+  <li>啟發值遞迴輸出單元，共有 $\oprecur{2}(y)$ 個</li>
+</ul>
+
+<p>因此 $\dout = \opnorm(y) + \oprecur{1}(y) + \oprecur{2}(y)$。</p>
+
+<p>與隱藏單元不同的是，遞迴輸出單元只能與<strong>輸入</strong>直接連接，而不是與隱藏單元進行連接。</p>
+
+<h4 id="section-7">非遞迴輸出單元</h4>
+
+\[y_i(t) = f\pa{\wout_i \odot h(t)} = f\pa{\sum_{j = 1}^{\dhid} \wout_{i j} \cdot h_j(t)} \tag{4}\label{4}\]
+
+<ul>
+  <li>將 $t$ 時間點的隱藏層 $h(t)$ 透過<strong>全連接</strong>的方式計算 $t$ 時間點的第 $i$ 個<strong>輸出單元</strong> $y_i(t)$
+    <ul>
+      <li>當輸出單元的架構為 $\eqref{4}$ 時，我們以 $y_i(t) \in O \setminus D$ 進行表達</li>
+      <li>$i$ 的範圍為 $i = 1, \dots, \opnorm(y)$</li>
+    </ul>
+  </li>
+  <li>參數 $\wout$ 的維度為 $\opnorm(y) \times \dhid$</li>
+  <li>$t$ 時間點的<strong>非遞迴輸出單元</strong>唯一的訊號來源就是 $t$ 時間點的隱藏單元 $h(t)$</li>
+  <li>$\eqref{4}$ 就是論文中的 2.1 式</li>
+</ul>
+
+<h4 id="section-8">淨輸入遞迴輸出單元</h4>
+
+\[\begin{align*}
+\tilde{y}_i(0) &amp; = 0 \\
+\tilde{y}_i(t) &amp; = \uout_i \cdot \tilde{y}_i(t - 1) + \Wout_i \odot x(t) \\
+y_i(t) &amp; = f\pa{\tilde{y}_i(t)}
+\end{align*} \tag{5}\label{5}\]
+
+<ul>
+  <li>與 $\eqref{4}$ 完全不同
+    <ul>
+      <li>$\uout$ 的維度為 $\oprecur{1}(y)$</li>
+      <li>$\uout$ 的下標應該要從 $1$ 開始，但為了方便表達我們改成從 $\opnorm(y) + 1$ 開始</li>
+      <li>$\Wout$ 的維度為 $(\oprecur{1}(y) + \oprecur{2}(y)) \times \din$</li>
+      <li>$\Wout$ 的下標應該要從 $1$ 開始，但為了方便表達我們改成從 $\opnorm(y) + 1$ 開始</li>
+      <li>與 $\eqref{6}$ 共享參數 $\Wout$</li>
+      <li>與 $\eqref{5}$ 的差別在於不是使用<strong>啟發值</strong>進行遞迴</li>
+      <li>注意 $\Wout \neq \wout$，我們以大小寫區分連接的來源</li>
+      <li>當輸出單元的架構為 $\eqref{5}$ 時，我們以 $y_i(t) \in O \cap D$ 進行表達</li>
+      <li>$i$ 的範圍為 $i = \opnorm(y) + 1, \dots, \opnorm(y) + \oprecur{1}(y)$</li>
+    </ul>
+  </li>
+  <li>第 $i$ 個淨輸入遞迴輸出單元的訊號來源共有兩種
+    <ul>
+      <li>$t$ 時間點的的輸入 $x(t)$</li>
+      <li>$t - 1$ 時間點的第 $i$ 個<strong>淨輸入遞迴輸出單元的淨輸入</strong></li>
+    </ul>
+  </li>
+  <li><strong>遞迴</strong>的來源就是 $\tilde{y}_i(t - 1)$</li>
+  <li>$\eqref{5}$ 就是論文中的 2.2 式</li>
+</ul>
+
+<h4 id="section-9">啟發值遞迴輸出單元</h4>
+
+\[\begin{align*}
+y_i(0) &amp; = 0 \\
+\bar{y}_i(t) &amp; = \vout_i \cdot y_i(t - 1) + \Wout_i \odot x(t) \\
+y_i(t) &amp; = f\pa{\bar{y}_i(t)}
+\end{align*} \tag{6}\label{6}\]
+
+<ul>
+  <li>與 $\eqref{5}$ 概念相同，但是遞迴的項次是<strong>輸出單元</strong>
+    <ul>
+      <li>$\vout$ 的維度為 $\oprecur{2}(y)$</li>
+      <li>$\vout$ 的下標應該要從 $1$ 開始，但為了方便表達我們改成從 $\opnorm(y) + \oprecur{1}(y) + 1$ 開始</li>
+      <li>$\Wout$ 的維度為 $(\oprecur{1}(y) + \oprecur{2}(y)) \times \din$</li>
+      <li>$\Wout$ 的下標應該要從 $1$ 開始，但為了方便表達我們改成從 $\opnorm(y) + \oprecur{1}(y) + 1$ 開始</li>
+      <li>與 $\eqref{5}$ 共享 $\Wout$</li>
+      <li>與 $\eqref{5}$ 的差別在於不是使用<strong>淨輸入</strong>進行遞迴</li>
+      <li>當輸出單元的架構為 $\eqref{6}$ 時，我們以 $y_i(t) \in O \cap D$ 進行表達</li>
+      <li>$i$ 的範圍為 $i = \opnorm(y) + \oprecur{1}(y) + 1, \dots, \opnorm(y) + \oprecur{1}(y) + \oprecur{2}(y)$</li>
+    </ul>
+  </li>
+  <li>第 $i$ 個啟發值遞迴輸出單元的訊號來源共有兩種
+    <ul>
+      <li>$t$ 時間點的的輸入 $x(t)$</li>
+      <li>$t - 1$ 時間點的第 $i$ 個<strong>輸出單元</strong></li>
+    </ul>
+  </li>
+  <li><strong>遞迴</strong>的來源就是 $y_i(t - 1)$</li>
+  <li>$\eqref{6}$ 就是論文中的 2.3 式</li>
+</ul>
+
+<h3 id="section-10">目標函數</h3>
+
+<p>使用最小平方差作為目標函數</p>
+
+\[\begin{align*}
+\oploss &amp; = \sum_{t = 1}^T \sigma_t \cdot C(t) \\
+&amp; = \sum_{t = 1}^T \sigma_t \cdot \pa{\sum_{i = 1}^{\dout} \big(y_i(t) - d_i(t)\big)^2} \\
+&amp; = \sum_{t = 1}^T \sum_{i = 1}^{\dout} \sigma_t \cdot \big(y_i(t) - d_i(t)\big)^2
+\end{align*} \tag{7}\label{7}\]
+
+<ul>
+  <li>$C(t)$ 代表 $t$ 時間點最小平方差的總和</li>
+  <li>$d_i(t)$ 是 $t$ 時間點第 $i$ 個輸出的<strong>預測目標</strong></li>
+  <li>由於不是所有時間點都需要預測答案，因此以 $\sigma_t$ 表示是否需要考慮 $t$ 時間點的誤差
+    <ul>
+      <li>如果需要考慮 $t$ 時間點的誤差，則 $\sigma_t = 1$</li>
+      <li>如果不需要考慮 $t$ 時間點的誤差，則 $\sigma_t = 0$</li>
+    </ul>
+  </li>
+  <li>$\eqref{7}$ 就是論文中的 2.5 式</li>
+</ul>
+
+<h3 id="section-11">反向傳播</h3>
+
+<p>由於模型是透過梯度下降演算法（gradient descent）進行最佳化，因此必須透過反向傳播計算參數所得梯度。</p>
+
+<p>針對不同的參數，我們可以求得不同種的梯度結構。
+以下我們將會一一列舉各個參數的梯度。</p>
+
+<h4 id="section-12">與非遞迴輸出單元相連參數</h4>
+
+<p>根據 $\eqref{4}$ 我們可以求得</p>
+
+\[\begin{align*}
+\pd{(\sigma_t \cdot C(t))}{\wout_{i j}} &amp; = \sigma_t \cdot \pd{C(t)}{y_i(t)} \cdot \pd{y_i(t)}{\wout_{i j}} \\
+&amp; = \sigma_t \cdot 2\big(y_i(t) - d_i(t)\big) \cdot f'\pa{\wout_{i} \odot h(t)} \cdot h_j(t)
+\end{align*} \tag{8}\label{8}\]
+
+<ul>
+  <li>由於 $\wout$ 沒有參與遞迴的過程，因此梯度不會傳遞給 $t - 1$ 時間點以前的節點</li>
+  <li>$i$ 的範圍為 $i = 1 \dots \opnorm(y)$</li>
+  <li>$j$ 的範圍為 $j = 1 \dots \dhid$</li>
+</ul>
+
+<h4 id="section-13">與淨輸入遞迴輸出單元相連參數</h4>
+
+<p>根據 $\eqref{5}$ 我們可以求得</p>
+
+\[\begin{align*}
+\pd{(\sigma_t \cdot C(t))}{\uout_i} &amp; = \sigma_t \cdot \pd{C(t)}{y_i(t)} \cdot \pd{y_i(t)}{\tilde{y}_i(t)} \cdot \pd{\tilde{y}_i(t)}{\uout_i} \\
+&amp; = \sigma_t \cdot 2\big(y_i(t) - d_i(t)\big) \cdot f'\pa{\tilde{y}_i(t)} \cdot \pd{\tilde{y}_i(t)}{\uout_i} \\
+\pd{\tilde{y}_i(t)}{\uout_i} &amp; = \tilde{y}_i(t - 1) + \uout_i \cdot \pd{\tilde{y}_i(t - 1)}{\uout_i}
+\end{align*} \tag{9}\label{9}\]
+
+<ul>
+  <li>由於 $\uout$ 有參與遞迴的過程，因此梯度必須傳遞給 $t - 1$ 時間點以前的<strong>淨輸入遞迴輸出單元</strong></li>
+  <li>$i$ 的範圍為 $i = \opnorm(y) + 1 \dots \opnorm(y) + \oprecur{1}(y)$</li>
+  <li>$\eqref{9}$ 就是論文中的 2.8 式</li>
+</ul>
+
+<h4 id="section-14">與啟發值遞迴輸出單元相連參數</h4>
+
+<p>根據 $\eqref{6}$ 我們可以求得</p>
+
+\[\begin{align*}
+\pd{(\sigma_t \cdot C(t))}{\vout_i} &amp; = \sigma_t \cdot \pd{C(t)}{y_i(t)} \cdot \pd{y_i(t)}{\bar{y}_i(t)} \cdot \pd{\bar{y}_i(t)}{\vout_i} \\
+&amp; = \sigma_t \cdot 2\big(y_i(t) - d_i(t)\big) \cdot f'\pa{\bar{y}_i(t)} \cdot \pd{\bar{y}_i(t)}{\vout_i} \\
+\pd{\bar{y}_i(t)}{\vout_i} &amp; = y_i(t - 1) + \vout_i \cdot \pd{y_i(t - 1)}{\bar{y}_i(t - 1)} \cdot \pd{\bar{y}_i(t - 1)}{\vout_i} \\
+&amp; = y_i(t - 1) + \vout_i \cdot f'\pa{\bar{y}_i(t - 1)} \cdot \pd{\bar{y}_i(t - 1)}{\vout_i}
+\end{align*} \tag{10}\label{10}\]
+
+<ul>
+  <li>由於 $\vout$ 有參與遞迴的過程，因此梯度必須傳遞給 $t - 1$ 時間點以前的<strong>啟發值遞迴輸出單元</strong></li>
+  <li>$i$ 的範圍為 $i = \opnorm(y) + \oprecur{1}(y) + 1 \dots \opnorm(y) + \oprecur{1}(y) + \oprecur{2}(y)$</li>
+  <li>$\eqref{10}$ 就是論文中的 2.7 式</li>
+</ul>
+
+<h4 id="section-15">連接輸出單元與輸入單元的參數</h4>
+
+<p>根據 $\eqref{5}\eqref{6}$ 我們可以求得</p>
+
+\[\begin{align*}
+\pd{(\sigma_t \cdot C(t))}{\Wout_{i k}} &amp; = \sigma_t \cdot \pd{C(t)}{y_i(t)} \cdot \br{\pd{y_i(t)}{\tilde{y}_i(t)} \cdot \pd{\tilde{y}_i(t)}{\Wout_{i k}} + \pd{y_i(t)}{\bar{y}_i(t)} \cdot \pd{\bar{y}_i(t)}{\Wout_{i k}}} \\
+&amp; = \sigma_t \cdot 2\big(y_i(t) - d_i(t)\big) \cdot \br{f'\pa{\tilde{y}_i(t)} \cdot \pd{\tilde{y}_i(t)}{\Wout_{i k}} + f'\pa{\bar{y}_i(t)} \cdot \pd{\bar{y}_i(t)}{\Wout_{i k}}} \\
+\pd{\tilde{y}_i(t)}{\Wout_{i k}} &amp; = \uout_i \cdot \pd{\tilde{y}_i(t - 1)}{\Wout_{i k}} + x_k(t) \\
+\pd{\bar{y}_i(t)}{\Wout_{i k}} &amp; = \vout_i \cdot f'\pa{\bar{y}_i(t - 1)} \cdot \pd{\bar{y}_i(t - 1)}{\Wout_{i k}} + x_k(t)
+\end{align*} \tag{11}\label{11}\]
+
+<ul>
+  <li>由於 $\Wout$ 有參與 $\eqref{5}\eqref{6}$ 的遞迴過程，因此梯度必須傳遞給 $t - 1$ 時間點以前的<strong>遞迴輸出單元</strong></li>
+  <li>$i$ 的範圍為 $i = \opnorm(y) + 1 \dots \opnorm(y) + \oprecur{1}(y) + \oprecur{2}(y)$</li>
+  <li>$k$ 的範圍為 $k = 1 \dots \din$</li>
+  <li>$\eqref{11}$ 就是論文中的 2.7, 2.8 式</li>
+</ul>
+
+<h4 id="section-16">與淨輸入遞迴隱藏單元相連參數</h4>
+
+<p>根據 $\eqref{2}\eqref{4}$ 我們可以求得</p>
+
+\[\begin{align*}
+\pd{(\sigma_t \cdot C(t))}{\uhid_j} &amp; = \sigma_t \cdot \pa{\sum_{i = 1}^{\opnorm(y)} \pd{C(t)}{y_i(t)} \cdot \pd{y_i(t)}{h_j(t)}} \cdot \pd{h_j(t)}{\tilde{h}_j(t)} \cdot \pd{\tilde{h}_j(t)}{\uhid_j} \\
+&amp; = \sigma_t \cdot \pa{\sum_{i = 1}^{\opnorm(y)} 2\big(y_i(t) - d_i(t)\big) \cdot \wout_{i j}} \cdot f'\pa{\tilde{h}_j(t)} \cdot \pd{\tilde{h}_j(t)}{\uhid_j} \\
+\pd{\tilde{h}_j(t)}{\uhid_j} &amp; = \tilde{h}_j(t - 1) + \uhid_j \cdot \pd{\tilde{h}_j(t - 1)}{\uhid_j}
+\end{align*} \tag{12}\label{12}\]
+
+<ul>
+  <li>由於 $h(t)$ 只會參與非遞迴輸出單元的計算，因此第一個等式中只有 $\opnorm(y)$ 個加法項次</li>
+  <li>由於 $\uhid$ 有參與遞迴的過程，因此梯度必須傳遞給 $t - 1$ 時間點以前的<strong>淨輸入遞迴隱藏單元</strong></li>
+  <li>$j$ 的範圍為 $j = \opnorm(h) + 1 \dots \opnorm(h) + \oprecur{1}(h)$</li>
+  <li>$\eqref{12}$ 就是論文中的 2.8 式</li>
+</ul>
+
+<h4 id="section-17">與啟發值遞迴隱藏單元相連參數</h4>
+
+<p>根據 $\eqref{3}\eqref{4}$ 我們可以求得</p>
+
+\[\begin{align*}
+\pd{(\sigma_t \cdot C(t))}{\vhid_j} &amp; = \sigma_t \cdot \pa{\sum_{i = 1}^{\opnorm(y)} \pd{C(t)}{y_i(t)} \cdot \pd{y_i(t)}{h_j(t)}} \cdot \pd{h_j(t)}{\bar{h}_j(t)} \cdot \pd{\bar{h}_j(t)}{\vhid_j} \\
+&amp; = \sigma_t \cdot \pa{\sum_{i = 1}^{\opnorm(y)} 2\big(y_i(t) - d_i(t)\big) \cdot \wout_{i j}} \cdot f'\pa{\bar{h}_j(t)} \cdot \pd{\bar{h}_j(t)}{\vhid_j} \\
+\pd{\bar{h}_j(t)}{\vhid_j} &amp; = h_j(t - 1) + \vhid_j \cdot \pd{h_j(t - 1)}{\bar{h}_j(t - 1)} \cdot \pd{\bar{h}_j(t - 1)}{\vhid_j} \\
+&amp; = h_j(t - 1) + \vhid_j \cdot f'\pa{\bar{h}_j(t - 1)} \cdot \pd{\bar{h}_j(t - 1)}{\vhid_j}
+\end{align*} \tag{13}\label{13}\]
+
+<ul>
+  <li>由於 $h(t)$ 只會參與非遞迴輸出單元的計算，因此第一個等式中只有 $\opnorm(y)$ 個加法項次</li>
+  <li>由於 $\vhid$ 有參與遞迴的過程，因此梯度必須傳遞給 $t - 1$ 時間點以前的<strong>啟發值遞迴隱藏單元</strong></li>
+  <li>$j$ 的範圍為 $j = \opnorm(h) + \oprecur{1}(h) + 1 \dots \opnorm(h) + \oprecur{1}(h) + \oprecur{2}(h)$</li>
+  <li>$\eqref{13}$ 就是論文中的 2.7 式</li>
+</ul>
+
+<h4 id="section-18">連接隱藏單元與輸入單元的參數</h4>
+
+<p>根據 $\eqref{1}\eqref{2}\eqref{3}\eqref{4}$ 我們可以求得</p>
+
+\[\begin{align*}
+\pd{(\sigma_t \cdot C(t))}{\whid_{j k}} &amp; = \sigma_t \cdot \pa{\sum_{i = 1}^{\opnorm(y)} \pd{C(t)}{y_i(t)} \cdot \pd{y_i(t)}{h_j(t)}} \cdot \pd{h_j(t)}{\whid_{j k}} \\
+&amp; = \sigma_t \cdot \pa{\sum_{i = 1}^{\opnorm(y)} 2\big(y_i(t) - d_i(t)\big) \cdot \wout_{i j}} \cdot \pd{h_j(t)}{\whid_{j k}} \\
+\pd{h_j(t)}{\whid_{j k}} &amp; = \begin{dcases}
+f'\pa{\whid_j \odot x(t)} \cdot x_k(t) &amp; \text{if } j = 1, \dots, \opnorm(h) \\
+f'\pa{\tilde{h}_j(t)} \cdot \pd{\tilde{h}_j(t)}{\whid_{j k}} &amp; \text{if } j = \opnorm(h) + 1, \dots, \\
+&amp; \opnorm(h) + \oprecur{1}(h) \\
+f'\pa{\bar{h}_j(t)} \cdot \pd{\bar{h}_j(t)}{\whid_{j k}} &amp; \text{if } j = \opnorm(h) + \oprecur{1}(h) + 1, \dots, \\
+&amp; \opnorm(h) + \oprecur{1}(h) + \oprecur{2}(h)
+\end{dcases} \\
+\pd{\tilde{h}_j(t)}{\whid_{j k}} &amp; = \uhid_j \cdot \pd{\tilde{h}_j(t - 1)}{\whid_{j k}} + x_k(t) \\
+\pd{\bar{h}_j(t)}{\whid_{j k}} &amp; = \vhid_j \cdot f'\pa{\bar{h}_j(t - 1)} \cdot \pd{\bar{h}_j(t - 1)}{\whid_{j k}} + x_k(t)
+\end{align*} \tag{14}\label{14}\]
+
+<ul>
+  <li>由於 $h(t)$ 只會參與非遞迴輸出單元的計算，因此第一個等式中只有 $\opnorm(y)$ 個加法項次</li>
+  <li>由於 $\whid$ 參與不同的遞迴過程，因此梯度會分別傳遞給 $t - 1$ 時間點以前的淨輸入遞迴隱藏單元與啟發值遞迴隱藏單元。</li>
+  <li>$j$ 的範圍為 $j = 1 \dots \opnorm(h) + \oprecur{1}(h) + \oprecur{2}(h)$
+    <ul>
+      <li>倒數第二個等式中 $j$ 的範圍為 $j = \opnorm(h) + 1 \dots \opnorm(h) + \oprecur{1}(h)$</li>
+      <li>最後一個等式中 $j$ 的範圍為 $j = \opnorm(h) + \oprecur{1}(h) + 1 \dots \opnorm(h) + \oprecur{1}(h) + \oprecur{2}(h)$</li>
+    </ul>
+  </li>
+  <li>$k$ 的範圍為 $k = 1 \dots \din$</li>
+  <li>$\eqref{14}$ 就是論文中的 2.7, 2.8 式</li>
+</ul>
+
+<h2 id="section-19">遺忘行為</h2>
+
+<p>一個 RNN 模型如果滿足以下的行為</p>
+
+\[\lim_{q \to \infty} \pd{y_i(t)}{x_k(t - q)} = 0 \tag{15}\label{15}\]
+
+<p>則論文稱該模型擁有<strong>遺忘行為</strong>（<strong>Forgetting Behavior</strong>）。</p>
+
+<ul>
+  <li>$i$ 的範圍為 $i = 1, \dots, \dout$</li>
+  <li>$k$ 的範圍為 $k = 1, \dots, \din$</li>
+  <li>$t$ 的範圍為 $t = 1, \dots, T$</li>
+  <li>作者認為如果 RNN 模型擁有<strong>遺忘行為</strong>，則該 RNN 就等同於<strong>簡單的 MLP</strong>，但輸入是<strong>固定範圍</strong>的資訊
+    <ul>
+      <li>作者認為遺忘行為能夠幫助模型忘記<strong>較早期</strong>已經處理過的資訊，在<strong>語音辨識</strong>中是很重要的功能</li>
+      <li>從現在的角度來看，我覺得就像是使用 RNN 模擬一個簡單的 <strong>CNN</strong></li>
+    </ul>
+  </li>
+</ul>
+
+<p>作者接著證明 Local Feedback Multilayered Networks 在特定條件下能夠擁有遺忘行為。</p>
+
+<h3 id="section-20">引理：啟發值的最大值</h3>
+
+<p>令啟發函數 $f(z) = \tanh(z / 2)$。
+則</p>
+
+\[M = \max_{z \in \R} \pa{f'(z)} = 0.5. \tag{16}\label{16}\]
+
+<p>理由如下</p>
+
+\[\begin{align*}
+&amp; \tanh(z) = 2\sigma(2z) - 1 \\
+\implies &amp; \tanh'(z) = \frac{d \tanh(z)}{dz} = 2\frac{d \sigma(2z)}{z} \\
+&amp; = 2 \frac{d\sigma(2z)}{d2z} \cdot \frac{d2z}{dz} \\
+&amp; = 4 \big(\sigma(2z) \cdot [1 - \sigma(2z)]\big) \\
+\implies &amp; f'(z) = \frac{d\tanh(\frac{z}{2})}{dz} = \frac{d\tanh(\frac{z}{2})}{d\frac{z}{2}} \cdot \frac{d\frac{z}{2}}{dz} \\
+&amp; = 4 \big(\sigma(z) \cdot [1 - \sigma(z)]\big) \cdot \frac{1}{2} = 2\big(\sigma(z) \cdot [1 - \sigma(z)]\big) \\
+\implies &amp; M = \max_{z \in \R}\pa{f'(z)} = 2(0.5 \cdot 0.5) = 0.5.
+\end{align*}\]
+
+<h3 id="section-21">證明</h3>
+
+<p>我們接著證明以下敘述：</p>
+
+<p>令 $M$ 為 $\eqref{16}$ 中的數值。
+當 Local Feedback Multilayered Networks 使用的啟發函數都是 $f(z) = \tanh(z / 2)$，且 $\uhid, \vhid$ 的數值範圍滿足</p>
+
+\[\begin{align*}
+\abs{\uhid_j} &amp; &lt; 1 \\
+\abs{\vhid_j} &amp; &lt; \frac{1}{M}
+\end{align*} \tag{17}\label{17}\]
+
+<p>則 Local Feedback Multilayered Networks 擁有遺忘特行為。</p>
+
+<p>理由如下：</p>
+
+<p>當 $q = 0$ 時，我們可以推得</p>
+
+\[\begin{align*}
+\abs{\pd{\tilde{h}_j(t)}{\pa{\whid_j \odot x(t - q)}}} &amp; = \abs{\pd{\tilde{h}_j(t)}{\pa{\whid_j \odot x(t)}}} = 1 \\
+\abs{\pd{\bar{h}_j(t)}{\pa{\whid_j \odot x(t - q)}}} &amp; = \abs{\pd{\bar{h}_j(t)}{\pa{\whid_j \odot x(t)}}} = 1
+\end{align*} \tag{18}\label{18}\]
+
+<p>當 $q = 1$ 時，根據 $\eqref{17}\eqref{18}$ 我們可以推得</p>
+
+\[\begin{align*}
+\abs{\pd{\tilde{h}_j(t)}{\pa{\whid_j \odot x(t - q)}}} &amp; = \abs{\pd{\tilde{h}_j(t)}{\pa{\whid_j \odot x(t - 1)}}} \\
+&amp; = \abs{\uhid_j \cdot \pd{\tilde{h}_j(t - 1)}{\pa{\whid_j \odot x(t - 1)}}} \\
+&amp; = \abs{\uhid_j} = \abs{\uhid_j}^1  \\
+\abs{\pd{\bar{h}_j(t)}{\pa{\whid_j \odot x(t - q)}}} &amp; = \abs{\pd{\bar{h}_j(t)}{\pa{\whid_j \odot x(t - 1)}}} \\
+&amp; = \abs{\vhid_j \cdot f'\pa{\bar{h}(t - 1)} \cdot \pd{\bar{h}_j(t - 1)}{\pa{\whid_j \odot x(t - 1)}}} \\
+&amp; = \abs{\vhid_j \cdot f'\pa{\bar{h}(t - 1)}} \\
+&amp; \leq \abs{\vhid_j \cdot M} = \abs{\vhid_j \cdot M}^1
+\end{align*} \tag{19}\label{19}\]
+
+<p>當 $q = 2$ 時，根據 $\eqref{17}\eqref{19}$ 我們可以推得</p>
+
+\[\begin{align*}
+\abs{\pd{\tilde{h}_j(t)}{\pa{\whid_j \odot x(t - q)}}} &amp; = \abs{\pd{\tilde{h}_j(t)}{\pa{\whid_j \odot x(t - 2)}}} \\
+&amp; = \abs{\pd{\tilde{h}_j(t)}{\tilde{h}_j(t - 1)} \cdot \pd{\tilde{h}_j(t - 1)}{\pa{\whid_j \odot x(t - 2)}}} \\
+&amp; = \abs{\uhid_j \cdot \uhid_j} = \abs{\uhid_j}^2  \\
+\abs{\pd{\bar{h}_j(t)}{\pa{\whid_j \odot x(t - q)}}} &amp; = \abs{\pd{\bar{h}_j(t)}{\pa{\whid_j \odot x(t - 2)}}} \\
+&amp; = \abs{\pd{\bar{h}_j(t)}{h_j(t - 1)} \cdot \pd{h_j(t - 1)}{\bar{h}_j(t - 1)} \cdot \pd{\bar{h}_j(t - 1)}{\pa{\whid_j \odot x(t - 2)}}} \\
+&amp; = \abs{\vhid_j \cdot f'\pa{\bar{h}(t - 1)} \cdot \pd{\bar{h}_j(t - 1)}{\pa{\whid_j \odot x(t - 2)}}} \\
+&amp; \leq \abs{\vhid_j \cdot M \cdot \vhid_j \cdot M} = \abs{\vhid_j \cdot M}^2
+\end{align*} \tag{20}\label{20}\]
+
+<p>根據歸納法，我們可以推得</p>
+
+\[\begin{align*}
+\abs{\pd{\tilde{h}_j(t)}{\pa{\whid_j \odot x(t - q)}}} &amp; = \abs{\uhid_j}^q  \\
+\abs{\pd{\bar{h}_j(t)}{\pa{\whid_j \odot x(t - q)}}} &amp; \leq \abs{\vhid_j \cdot M}^q
+\end{align*} \tag{21}\label{21}\]
+
+<p>展開 $\eqref{15}$ 我們可以發現當 $i = 1, \dots, \opnorm(y)$ 時</p>
+
+\[\begin{align*}
+&amp; \pd{y_i(t)}{x_k(t - q)} \\
+&amp; = \pd{y_i(t)}{(\wout_i \odot h(t))} \cdot \sum_{j = 1}^{\dhid} \br{\pd{(\wout_i \odot h(t))}{h_j(t)} \cdot \pd{h_j(t)}{x_k(t - q)}} \\
+&amp; = f'\pa{\wout_i \odot h(t)} \cdot \sum_{j = 1}^{\dhid} \br{\wout_{i j} \cdot \pd{h_j(t)}{x_k(t - q)}} \\
+&amp; = f'\pa{\wout_i \odot h(t)} \cdot \Bigg[\mathbb{1}[q = 0] \cdot \sum_{j = 1}^{\opnorm(h)} \pa{\wout_{i j} \cdot f'\pa{\whid_j \odot x(t)} \cdot x_k(t)} \\
+&amp; \quad + \sum_{j = \opnorm(h) + 1}^{\opnorm(h) + \oprecur{1}(h)} \pa{\wout_{i j} \cdot f'\pa{\tilde{h}_j(t)} \cdot \pd{\tilde{h}_j(t)}{(\whid_j \odot x(t - q))} \cdot \pd{(\whid_j \odot x(t - q))}{x_k(t - q)}} \\
+&amp; \quad + \sum_{j = \opnorm(h) + \oprecur{1}(h) + 1}^{\dhid} \pa{\wout_{i j} \cdot f'\pa{\bar{h}_j(t)} \cdot \pd{\bar{h}_j(t)}{(\whid_j \odot x(t - q))} \cdot \pd{(\whid_j \odot x(t - q))}{x_k(t - q)}}\Bigg] \\
+&amp; = f'\pa{\wout_i \odot h(t)} \cdot \Bigg[\mathbb{1}[q = 0] \cdot \sum_{j = 1}^{\opnorm(h)} \pa{\wout_{i j} \cdot f'\pa{\whid_j \odot x(t)} \cdot x_k(t)} \\
+&amp; \quad + \sum_{j = \opnorm(h) + 1}^{\opnorm(h) + \oprecur{1}(h)} \pa{\wout_{i j} \cdot f'\pa{\tilde{h}_j(t)} \cdot \pd{\tilde{h}_j(t)}{(\whid_j \odot x(t - q))} \cdot \whid_{j k}} \\
+&amp; \quad + \sum_{j = \opnorm(h) + \oprecur{1}(h) + 1}^{\dhid} \pa{\wout_{i j} \cdot f'\pa{\bar{h}_j(t)} \cdot \pd{\bar{h}_j(t)}{(\whid_j \odot x(t - q))} \cdot \whid_{j k}}\Bigg]
+\end{align*} \tag{22}\label{22}\]
+
+<p>因此結合 $\eqref{21}\eqref{22}$ 加上 $\eqref{17}$ 的假設我們可以推得 $\eqref{15}$ 的結論</p>
+
+\[\begin{align*}
+&amp; q &gt; 0 \\
+\implies &amp; \abs{\pd{y_i(t)}{x_k(t - q)}} \leq \abs{f'\pa{\wout_i \odot h(t)}} \cdot \Bigg[ \\
+&amp; \quad \abs{\sum_{j = \opnorm(h) + 1}^{\opnorm(h) + \oprecur{1}(h)} \pa{\wout_{i j} \cdot f'\pa{\tilde{h}_j(t)} \cdot \abs{\uhid_j}^q \cdot \whid_{j k}}} \\
+&amp; \quad + \abs{\sum_{j = \opnorm(h) + \oprecur{1}(h) + 1}^{\dhid} \pa{\wout_{i j} \cdot f'\pa{\bar{h}_j(t)} \cdot \abs{\vhid_j \cdot M}^q \cdot \whid_{j k}}}\Bigg] \\
+\implies &amp; \lim_{q \to \infty} \abs{\pd{y_i(t)}{x_k(t - q)}} = 0 \\
+\implies &amp; \lim_{q \to \infty} \pd{y_i(t)}{x_k(t - q)} = 0.
+\end{align*}\]
+
+<h3 id="section-22">備註</h3>
+
+<p>同樣的推理也可以套用至 $\uout, \vout$。</p>
+
+<ul>
+  <li>論文 4.1 節引用其他 paper 的證明，在輸入長度固定下，使用淨輸入遞迴單元的 Local Feedback Multilayered Networks 概念與 MLP 相同，但架構比 MLP 更廣義</li>
+  <li>論文 4.2 節提到使用淨輸入遞迴單元的 Local Feedback Multilayered Networks 無法解決輸入長度不固定的問題
+    <ul>
+      <li>如果誤差只會在 $t = T$ 產生，則 Local Feedback Multilayered Networks 無法最佳化</li>
+      <li>這裡有提到 relaxation at the unique equilibrium state，應該是跟微分方程有關的分析，我還不太懂，會了再補</li>
+      <li>以此為出發點，提倡使用啟發值遞迴單元而不是淨輸入遞迴單元</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-23">儲存正負號</h2>
+
+<p>令 $t_0 = 1, \dots, T$ 為任意時間點，令任意模型的任意節點淨輸入為 $a(t_0)$。
+如果模型能夠滿足在 $t &gt; t_0$ 之後的所有時間點的淨輸入正負號不變（數值大小可以改變），即</p>
+
+\[\sign\big(a(t)\big) = \sign\big(a(t_0)\big) \quad \forall t &gt; t_0\]
+
+<p>則稱模型能夠<strong>儲存正負號</strong>（<strong>Information Latching</strong>）。</p>
+
+<p>作者宣稱在滿足特定條件下，Local Feedback Multilayered Networks 可以擁有儲存正負號的功能。</p>
+
+<h3 id="section-24">證明</h3>
+
+<p>當與遞迴單元有關參數其絕對值大於 $2$ 時，則模型能夠儲存正負號。</p>
+
+\[\abs{w} &gt; 2 \quad w \in \set{\whid_{j k}, \uhid_j, \vhid_j, \wout_i, \uout_i, \vout_i, \Wout_{i k}}\]
+
+<p>When forcing term is bounded in module by a constant $B = wf(\xi) - \xi$, where $\xi$ is a solution of</p>
+
+\[\frac{w}{2} (1 - f(\xi))^2 - 1 = 0,\]
+
+<p>the latching condition also holds.</p>
+
+<p>接下來的證明都跟微分方程有關，包含 equilibrium points, asymptotical stability, Lyapunov function 等，現在的我還看不懂，等我會了再回來補。</p>
+
+<h3 id="section-25">備註</h3>
+
+<ul>
+  <li>根據論文的範例 1，若有一個序列分類任務，輸入長度可以是任意長，但分類只需要靠<strong>第一個輸入</strong>就可達成，則 Local Feedback Multilayered Networks 可以透過儲存正負號的方式完成任務
+    <ul>
+      <li>模型在訓練的過程中能夠自動判斷只有第一個輸入是重要的</li>
+      <li>當類別有 $5$ 種時，模型必須要擁有至少 $3$ 個以上的遞迴單元才能完成任務（二進制的概念）</li>
+    </ul>
+  </li>
+  <li>根據論文的範例 2，若有一個序列分類任務，輸入長度可以是任意長，但分類需要靠過濾輸入中的<strong>雜訊</strong>，並<strong>按照順序紀錄資訊</strong>，則 Local Feedback Multilayered Networks 無法完成任務
+    <ul>
+      <li>例如計數器，儲存正負號的功能只能維持正負號，無法保證數值不變，因此該模型無法模擬計數器</li>
+    </ul>
+  </li>
+</ul>
+
+
+<!-- Avoid copy by China, method 1. -->
+<script>
+  console.log(`
+台.灣.獨.立.香.港.獨.立.西.藏.獨.立.新.疆.獨.立.內.蒙.古.獨.立.......
+..... ... ................:fffffLt.............一.九.八.九.六.四
+... ,i111i;............. ;L111111LL....習.包.子.近.平.小.熊.維.尼
+...iLfttttff,  ..,::;;;;;Cftt11111C:...........中.國.武.漢.肺.炎
+..;C1111111tf:ittfttttttttttfffft1L,..........................
+. ff11111111fCtt11111111111111ttfC1 ..........................
+. tf11111111ft11111111111111111111tt;. .......................
+..:L11111111t11111111111111111111111fti, .....................
+.. ;Lt11111111111111111111111111111111tCt:, ..................
+... ,tf111111111111111111tLLLt111111111LG00t..................
+.... 1f11111111111111111LGLtt1111111111111tLt.................
+....:f11111111111111111tf1111111111111111111t.................
+... 1f111111111111111111111111111111tt11111t,.................
+... tt111111111111111111111111111111L11LG11f:.................
+... tt111111111111111111111tGC111111Lt108111tti:..............
+... if111111111111111111111f8C111111ttttttfft1ttt,............
+....,f111111111111111111111111111111111fG0088C11tf............
+.....tt111111111111111111111111111111110@888@0111f; ..........
+.....,f111111111111111111111111111111111C000CL111Li ..........
+......;f11111111111111111111tt11111111111111ft111L,...........
+...... tt111111111111111111tfGf111111111111ff111L; ...........
+.....;fCt11111111111111111111f0Cft1111111fLt111Li ............
+.... fCCLftt111111111111111111fGGGCLLfLfff1111t; .............
+.....:CLLCCCCLLftt1111111111111tfLCGGG0L1111fL;...............
+..... LLLLLLLLLCCCLLftt1111111111ttffttt1ttCCLGf..............
+.... iCLLLLLLLLLLLLLCCCLLftt11111111tfffft1fGCC; .............
+... ;CLLLLLLLLLLLLCLLLLLLLCCLLLLLLffft1111tLGLL:,.. ..........
+...:GLLLLLLLLLLLLLCCCCCLLLLLLLLLCCLLLLLLLLCCLGGLLf1i:,. ......
+.. iCLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCLCCLLLCCCti. ....
+...iCLLLLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCCLLLGCCCLi,...
+.. iCLLLLLLLLLLLLLLLLLLLLLLCCGCCCLLLLLLLLLLLLLLLCLLCGLCCCGCti,
+. :LLLLLLLLLLLLLLLLLLLLLLCLt111tffLLCCCCCLLLLLLLGCLGGCLftLCCCL
+.;CLLLLLLLLLLLLLLLLLLLLLCf11111111111tttffLLLLLLLLfLft111CCCCG
+;GLLLLLLLLLLCCLLLLLLLLLCt1111111111111111111111111111111111ttt
+.;CLLLLLLLLLLCCCLLLLLLCf11111111111111111111111111111111111111
+`)
+</script>
+
+<!-- Avoid copy by China, method 2. -->
+<!--
+台獨教父 Xi Jinping
+⣿⣿⣿⣿⣿⠟⠋⠄⠄⠄⠄⠄⠄⠄⢁⠈⢻⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⡀⠭⢿⣿⣿⣿⣿
+⣿⣿⣿⣿⡟⠄⢀⣾⣿⣿⣿⣷⣶⣿⣷⣶⣶⡆⠄⠄⠄⣿⣿⣿⣿
+⣿⣿⣿⣿⡇⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣇⣼⣿⣿⠿⠶⠙⣿⡟⠡⣴⣿⣽⣿⣧⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣾⣿⣿⣟⣭⣾⣿⣷⣶⣶⣴⣶⣿⣿⢄⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⡟⣩⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣹⡋⠘⠷⣦⣀⣠⡶⠁⠈⠁⠄⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⠃⣴⣶⡔⠒⠄⣠⢀⠄⠄⠄⡨⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣦⡘⠿⣷⣿⠿⠟⠃⠄⠄⣠⡇⠈⠻⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠟⠋⢁⣷⣠⠄⠄⠄⠄⣀⣠⣾⡟⠄⠄⠄⠄⠉⠙⠻
+⡿⠟⠋⠁⠄⠄⠄⢸⣿⣿⡯⢓⣴⣾⣿⣿⡟⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⠄⣿⡟⣷⠄⠹⣿⣿⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣸⣿⡷⡇⠄⣴⣾⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣿⣿⠃⣦⣄⣿⣿⣿⠇⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⢸⣿⠗⢈⡶⣷⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet
+六四天安門事件 The Tiananmen Square protests of 1989
+天安門大屠殺 The Tiananmen Square Massacre
+反右派鬥爭 The Anti-Rightist Struggle
+大躍進政策 The Great Leap Forward
+文化大革命 The Great Proletarian Cultural Revolution
+人權 Human Rights
+民運 Democratization
+自由 Freedom
+獨立 Independence
+多黨制 Multi-party system
+台灣 臺灣 Taiwan Formosa
+西藏 土伯特 唐古特 Tibet
+達賴喇嘛 Dalai Lama
+法輪功 Falun Dafa
+新疆維吾爾自治區 The Xinjiang Uyghur Autonomous Region
+諾貝爾和平獎 Nobel Peace Prize
+劉暁波 Liu Xiaobo
+民主 言論 思想 反共 反革命 抗議 運動 騷亂 暴亂 騷擾 擾亂 抗暴 平反 維權 示威游行 李洪志
+法輪大法 大法弟子 強制斷種 強制堕胎 民族淨化 人體實驗 肅清 胡耀邦 趙紫陽 魏京生 王丹
+還政於民 和平演變 激流中國 北京之春 大紀元時報 九評論共産黨 獨裁 專制 壓制 統一 監視 鎮壓
+迫害 侵略 掠奪 破壞 拷問 屠殺 活摘器官 誘拐 買賣人口
+Winnie the Pooh
+-->
+
+    </div>
+
+</article>
+<div class="post-nav"><a class="previous" href="/general%20sequence%20modeling/optimization/2021/11/14/long-short-term-memory.html" title="Long Short-Term Memory">Long Short-Term Memory</a><a class="next" href="/acoustic%20modeling/2021/12/06/a-time-delay-neural-network-architecture-for-isolated-word-recognition.html" title="A time-delay neural network architecture for isolated word recognition">A time-delay neural network architecture for...</a></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/general%20sequence%20modeling/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html" title="A time-delay neural network architecture for isolated word recognition">Learning to Forget: Continual Prediction with LSTM</a></li><li><a class="post-link" href="/dataset/2022/08/19/the-penn-treebank-annotating-predicate-argument-structure.html" title="A time-delay neural network architecture for isolated word recognition">The Penn Treebank: Annotating Predicate Argument Structure</a></li><li><a class="post-link" href="/optimization/2021/12/07/learning-representations-by-backpropagating-errors.html" title="A time-delay neural network architecture for isolated word recognition">Learning representations by back-propagating errors</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/12/29/learning-precise-timing-with-lstm-recurrent-networks.html" title="A time-delay neural network architecture for isolated word recognition">Learning Precise Timing with LSTM Recurrent Networks</a></li></ul>
+    </div><div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>

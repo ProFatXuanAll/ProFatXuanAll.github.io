@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>關於 | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="關於" />
+<meta name="author" content="ProFatXuanAll" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="ML notes all written by {{site.author}}." />
+<meta property="og:description" content="ML notes all written by {{site.author}}." />
+<link rel="canonical" href="/about.html" />
+<meta property="og:url" content="/about.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="關於" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","author":{"@type":"Person","name":"ProFatXuanAll"},"description":"ML notes all written by {{site.author}}.","headline":"關於","url":"/about.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] ["header", "navigator", "related_posts"] -->
+  
+
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+
+<script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<h2 id="section">關於我</h2>
+
+<p>這是我的 <a href="https://github.com/ProFatXuanAll">GitHub</a>。
+目前我正在國立成功大學<a href="https://ikmlab.csie.ncku.edu.tw/">智慧型知識管理實驗室</a>攻讀博士班，主要研究自然語言處理（Natural Language Processing）與深度學習（Deep Learning）演算法。</p>
+
+<p>基於研究需求與個人興趣，我花了一些時間學習了實變數分析（real analysis），你可以在我的 <a href="https://github.com/ProFatXuanAll">GitHub</a> 上找到我在閱讀 Analysis I-II, Terence Tao 時所撰寫的<a href="https://github.com/ProFatXuanAll/terence-tao-analysis">證明與筆記</a>。</p>
+
+<h2 id="section-1">關於這個網站</h2>
+
+<p>這個網站是用來搬移過去<a href="https://hackmd.io/@profatxuanall">我在 HackMD</a> 中所有的閱讀筆記。
+由於 <a href="https://hackmd.io/">HackMD</a> 在紀錄大量數學式時 <a href="https://www.mathjax.org/">MathJax</a> v2 反應速度較慢（甚至會導致網頁直接無法反應），加上我撰寫筆記的數學內容含量較大，因此我無法繼續在 <a href="https://hackmd.io/">HackMD</a> 上面繼續撰寫筆記，才決定使用 <a href="https://jekyllrb.com/">Jekyll</a> 創建這個網站。</p>
+
+<p>考量到 <a href="https://hackmd.io/">HackMD</a> 能夠達成以下功能：</p>
+
+<ol>
+  <li>即時顯示撰寫內容（WYSIWYG）</li>
+  <li>進行版本紀錄</li>
+  <li>即時上傳圖片</li>
+  <li>支援 <a href="https://www.mathjax.org/">MathJax</a></li>
+  <li>使用 <a href="https://katex.org/">KaTex</a> 或是 <a href="https://www.mathjax.org/">MathJax v3</a></li>
+  <li>儘量不考慮顯示方法（typesetting）</li>
+  <li>儘量不考慮閱讀裝置（RWD）</li>
+</ol>
+
+<p>我在選擇新的筆記紀錄方式時也希望能夠達成以上需求。
+因此我選擇：</p>
+
+<ul>
+  <li>使用 markdown 格式而不是直接撰寫 $\LaTeX$ （滿足功能 6）</li>
+  <li>使用 <a href="https://github.com/">GitHub</a> page（滿足功能 2）</li>
+  <li>使用 <a href="https://jekyllrb.com/">Jekyll</a> + <a href="https://kramdown.gettalong.org/index.html">kramdown</a> 內建支援 <a href="https://www.mathjax.org/">MathJax</a> 語法（滿足功能 4）</li>
+  <li>雖然 <a href="https://katex.org/">KaTeX</a> 執行速度快，但支援的功能較少，而 <a href="https://www.mathjax.org/">MathJax v3</a> 在執行速度上大幅提升，並提供 <code class="language-plaintext highlighter-rouge">\label</code>, <code class="language-plaintext highlighter-rouge">\eqref</code> 等功能，讓撰寫變得更加方便</li>
+  <li>在 <a href="https://code.visualstudio.com/">VSCode</a> 中編輯 markdown，並且執行 <code class="language-plaintext highlighter-rouge">bundle exec jekyll serve --livereload</code> 讓更新能夠即時顯示在瀏覽器中（滿足功能 1）</li>
+  <li>使用 <a href="https://jekyllrb.com/">Jekyll</a> 本身提供的主題功能完成具有 RWD 功能的頁面（滿足功能 7）</li>
+</ul>
+
+<p>但我仍然遇到以下問題：</p>
+
+<ul>
+  <li>撰寫 markdown 時無法像 <a href="https://hackmd.io/">HackMD</a> 即時完成撰寫與版本紀錄</li>
+  <li>需要上傳圖片時無法像 <a href="https://hackmd.io/">HackMD</a> 能夠以拖拉方法完成圖片上傳</li>
+  <li><a href="https://jekyllrb.com/">Jekyll 4+</a> 的版本撰寫數學式時 <a href="https://kramdown.gettalong.org/index.html">kramdown</a> 會不小心把 $\TeX$ 下標語法 <code class="language-plaintext highlighter-rouge">_</code> 誤解成 markdown 語法，導致部份數學式子無法正常 render
+    <ul>
+      <li>據 <a href="https://kramdown.gettalong.org/index.html">kramdown</a> 開發者稱這個<a href="https://github.com/gettalong/kramdown/issues/47">問題</a>已經解決，但我仍然會遇到部份數學式無法正常顯示，因此我無法確定是 <a href="https://kramdown.gettalong.org/index.html">kramdown</a> 或是 <a href="https://jekyllrb.com/">Jekyll</a> 的問題</li>
+      <li>目前暫時是以 $\LaTeX$ 中的 <code class="language-plaintext highlighter-rouge">\newcommand</code> 指令想辦法避免此問題，主要是因為顯示錯誤通常發生在如 <code class="language-plaintext highlighter-rouge">\text{some-text}_{sub}</code> 的範例中使用<strong>多個字元</strong>組合而成的變數名稱結合下標導致無法正常 render，因此用 <code class="language-plaintext highlighter-rouge">\newcommand{some-text}{\mycommand}</code> 替換 macro。老實說我也不知道為什麼改用這個方法就沒問題了…</li>
+      <li>問題細節請見 <a href="https://github.com/gettalong/kramdown/issues/47">kramdown-issue-47</a></li>
+      <li>我改回 <a href="https://jekyllrb.com/">Jekyll 3.9.0</a> 版本就沒問題了，剛好 GitHub Page 也只支援 <a href="https://jekyllrb.com/">Jekyll 3.9.0</a> 版本</li>
+    </ul>
+  </li>
+</ul>
+
+<p>因此我應該還是會繼續使用 <a href="https://hackmd.io/">HackMD</a> 作為主要撰寫筆記的平台，並把撰寫完成的筆記內容上傳到這個網站。
+如果未來我解決了以上問題，那我就有可能完全不使用 <a href="https://hackmd.io/">HackMD</a> 作為撰寫平台。</p>
+
+
+
+
+    </div>
+
+</article>
+<div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>

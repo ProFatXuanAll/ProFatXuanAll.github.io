@@ -1,0 +1,4037 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Long Short-Term Memory | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="Long Short-Term Memory" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="目標 提出 RNN 使用 BPTT 進行最佳化時遇到的問題，並提出 LSTM 架構進行修正 作者 Sepp Hochreiter, Jürgen Schmidhuber 期刊/會議名稱 Neural Computation 發表時間 1997 論文連結 https://ieeexplore.ieee.org/abstract/document/6795963 書本連結 https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4" />
+<meta property="og:description" content="目標 提出 RNN 使用 BPTT 進行最佳化時遇到的問題，並提出 LSTM 架構進行修正 作者 Sepp Hochreiter, Jürgen Schmidhuber 期刊/會議名稱 Neural Computation 發表時間 1997 論文連結 https://ieeexplore.ieee.org/abstract/document/6795963 書本連結 https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4" />
+<link rel="canonical" href="/general%20sequence%20modeling/optimization/2021/11/14/long-short-term-memory.html" />
+<meta property="og:url" content="/general%20sequence%20modeling/optimization/2021/11/14/long-short-term-memory.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-11-14T15:28:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Long Short-Term Memory" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2021-11-14T15:28:00+08:00","datePublished":"2021-11-14T15:28:00+08:00","description":"目標 提出 RNN 使用 BPTT 進行最佳化時遇到的問題，並提出 LSTM 架構進行修正 作者 Sepp Hochreiter, Jürgen Schmidhuber 期刊/會議名稱 Neural Computation 發表時間 1997 論文連結 https://ieeexplore.ieee.org/abstract/document/6795963 書本連結 https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4","headline":"Long Short-Term Memory","mainEntityOfPage":{"@type":"WebPage","@id":"/general%20sequence%20modeling/optimization/2021/11/14/long-short-term-memory.html"},"url":"/general%20sequence%20modeling/optimization/2021/11/14/long-short-term-memory.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] [] -->
+  
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Long Short-Term Memory</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2021-11-14T15:28:00+08:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Nov 14, 2021
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_article_words] 33686 -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 3 hours 30 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#BPTT">#BPTT</a><a class="post-tag" href="/tags.html#LSTM">#LSTM</a><a class="post-tag" href="/tags.html#RTRL">#RTRL</a><a class="post-tag" href="/tags.html#gradient descent">#gradient descent</a><a class="post-tag" href="/tags.html#gradient explosion">#gradient explosion</a><a class="post-tag" href="/tags.html#gradient vanishing">#gradient vanishing</a><a class="post-tag" href="/tags.html#model architecture">#model architecture</a><a class="post-tag" href="/tags.html#neural network">#neural network</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!-- Setup mathjax auto rendering. -->
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目標</td>
+      <td>提出 RNN 使用 BPTT 進行最佳化時遇到的問題，並提出 LSTM 架構進行修正</td>
+    </tr>
+    <tr>
+      <td>作者</td>
+      <td>Sepp Hochreiter, Jürgen Schmidhuber</td>
+    </tr>
+    <tr>
+      <td>期刊/會議名稱</td>
+      <td>Neural Computation</td>
+    </tr>
+    <tr>
+      <td>發表時間</td>
+      <td>1997</td>
+    </tr>
+    <tr>
+      <td>論文連結</td>
+      <td><a href="https://ieeexplore.ieee.org/abstract/document/6795963">https://ieeexplore.ieee.org/abstract/document/6795963</a></td>
+    </tr>
+    <tr>
+      <td>書本連結</td>
+      <td><a href="https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4">https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!--
+  Define LaTeX command which will be used through out the writing.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+
+  <!-- Operator in. -->
+  $\providecommand{\opnet}{}$
+  $\renewcommand{\opnet}{\operatorname{net}}$
+  <!-- Operator in. -->
+  $\providecommand{\opin}{}$
+  $\renewcommand{\opin}{\operatorname{in}}$
+  <!-- Operator out. -->
+  $\providecommand{\opout}{}$
+  $\renewcommand{\opout}{\operatorname{out}}$
+  <!-- Operator hid. -->
+  $\providecommand{\ophid}{}$
+  $\renewcommand{\ophid}{\operatorname{hid}}$
+  <!-- Operator cell block. -->
+  $\providecommand{\opblk}{}$
+  $\renewcommand{\opblk}{\operatorname{block}}$
+  <!-- Operator cell multiplicative input gate. -->
+  $\providecommand{\opig}{}$
+  $\renewcommand{\opig}{\operatorname{ig}}$
+  <!-- Operator cell multiplicative output gate. -->
+  $\providecommand{\opog}{}$
+  $\renewcommand{\opog}{\operatorname{og}}$
+  <!-- Operator sequence. -->
+  $\providecommand{\opseq}{}$
+  $\renewcommand{\opseq}{\operatorname{seq}}$
+
+  <!-- Total loss. -->
+  $\providecommand{\Loss}{}$
+  $\renewcommand{\Loss}[1]{\operatorname{loss}(#1)}$
+  <!-- Partial loss. -->
+  $\providecommand{\loss}{}$
+  $\renewcommand{\loss}[2]{\operatorname{loss}_{#1}(#2)}$
+
+  <!-- Net input. -->
+  $\providecommand{\net}{}$
+  $\renewcommand{\net}[2]{\opnet_{#1}(#2)}$
+  <!-- Net input with activatiton f. -->
+  $\providecommand{\fnet}{}$
+  $\renewcommand{\fnet}[2]{f_{#1}\big(\net{#1}{#2}\big)}$
+  <!-- Derivative of f with respect to net input. -->
+  $\providecommand{\dfnet}{}$
+  $\renewcommand{\dfnet}[2]{f_{#1}'\big(\net{#1}{#2}\big)}$
+
+  <!-- Input dimension. -->
+  $\providecommand{\din}{}$
+  $\renewcommand{\din}{d_{\opin}}$
+  <!-- Output dimension. -->
+  $\providecommand{\dout}{}$
+  $\renewcommand{\dout}{d_{\opout}}$
+  <!-- Hidden dimension. -->
+  $\providecommand{\dhid}{}$
+  $\renewcommand{\dhid}{d_{\ophid}}$
+  <!-- Cell block dimension. -->
+  $\providecommand{\dblk}{}$
+  $\renewcommand{\dblk}{d_{\opblk}}$
+  <!-- Number of cell blocks. -->
+  $\providecommand{\nblk}{}$
+  $\renewcommand{\nblk}{n_{\opblk}}$
+
+  <!-- Past and Future time -->
+  $\providecommand{\tp}{}$
+  $\renewcommand{\tp}{t_{\operatorname{past}}}$
+  $\providecommand{\tf}{}$
+  $\renewcommand{\tf}{t_{\operatorname{future}}}$
+  <!-- Graident of loss(t_2) with respect to net k_0 at time t_1. -->
+  $\providecommand{\dv}{}$
+  $\renewcommand{\dv}[3]{\vartheta_{#1}^{#2}[#3]}$
+
+  <!-- Cell block k. -->
+  $\providecommand{\blk}{}$
+  $\renewcommand{\blk}[1]{\opblk^{#1}}$
+
+  <!-- Weight of multiplicative input gate. -->
+  $\providecommand{\wig}{}$
+  $\renewcommand{\wig}{w^{\opig}}$
+  <!-- Weight of multiplicative output gate. -->
+  $\providecommand{\wog}{}$
+  $\renewcommand{\wog}{w^{\opog}}$
+  <!-- Weight of hidden units. -->
+  $\providecommand{\whid}{}$
+  $\renewcommand{\whid}{w^{\ophid}}$
+  <!-- Weight of cell block units. -->
+  $\providecommand{\wblk}{}$
+  $\renewcommand{\wblk}[1]{w^{\blk{#1}}}$
+  <!-- Weight of output units. -->
+  $\providecommand{\wout}{}$
+  $\renewcommand{\wout}{w^{\opout}}$
+
+  <!-- Net input of multiplicative input gate. -->
+  $\providecommand{\netig}{}$
+  $\renewcommand{\netig}[2]{\opnet_{#1}^{\opig}(#2)}$
+  <!-- Net input of multiplicative input gate with activatiton f. -->
+  $\providecommand{\fnetig}{}$
+  $\renewcommand{\fnetig}[2]{f_{#1}^{\opig}\big(\netig{#1}{#2}\big)}$
+  <!-- Derivative of f with respect to net input of input gate. -->
+  $\providecommand{\dfnetig}{}$
+  $\renewcommand{\dfnetig}[2]{f_{#1}^{\opig}{'}\big(\netig{#1}{#2}\big)}$
+  <!-- Net input of multiplicative output gate. -->
+  $\providecommand{\netog}{}$
+  $\renewcommand{\netog}[2]{\opnet_{#1}^{\opog}(#2)}$
+  <!-- Net input of multiplicative output gate with activatiton f. -->
+  $\providecommand{\fnetog}{}$
+  $\renewcommand{\fnetog}[2]{f_{#1}^{\opog}\big(\netog{#1}{#2}\big)}$
+  <!-- Derivative of f with respect to net input of output gate. -->
+  $\providecommand{\dfnetog}{}$
+  $\renewcommand{\dfnetog}[2]{f_{#1}^{\opog}{'}\big(\netog{#1}{#2}\big)}$
+  <!-- Net input of hidden unit. -->
+  $\providecommand{\nethid}{}$
+  $\renewcommand{\nethid}[2]{\opnet_{#1}^{\ophid}(#2)}$
+  <!-- Net input of hidden unit with activatiton f. -->
+  $\providecommand{\fnethid}{}$
+  $\renewcommand{\fnethid}[2]{f_{#1}^{\ophid}\big(\nethid{#1}{#2}\big)}$
+  <!-- Derivative of f with respect to net input of hidden units. -->
+  $\providecommand{\dfnethid}{}$
+  $\renewcommand{\dfnethid}[2]{f_{#1}^{\ophid}{'}\big(\nethid{#1}{#2}\big)}$
+  <!-- Net input of output units. -->
+  $\providecommand{\netout}{}$
+  $\renewcommand{\netout}[2]{\opnet_{#1}^{\opout}(#2)}$
+  <!-- Net input of output units with activatiton f. -->
+  $\providecommand{\fnetout}{}$
+  $\renewcommand{\fnetout}[2]{f_{#1}^{\opout}\big(\netout{#1}{#2}\big)}$
+  <!-- Derivative of f with respect to net input of output units. -->
+  $\providecommand{\dfnetout}{}$
+  $\renewcommand{\dfnetout}[2]{f_{#1}^{\opout}{'}\big(\netout{#1}{#2}\big)}$
+
+  <!-- Net input of cell unit. -->
+  $\providecommand{\netcell}{}$
+  $\renewcommand{\netcell}[3]{\opnet_{#1}^{\blk{#2}}(#3)}$
+
+  <!-- Gradient approximation by truncating gradient. -->
+  $\providecommand{\aptr}{}$
+  $\renewcommand{\aptr}{\approx_{\operatorname{tr}}}$
+</p>
+
+<!-- End LaTeX command define section. -->
+
+<h2 id="section">重點</h2>
+
+<ul>
+  <li><a href="https://ieeexplore.ieee.org/abstract/document/6795963">此篇論文</a>與 <a href="https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM">LSTM-2000</a> 都寫錯自己的數學公式，但我的筆記內容主要以正確版本為主</li>
+  <li>計算 <strong>RNN</strong> 梯度反向傳播的演算法包含 <strong>BPTT</strong> 或 <strong>RTRL</strong>
+    <ul>
+      <li>BPTT 全名為 <strong>B</strong>ack-<strong>P</strong>ropagation <strong>T</strong>hrought <strong>T</strong>ime</li>
+      <li>RTRL 全名為 <strong>R</strong>eal <strong>T</strong>ime <strong>R</strong>ecurrent <strong>L</strong>earning</li>
+    </ul>
+  </li>
+  <li>不論使用 BPTT 或 RTRL，RNN 的梯度都會面臨<strong>爆炸</strong>或<strong>消失</strong>的問題
+    <ul>
+      <li>梯度<strong>爆炸</strong>造成神經網路的<strong>權重劇烈振盪</strong></li>
+      <li>梯度<strong>消失</strong>造成<strong>訓練時間慢長</strong></li>
+      <li>無法解決<strong>時間差較長</strong>的問題</li>
+    </ul>
+  </li>
+  <li>論文提出 <strong>LSTM + RTRL</strong> 能夠解決上述問題
+    <ul>
+      <li>Backward pass 演算法<strong>時間複雜度</strong>為 $O(w)$，$w$ 代表權重</li>
+      <li>Backward pass 演算法<strong>空間複雜度</strong>也為 $O(w)$，因此<strong>沒有輸入長度的限制</strong></li>
+      <li>此結論必須依靠<strong>丟棄部份梯度</strong>並使用 <strong>RTRL</strong> 才能以有<strong>效率</strong>的辦法解決梯度<strong>爆炸</strong>或<strong>消失</strong></li>
+    </ul>
+  </li>
+  <li>使用<strong>乘法閘門</strong>（<strong>Multiplicative Gate</strong>）學習<strong>開啟</strong> / <strong>關閉</strong>模型記憶<strong>寫入</strong> / <strong>讀取</strong>機制</li>
+  <li>LSTM 的<strong>閘門單元參數</strong>應該讓<strong>偏差項</strong>（bias term）初始化成<strong>負數</strong>
+    <ul>
+      <li>輸<strong>入</strong>閘門偏差項初始化成負數能夠解決<strong>內部狀態偏差行為</strong>（<strong>Internal State Drift</strong>）</li>
+      <li>輸<strong>出</strong>閘門偏差項初始化成負數能夠避免模型<strong>濫用記憶單元初始值</strong>與<strong>訓練初期梯度過大</strong></li>
+      <li>如果沒有輸出閘門，則<strong>收斂速度會變慢</strong></li>
+    </ul>
+  </li>
+  <li>根據實驗 LSTM 能夠達成以下任務
+    <ul>
+      <li>擁有處理<strong>短時間差</strong>（<strong>Short Time Lag</strong>）任務的能力</li>
+      <li>擁有處理<strong>長時間差</strong>（<strong>Long Time Lag</strong>）任務的能力</li>
+      <li>能夠處理最長時間差長達 $1000$ 個單位的任務</li>
+      <li>輸入訊號含有雜訊時也能處理</li>
+    </ul>
+  </li>
+  <li>LSTM 的缺點
+    <ul>
+      <li>仍然無法解決 delayed XOR 問題
+        <ul>
+          <li>改成 BPTT 可能可以解決，但計算複雜度變高</li>
+          <li>CEC 在使用 BPTT 後有可能無效，但根據實驗使用 BPTT 時誤差傳遞的過程中很快就消失</li>
+        </ul>
+      </li>
+      <li>在部份任務上無法比 random weight guessing 最佳化速度還要快
+        <ul>
+          <li>例如 500-bit parity</li>
+          <li>使用 CEC 才導致此後果</li>
+          <li>但計算效率高，最佳化過程也比較穩定</li>
+        </ul>
+      </li>
+      <li>無法精確的判斷重要訊號的輸入時間
+        <ul>
+          <li>所有使用梯度下降作為最佳演算法的模型都有相同問題</li>
+          <li>如果精確判斷是很重要的功能，則作者認為需要幫模型引入計數器的功能</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>當單一字元的<strong>出現次數期望值增加</strong>時，<strong>學習速度會下降</strong>
+    <ul>
+      <li>作者認為是常見字詞的出現導致參數開始振盪</li>
+    </ul>
+  </li>
+  <li>與 <a href="https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html?highlight=lstm#torch.nn.LSTM">PyTorch</a> 實作的 LSTM 完全不同
+    <ul>
+      <li>本篇論文的架構定義更為<strong>廣義</strong></li>
+      <li>本篇論文只有<strong>輸入閘門</strong>（<strong>Input Gate</strong>）跟<strong>輸出閘門</strong>（<strong>Output Gate</strong>），並沒有使用<strong>失憶閘門</strong>（<strong>Forget Gate</strong>）</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="rnn">傳統的 RNN</h2>
+
+<h3 id="section-1">計算定義</h3>
+
+<p>一個 RNN 模型在 $t$ 時間點的<strong>輸入</strong>來源共有兩種：</p>
+
+<ul>
+  <li><strong>外部輸入</strong>（<strong>External Input</strong>） $x(t)$
+    <ul>
+      <li>輸入維度為 $\din$</li>
+      <li>使用下標 $x_j(t)$ 代表不同的輸入訊號，$j \in \set{1, \dots, \din}$</li>
+    </ul>
+  </li>
+  <li><strong>總輸出</strong>（<strong>Total Output</strong>） $y(t)$
+    <ul>
+      <li>輸出維度為 $\dout$</li>
+      <li>使用下標 $y_j(t)$ 代表不同的輸入訊號，$j \in \set{1, \dots, \dout}$</li>
+      <li>注意這裡是使用 $t$ 不是 $t - 1$</li>
+    </ul>
+  </li>
+  <li>總共計算 $T$ 個時間點
+    <ul>
+      <li>時間為離散狀態，$t$ 的起始值為 $0$，結束值為 $T - 1$，每次遞增 $1$</li>
+      <li>初始化 $y(0) = 0$，輸入為 $x(0), \dots, x(T - 1)$，輸出為 $y(1), \dots, y(T)$</li>
+    </ul>
+  </li>
+</ul>
+
+<p>令 RNN 模型的<strong>參數</strong>為 $w \in \R^{\dout \times (\din + \dout)}$，如果我們已經取得 $t$ 時間點的<strong>外部輸入</strong> $x(t)$ 與<strong>總輸出</strong> $y(t)$，則我們可以定義 $t + 1$ 時間點的計算狀態</p>
+
+\[\begin{align*}
+  \net{i}{t + 1} &amp; = \sum_{j = 1}^{\dout} w_{i, j} \cdot y_j(t) + \sum_{j = 1}^{\din} w_{i, \dout + j} \cdot x_j(t) \\
+  &amp; = \sum_{j = 1}^{\dout + \din} w_{i, j} \cdot \begin{pmatrix}
+  y(t) \\
+  x(t)
+  \end{pmatrix}_j \\
+  \opnet(t + 1) &amp; = w \cdot \begin{pmatrix}
+  y(t) \\
+  x(t)
+  \end{pmatrix}
+\end{align*} \tag{1}\label{1}\]
+
+<ul>
+  <li>$\net{i}{t + 1}$ 代表第 $t + 1$ 時間的<strong>模型內部節點</strong> $i$ 所收到的<strong>淨輸入（total input）</strong>
+    <ul>
+      <li>由 $t$ 時間點的輸入訊號計算 $t + 1$ 時間點的輸出結果</li>
+      <li>這是早年常見的 RNN 公式表達法</li>
+    </ul>
+  </li>
+  <li>$w_{i, j}$ 代表<strong>輸入節點</strong> $j$ 與<strong>模型內部節點</strong> $i$ 所連接的權重
+    <ul>
+      <li>輸入節點可以是<strong>外部輸入</strong> $x_j(t)$ 或是<strong>總輸出</strong> $y_j(t)$</li>
+      <li>總共有 $\din + \dout$ 個輸入節點，因此 $1 \leq j \leq \din + \dout$</li>
+      <li>總共有 $\dout$ 個內部節點，因此 $1 \leq i \leq \dout$</li>
+    </ul>
+  </li>
+</ul>
+
+<p>令模型使用的<strong>啟發函數</strong>（<strong>Activation Function</strong>）為 $f : \R^{\dout} \to \R^{\dout}$，並且內部節點之間無相互連接（<strong>Element-wise</strong> Activation Function），則我們可以得到 $t + 1$ 時間的輸出</p>
+
+\[\begin{align*}
+y_{i}(t + 1) &amp; = \fnet{i}{t + 1} \\
+y(t + 1) &amp; = f(\opnet(t + 1))
+\end{align*} \tag{2}\label{2}\]
+
+<ul>
+  <li>使用下標 $f_{i}$ 是因為每個維度所使用的啟發函數可以<strong>不同</strong></li>
+  <li>$f$ 必須要可以<strong>微分</strong>，當時與 RNN 有關的論文幾乎都是令 $f_i$ 為 sigmoid 函數 $\sigma(x) = 1 / (1 + e^{-x})$</li>
+  <li>後續論文分析都是採用 sigmoid 函數，因此我們直接以 $\sigma$ 表達 $f_i$</li>
+</ul>
+
+<h3 id="section-2">計算誤差</h3>
+
+<p>如果 $t + 1$ 時間點的<strong>輸出目標</strong>為 $\hat{y}(t + 1) \in \R^{\dout}$，則<strong>目標函數</strong>為<strong>最小平方差</strong>（Mean Square Error）：</p>
+
+\[\begin{align*}
+\loss{i}{t + 1} &amp; = \frac{1}{2} \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)^2 \\
+\Loss{t + 1} &amp; = \sum_{i = 1}^{\dout} \loss{i}{t + 1}
+\end{align*} \tag{3}\label{3}\]
+
+<h3 id="section-3">梯度計算</h3>
+
+<p>根據 $\eqref{3}$ 我們知道 $y_{i}(t + 1)$ 對 $\Loss{t + 1}$ 所得梯度為</p>
+
+\[\begin{align*}
+\pd{\Loss{t + 1}}{y_{i}(t + 1)} &amp; = \pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_{i}(t + 1)} \\
+&amp; = 1 \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \\
+&amp; = y_{i}(t + 1) - \hat{y}_{i}(t + 1)
+\end{align*} \tag{4}\label{4}\]
+
+<p>根據 $\eqref{4}$ 我們可以推得 $\net{i}{t + 1}$ 對 $\Loss{t + 1}$ 所得梯度</p>
+
+\[\begin{align*}
+\pd{\Loss{t + 1}}{\net{i}{t + 1}} &amp; = \pd{\Loss{t + 1}}{y_{i}(t + 1)} \cdot \pd{y_{i}(t + 1)}{\net{i}{t + 1}} \\
+&amp; = \sigma'\pa{\net{i}{t + 1}} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)
+\end{align*} \tag{5}\label{5}\]
+
+<p>式子 $\eqref{5}$ 就是論文 3.1.1 節的第一條公式。</p>
+
+<p>根據 $\eqref{5}$ 我們可以推得 $y_j(t)$ 對 $\Loss{t + 1}$ 所得梯度為</p>
+
+\[\begin{align*}
+\pd{\Loss{t + 1}}{y_j(t)} &amp; = \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{y_j(t)}\bigg] \\
+&amp; = \sum_{i = 1}^{\dout} \bigg[\sigma'\pa{\net{i}{t + 1}} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i, j}\bigg]
+\end{align*} \tag{6}\label{6}\]
+
+<p>由於第 $t$ 時間點的輸出 $y(t)$ 的計算是由 $\opnet(t)$ 而來（請見 $\eqref{2}$），所以我們也利用 $\eqref{6}$ 計算 $\net{j}{t}$ 對 $\Loss{t + 1}$ 所得梯度（注意是 $t$ 不是 $t + 1$）</p>
+
+\[\begin{align*}
+\pd{\Loss{t + 1}}{\net{j}{t}} &amp; = \pd{\Loss{t + 1}}{y_j(t)} \cdot \pd{y_j(t)}{\net{j}{t}} \\
+&amp; = \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot w_{i, j} \cdot \sigma'\pa{\net{j}{t + 1}}\bigg] \\
+&amp; = \sigma'\pa{\net{j}{t + 1}} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i, j} \cdot \pd{\Loss{t + 1}}{\net{i}{t + 1}}\bigg]
+\end{align*} \tag{7}\label{7}\]
+
+<p>式子 $\eqref{7}$ 就是論文 3.1.1 節的最後一條公式。</p>
+
+<p>模型參數 $w_{i, j}$ 對於 $\Loss{t + 1}$ 所得梯度為</p>
+
+\[\begin{align*}
+&amp; \pd{\Loss{t + 1}}{w_{i, j}} \\
+&amp; = \sum_{k = 1}^{\dout} \pd{\Loss{t + 1}}{\net{k}{t + 1}} \cdot \pd{\net{k}{t + 1}}{w_{i, j}} \\
+&amp; = \sum_{k = 1}^{\dout} \pd{\Loss{t + 1}}{\net{k}{t + 1}} \cdot \br{\sum_{j^{\star} = 1}^{\dout + \din} \pa{\pd{w_{k, j^{\star}}}{w_{i, j}} \cdot \begin{pmatrix}
+y(t) \\
+x(t)
+\end{pmatrix}_{j^{\star}} + w_{k, j^{\star}} \cdot \pd{\begin{pmatrix}
+y(t) \\
+x(t)
+\end{pmatrix}_{j^{\star}}}{w_{i, j}}}} \\
+&amp; = \sum_{k = 1}^{\dout} \pd{\Loss{t + 1}}{\net{k}{t + 1}} \cdot \br{\begin{pmatrix}
+y(t) \\
+x(t)
+\end{pmatrix}_j + \sum_{j^{\star} = 1}^{\dout} w_{k, j^{\star}} \cdot \sigma'\pa{\net{j^{\star}}{t}} \cdot \pd{\net{j^{\star}}{t}}{w_{i, j}}}
+\end{align*} \tag{8}\label{8}\]
+
+<p>而在時間點 $t + 1$ 進行參數更新的方法為</p>
+
+\[w_{i, j} \leftarrow w_{i, j} - \alpha \pd{\Loss{t + 1}}{w_{i, j}} \tag{9}\label{9}\]
+
+<p>$\eqref{9}$ 就是最常用來最佳化神經網路的<strong>梯度下降演算法</strong>（Gradient Descent），$\alpha$ 代表<strong>學習率</strong>（Learning Rate）。</p>
+
+<h3 id="section-4">梯度爆炸 / 消失</h3>
+
+<p>從 $\eqref{7}$ 式我們可以進一步推得 $t$ 時間點造成的梯度與前次時間點 ($t - 1, t - 2, \dots$) 所得的梯度<strong>變化關係</strong>。
+注意這裡的變化關係指的是梯度與梯度之間的<strong>變化率</strong>，意即用時間點 $t - 1$ 的梯度對時間點 $t$ 的梯度算微分。</p>
+
+<p>為了方便計算，我們定義新的符號</p>
+
+\[\dv{k}{\tf}{\tp} = \pd{\Loss{\tf}}{\net{k}{\tp}} \tag{10}\label{10}\]
+
+<p>意思是在<strong>過去</strong>時間點 $\tp$ 的第 $k$ 個<strong>模型內部節點</strong> $\net{k}{\tp}$ 對於<strong>未來</strong>時間點 $\tf$ 貢獻的<strong>總誤差</strong> $\Loss{\tf}$ 計算所得之<strong>梯度</strong>。</p>
+
+<ul>
+  <li>注意是貢獻總誤差所得之<strong>梯度</strong></li>
+  <li>根據時間的限制我們有不等式 $0 \leq \tp \leq \tf$</li>
+  <li>節點 $k$ 的數值範圍為 $k \in \set{1, \dots, \dout}$，見式子 $\eqref{1}$</li>
+</ul>
+
+<p>因此</p>
+
+\[\begin{align*}
+&amp; \dv{k_0}{t}{t} = \pd{\Loss{t}}{\net{k_0}{t}}; \\
+&amp; \dv{k_1}{t}{t - 1} = \pd{\Loss{t}}{\net{k_1}{t - 1}} \\
+&amp; = \sigma'\pa{\net{k_1}{t - 1}} \cdot \pa{\sum_{k_0 = 1}^{\dout} w_{k_0, k_1} \cdot \dv{k_0}{t}{t}}; \\
+&amp; \dv{k_2}{t}{t - 2} = \pd{\Loss{t}}{\net{k_2}{t - 2}} \\
+&amp; = \sum_{k_1 = 1}^{\dout} \br{\pd{\Loss{t}}{\net{k_1}{t - 1}} \cdot \pd{\net{k_1}{t - 1}}{y_{k_2}(t - 2)} \cdot \pd{y_{k_2}(t - 2)}{\net{k_2}{t - 2}}} \\
+&amp; = \sum_{k_1 = 1}^{\dout} \br{\dv{k_1}{t}{t - 1} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_2}{t - 2}}} \\
+&amp; = \sum_{k_1 = 1}^{\dout} \br{\sigma'\pa{\net{k_1}{t - 1}} \cdot \pa{\sum_{k_0 = 1}^{\dout} w_{k_0, k_1} \cdot \dv{k_0}{t}{t}} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_2}{t - 2}}} \\
+&amp; = \sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \br{w_{k_0, k_1} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_1}{t - 1}} \cdot \sigma'\pa{\net{k_2}{t - 2}} \cdot \dv{k_0}{t}{t}}; \\
+&amp; \dv{k_3}{t}{t - 3} = \sum_{k_2 = 1}^{\dout} \br{\pd{\Loss{t}}{\net{k_2}{t - 2}} \cdot \pd{\net{k_2}{t - 2}}{y_{k_3}(t - 3)} \cdot \pd{y_{k_3}(t - 3)}{\net{k_3}{t - 3}}} \\
+&amp; = \sum_{k_2 = 1}^{\dout} \br{\dv{k_2}{t}{t - 2} \cdot w_{k_2, k_3} \cdot \sigma'\pa{\net{k_3}{t - 3}}} \\
+&amp; = \sum_{k_2 = 1}^{\dout} \Bigg[\sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \br{w_{k_0, k_1} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_1}{t - 1}} \cdot \sigma'\pa{\net{k_2}{t - 2}} \cdot \dv{k_0}{t}{t}} \\
+&amp; \quad \cdot w_{k_2, k_3} \cdot \sigma'\pa{\net{k_3}{t - 3}}\Bigg] \\
+&amp; = \sum_{k_2 = 1}^{\dout} \sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \bigg[w_{k_0, k_1} \cdot w_{k_1, k_2} \cdot w_{k_2, k_3} \cdot \\
+&amp; \quad \sigma'\pa{\net{k_1}{t - 1}} \cdot \sigma'\pa{\net{k_2}{t - 2}} \cdot \sigma'\pa{\net{k_3}{t - 3}} \cdot \dv{k_0}{t}{t}\bigg] \\
+&amp; = \sum_{k_2 = 1}^{\dout} \sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \br{\br{\prod_{q = 1}^{3} w_{k_{q - 1}, k_q} \cdot \sigma'\pa{\net{k_q}{t - q}}} \cdot \dv{k_0}{t}{t}}
+\end{align*} \tag{11}\label{11}\]
+
+<p>由 $\eqref{11}$ 我們可以歸納得出 $n \geq 1$ 時的公式</p>
+
+\[\dv{k_{n}}{t}{t - n} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{0} = 1}^{\dout} \br{\br{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} \cdot \dv{k_{0}}{t}{t}} \tag{12}\label{12}\]
+
+<p>由 $\eqref{12}$ 我們可以看出 $\dv{k_{n}}{t}{t - n}$ 都與 $\dv{k_{0}}{t}{t}$ 相關，因此我們將 $\dv{k_{n}}{t}{t - n}$ 想成由 $\dv{k_{0}}{t}{t}$ 構成的函數。</p>
+
+<p>現在讓我們固定 $k_{0}^{\star} \in \set{1, \dots, \dout}$，我們可以計算 $\dv{k_{0}^{\star}}{t}{t}$ 對於 $\dv{k_{n}}{t}{t - n}$ 的微分，分析<strong>梯度</strong>在進行<strong>反向傳遞過程</strong>中的<strong>變化率</strong></p>
+
+<ul>
+  <li>
+    <p>當 $n = 1$ 時，根據 $\eqref{11}$ 我們可以推得論文中的 (3.1) 式</p>
+
+\[\pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} = w_{k_{0}^{\star}, k_{1}} \cdot \sigma'\pa{\net{k_{1}}{t - 1}} \tag{13}\label{13}\]
+  </li>
+  <li>
+    <p>當 $n &gt; 1$ 時，根據 $\eqref{12}$ 我們可以推得論文中的 (3.2) 式</p>
+
+\[\pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^{\star}}} \br{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} \tag{14}\label{14}\]
+  </li>
+</ul>
+
+<p><strong>注意錯誤</strong>：論文中的 (3.2) 式不小心把 $w_{l_{m - 1} l_{m}}$ 寫成 $w_{l_{m} l_{m - 1}}$。</p>
+
+<p>因此根據 $\eqref{14}$，共有 $(\dout)^{n - 1}$ 個連乘積項次進行加總。</p>
+
+<p>根據 $\eqref{13} \eqref{14}$，如果</p>
+
+\[\abs{w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} &gt; 1.0 \quad \forall q = 1, \dots, n \tag{15}\label{15}\]
+
+<p>則<strong>梯度變化率</strong>成指數 $n$ 增長，直接導致<strong>梯度爆炸</strong>，參數會進行<strong>劇烈的振盪</strong>，無法進行順利更新。</p>
+
+<p>而如果</p>
+
+\[\abs{w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} &lt; 1.0 \quad \forall q = 1, \dots, n \tag{16}\label{16}\]
+
+<p>則<strong>梯度變化率</strong>成指數 $n$ 縮小，直接導致<strong>梯度消失</strong>，誤差<strong>收斂速度</strong>會變得<strong>非常緩慢</strong>。</p>
+
+<p>從 $\eqref{17}$ 我們知道 $\sigma’$ 最大值為 $0.25$</p>
+
+\[\begin{align*}
+\sigma(x) &amp; = \frac{1}{1 + e^{-x}} \\
+\sigma'(x) &amp; = \frac{e^{-x}}{(1 + e^{-x})^2} = \frac{1}{1 + e^{-x}} \cdot \frac{e^{-x}}{1 + e^{-x}} \\
+&amp; = \frac{1}{1 + e^{-x}} \cdot \frac{1 + e^{-x} - 1}{1 + e^{-x}} = \sigma(x) \cdot \big(1 - \sigma(x)\big) \\
+\sigma(\R) &amp; = (0, 1) \\
+\max_{x \in \R} \sigma'(x) &amp; = \sigma(0) \times \big(1 - \sigma(0)\big) = 0.5 \times 0.5 = 0.25
+\end{align*} \tag{17}\label{17}\]
+
+<p>因此當 $\abs{w_{k_{q - 1}, k_{q}}} &lt; 4.0$ 時我們可以發現</p>
+
+\[\abs{w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} &lt; 4.0 * 0.25 = 1.0 \tag{18}\label{18}\]
+
+<p>所以 $\eqref{18}$ 與 $\eqref{16}$ 的結論相輔相成：當 $w_{k_{q - 1}, k_{q}}$ 的絕對值小於 $4.0$ 會造成<strong>梯度消失</strong>。</p>
+
+<p>而 $\abs{w_{k_{q - 1}, k_{q}}} \to \infty$ 我們可以使用 $\eqref{17}$ 得到</p>
+
+\[\begin{align*}
+&amp; \abs{\net{k_{q - 1}}{t - q + 1}} \to \infty \\
+\implies &amp; \begin{dcases}
+\sigma\pa{\net{k_{q - 1}}{t - q + 1}} \to 1 &amp; \text{if } \net{k_{q - 1}}{t - q + 1} \to \infty \\
+\sigma\pa{\net{k_{q - 1}}{t - q + 1}} \to 0 &amp; \text{if } \net{k_{q - 1}}{t - q + 1} \to -\infty
+\end{dcases} \\
+\implies &amp; \abs{\sigma'\pa{\net{k_{q - 1}}{t - q + 1}}} \to 0 \\
+\implies &amp; \abs{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} \\
+&amp; = \abs{w_{k_0, k_1} \cdot \prod_{q = 2}^{n} \bigg[\sigma'\pa{\net{k_{q - 1}}{t - q + 1}} \cdot w_{k_{q - 1}, k_{q}}\bigg] \cdot \sigma'\pa{\net{k_{n}}{t - n}}} \\
+&amp; \to 0
+\end{align*} \tag{19}\label{19}\]
+
+<p>最後一個推論的原理是<strong>指數函數的收斂速度比線性函數快</strong>。</p>
+
+<p><strong>注意錯誤</strong>：論文中的推論</p>
+
+\[\abs{w_{k_{q - 1}, k_{q}} \cdot \dfnet{k_{q}}{t - q}} \to 0\]
+
+<p>是<strong>錯誤</strong>的，理由是 $w_{k_{q - 1}, k_{q}}$ 無法對 $\net{k_{q}}{t - q}$ 造成影響，作者不小心把<strong>時間順序寫反</strong>了，但是<strong>最後的邏輯仍然正確</strong>，理由如 $\eqref{19}$ 所示。</p>
+
+<p><strong>注意錯誤</strong>：論文中進行了以下<strong>函數最大值</strong>的推論</p>
+
+\[\begin{align*}
+&amp; \dfnet{l_{m}}{t - m}\big) \cdot w_{l_{m} l_{m - 1}} \\
+&amp; = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}
+\end{align*}\]
+
+<p>最大值發生於微分值為 $0$ 的點，即我們想求出滿足以下式子的 $w_{l_{m} l_{m - 1}}$</p>
+
+\[\pd{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} = 0\]
+
+<p>拆解微分式可得</p>
+
+\[\begin{align*}
+&amp; \pd{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} \\
+&amp; = \pd{\sigma\big(\net{l_{m}}{t - m}\big)}{\net{l_{m}}{t - m}} \cdot \pd{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}} \\
+&amp; \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \pd{\Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)}{\net{l_{m}}{t - m}} \cdot \pd{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot w_{l_{m} l_{m - l}} \\
+&amp; \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot \pd{w_{l_{m} l_{m - 1}}}{w_{l_{m} l_{m - 1}}} \\
+&amp; = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
+&amp; \quad - \Big(\sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
+&amp; \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
+&amp; = \Big[2 \Big(\sigma\big(\net{l_{m}}{t - m}\big)\Big)^3 - 3 \Big(\sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 + \sigma\big(\net{l_{m}}{t - m}\big)\Big] \cdot \\
+&amp; \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
+&amp; \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
+&amp; = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(2 \sigma\big(\net{l_{m}}{t - m}\big) - 1\Big) \cdot \Big(\sigma\big(\net{l_{m}}{t - m}\big) - 1\Big) \cdot \\
+&amp; \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
+&amp; \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
+&amp; = 0
+\end{align*}\]
+
+<p>移項後可以得到</p>
+
+\[\begin{align*}
+&amp; \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(2 \sigma\big(\net{l_{m}}{t - m}\big) - 1\Big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot \\
+&amp; \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
+\implies &amp; \Big(2 \sigma\big(\net{l_{m}}{t - m}\big) - 1\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} = 1 \\
+\implies &amp; w_{l_{m} l_{m - 1}} = \frac{1}{y_{l_{m - 1}}(t - m - 1)} \cdot \frac{1}{2 \sigma\big(\net{l_{m}}{t - m}\big) - 1} \\
+\implies &amp; w_{l_{m} l_{m - 1}} = \frac{1}{y_{l_{m - 1}}(t - m - 1)} \cdot \coth\bigg(\frac{\net{l_{m}}{t - m}}{2}\bigg)
+\end{align*}\]
+
+<p>註：推論中使用了以下公式</p>
+
+\[\begin{align*}
+\tanh(x) &amp; = 2 \sigma(2x) - 1 \\
+\tanh(\frac{x}{2}) &amp; = 2 \sigma(x) - 1 \\
+\coth(\frac{x}{2}) &amp; = \frac{1}{\tanh(\frac{x}{2})} = \frac{1}{2 \sigma(x) - 1}
+\end{align*}\]
+
+<p>但公式的前提不對，理由是 $w_{l_{m} l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_{m}}$（同 $\eqref{14}$）。</p>
+
+<p>接著我們可以計算 $t$ 時間點 $\dout$ 個<strong>不同</strong>節點 $\net{k_0^{\star}}{t}$ 對於<strong>同一個</strong> $t - n$ 時間點的 $\net{k_{n}}{t - n}$ 節點所貢獻的<strong>梯度變化總和</strong>：</p>
+
+\[\sum_{k_{0}^{\star} = 1}^{\dout} \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} \tag{20}\label{20}\]
+
+<p>由於<strong>每個項次</strong>都能遭遇<strong>梯度消失</strong>，因此<strong>總和</strong>也會遭遇<strong>梯度消失</strong>。</p>
+
+<h2 id="section-5">問題觀察</h2>
+
+<h3 id="section-6">情境 1：模型輸出與內部節點 1-1 對應</h3>
+
+<p>假設模型沒有任何輸入，啟發函數 $f_j$ 為未知且 $t - 1$ 時間點的輸出節點 $y_j(t - 1)$ 只與 $\net{j}{t}$ 相連，即</p>
+
+\[\net{j}{t} = w_{j, j} \cdot y_j(t - 1) \tag{21}\label{21}\]
+
+<p>則根據式子 $\eqref{11}$ 我們可以推得</p>
+
+\[\dv{j}{t}{t - 1} = w_{j, j} \cdot \dfnet{j}{t - 1} \cdot \dv{j}{t}{t} \tag{22}\label{22}\]
+
+<p>為了不讓梯度 $\dv{j}{t}{t}$ 在傳遞的過程消失，作者認為需要強制達成<strong>梯度常數（Constant Error Flow）</strong></p>
+
+\[w_{j, j} \cdot \dfnet{j}{t - 1} = 1.0 \tag{23}\label{23}\]
+
+<p>透過 $\eqref{23}$ 的想法讓 $\eqref{12}$ 中梯度變化率的<strong>連乘積項</strong>為 $1.0$，因此</p>
+
+<ul>
+  <li>不會像 $\eqref{15}$ 導致梯度<strong>爆炸</strong></li>
+  <li>不會像 $\eqref{16}$ 導致梯度<strong>消失</strong></li>
+</ul>
+
+<p>如果 $\eqref{23}$ 能夠達成，則積分 $\eqref{23}$ 可以得到</p>
+
+\[\begin{align*}
+&amp; \int w_{j, j} \cdot \dfnet{j}{t - 1} \; d \big[\net{j}{t - 1}\big] = \int 1.0 \; d \big[\net{j}{t - 1}\big] \\
+\iff &amp; w_{j, j} \cdot \fnet{j}{t - 1} = \net{j}{t - 1} \\
+\iff &amp; y_j(t - 1) = \fnet{j}{t - 1} = \frac{\net{j}{t - 1}}{w_{j, j}}
+\end{align*} \tag{24}\label{24}\]
+
+<p>觀察 $\eqref{24}$ 我們可以發現</p>
+
+<ul>
+  <li>輸入 $\net{j}{t - 1}$ 與輸出 $\fnet{j}{t - 1}$ 之間的關係是乘上一個常數項 $w_{j, j}$</li>
+  <li>代表函數 $f_j$ 其實是一個<strong>線性函數</strong></li>
+</ul>
+
+<p>若採用 $\eqref{24}$ 的架構設計，我們可以發現<strong>每個時間點</strong>的<strong>輸出</strong>必須<strong>完全相同</strong></p>
+
+\[\begin{align*}
+y_j(t) &amp; = \fnet{j}{t} = f_j\big(w_{j, j} \cdot y_j(t - 1)\big) \\
+&amp; = f_j\big(w_{j, j} \cdot \frac{\net{j}{t - 1}}{w_{j, j}}\big) = \fnet{j}{t - 1} = y_j(t - 1) \tag{25}\label{25}
+\end{align*}\]
+
+<p>這個現象稱為 <strong>Constant Error Carousel</strong>（簡稱 <strong>CEC</strong>），而作者設計的 LSTM 架構會完全基於 CEC 進行設計，但我覺得概念比較像 ResNet 的 residual connection。</p>
+
+<h3 id="section-7">情境 2：增加外部輸入</h3>
+
+<p>將 $\eqref{21}$ 的假設改成每個模型內部節點可以額外接收<strong>外部輸入</strong></p>
+
+\[\net{j}{t} = w_{j, j} \cdot y_j(t - 1) + \sum_{i = 1}^{\din} w_{j, i} \cdot x_{i}(t - 1) \tag{26}\label{26}\]
+
+<p>由於 $y_j(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{26}$ 的假設中唯一能夠<strong>更新</strong>資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j, i}$ 將新資訊合併進入 $\net{j}{t}$。</p>
+
+<p>但作者認為，在計算的過程中，部份時間點的<strong>輸入</strong>資訊 $x_{i}(\cdot)$ 可能是<strong>雜訊</strong>，因此可以（甚至必須）被<strong>忽略</strong>。
+但這代表與外部輸入相接的參數 $w_{j, i}$ 需要<strong>同時</strong>達成<strong>兩種</strong>任務：</p>
+
+<ul>
+  <li><strong>加入新資訊</strong>：代表 $\abs{w_{j, i}} \neq 0$</li>
+  <li><strong>忽略新資訊</strong>：代表 $\abs{w_{j, i}} \approx 0$</li>
+</ul>
+
+<p>因此<strong>無法只靠一個</strong> $w_{j, i}$ 決定<strong>輸入</strong>的影響，必須有<strong>額外</strong>能夠<strong>理解當前內容 (context-sensitive)</strong> 的功能模組幫忙決定是否<strong>寫入</strong> $x_{i}(\cdot)$。</p>
+
+<h3 id="section-8">情境 3：輸出回饋到多個節點</h3>
+
+<p>將 $\eqref{21} \eqref{26}$ 的假設改回正常的模型架構</p>
+
+\[\net{j}{t} = \sum_{i = 1}^{\dout} w_{j, i} \cdot y_{i}(t - 1) + \sum_{i = 1}^{\din} w_{j, \dout + i} \cdot x_{i}(t - 1) \tag{27}\label{27}\]
+
+<p>由於 $y_j(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{27}$ 的假設中唯一能夠讓<strong>過去</strong>資訊<strong>影響未來</strong>計算結果的方法只有透過 $y_{i}(t - 1)$ 配合 $w_{j, \din + i}$ 將新資訊合併進入 $\net{j}{t}$。</p>
+
+<p>但作者認為，在計算的過程中，部份時間點的<strong>輸出</strong>資訊 $y_i(*)$ 可能對預測沒有幫助，因此可以(甚至必須)被<strong>忽略</strong>。
+但這代表與輸出相接的參數 $w_{j, \din + i}$ 需要<strong>同時</strong>達成<strong>兩種</strong>任務：</p>
+
+<ul>
+  <li><strong>保留過去資訊</strong>：代表 $\abs{w_{j, \din + i}} \neq 0$</li>
+  <li><strong>忽略過去資訊</strong>：代表 $\abs{w_{j, \din + i}} \approx 0$</li>
+</ul>
+
+<p>因此<strong>無法只靠一個</strong> $w_{j, \din + i}$ 決定<strong>輸出</strong>的影響，必須有<strong>額外</strong>能夠<strong>理解當前內容 (context-sensitive)</strong> 的功能模組幫忙決定是否<strong>讀取</strong> $y_i(*)$。</p>
+
+<h2 id="lstm-">LSTM 架構</h2>
+
+<p><a name="paper-fig-1"></a></p>
+
+<p>圖 1：記憶單元內部架構。
+符號對應請見下個小節。
+圖片來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/uhS4AgH.png" alt="圖 1" /></p>
+
+<p><a name="paper-fig-2"></a></p>
+
+<p>圖 2：LSTM 全連接架構範例。
+線條真的多到讓人看不懂，看我整理過的公式比較好理解。
+圖片來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/UQ5LAu8.png" alt="圖 2" /></p>
+
+<p>為了解決<strong>梯度爆炸 / 消失</strong>問題，作者決定以 Constant Error Carousel 為出發點（見 $\eqref{25}$），提出 <strong>3</strong> 個主要的機制，並將這些機制的合體稱為<strong>記憶單元區塊（Memory Cell Blocks）</strong>（見<a href="#paper-fig-1">圖 1</a>）：</p>
+
+<ul>
+  <li><strong>乘法輸入閘門（Multiplicative Input Gate）</strong>：用於決定是否<strong>更新</strong>記憶單元的<strong>內部狀態</strong></li>
+  <li><strong>乘法輸出閘門（Multiplicative Output Gate）</strong>：用於決定是否<strong>輸出</strong>記憶單元的<strong>計算結果</strong></li>
+  <li><strong>自連接線性單元（Central Linear Unit with Fixed Self-connection）</strong>：概念來自於 CEC（見 $\eqref{25}$），藉此保障<strong>梯度不會消失</strong></li>
+</ul>
+
+<h3 id="section-9">初始狀態</h3>
+
+<p>我們將 $\eqref{1}$ 中的計算重新定義，並新增幾個符號：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>符號</th>
+      <th>意義</th>
+      <th>數值範圍</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\dhid$</td>
+      <td><strong>隱藏單元</strong>的個數</td>
+      <td>$\N$</td>
+    </tr>
+    <tr>
+      <td>$\dblk$</td>
+      <td>每個記憶單元區塊中<strong>記憶單元</strong>的個數</td>
+      <td>$\Z^+$</td>
+    </tr>
+    <tr>
+      <td>$\nblk$</td>
+      <td><strong>記憶單元區塊</strong>的個數</td>
+      <td>$\Z^+$</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>因為論文 4.3 節有提到可以完全沒有<strong>隱藏單元</strong>，因此允許 $\dhid = 0$
+    <ul>
+      <li>此論文的後續研究似乎都沒有使用隱藏單元</li>
+      <li>例如更新 LSTM 架構的主要研究 <a href="https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM">LSTM-2000</a> 與 <a href="https://www.jmlr.org/papers/v3/gers02a.html">LSTM-2002</a> 都沒有使用隱藏單元</li>
+    </ul>
+  </li>
+  <li>根據論文 4.4 節，可以<strong>同時</strong>擁有 $\nblk$ 個不同的<strong>記憶單元區塊</strong>，因此允許 $\nblk \geq 1$</li>
+</ul>
+
+<p>接著我們定義 $t$ 時間點的模型計算狀態：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>符號</th>
+      <th>意義</th>
+      <th>數值範圍</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$y^{\ophid}(t)$</td>
+      <td><strong>隱藏單元（Hidden Units）</strong></td>
+      <td>$\R^{\dhid}$</td>
+    </tr>
+    <tr>
+      <td>$y^{\opig}(t)$</td>
+      <td><strong>輸入閘門單元（Input Gate Units）</strong></td>
+      <td>$\R^{\nblk}$</td>
+    </tr>
+    <tr>
+      <td>$y^{\opog}(t)$</td>
+      <td><strong>輸出閘門單元（Output Gate Units）</strong></td>
+      <td>$\R^{\nblk}$</td>
+    </tr>
+    <tr>
+      <td>$y^{\blk{k}}(t)$</td>
+      <td><strong>記憶單元區塊</strong> $k$ 的<strong>輸出</strong></td>
+      <td>$\R^{\dblk}$</td>
+    </tr>
+    <tr>
+      <td>$s^{\blk{k}}(t)$</td>
+      <td><strong>記憶單元區塊</strong> $k$ 的<strong>內部狀態</strong></td>
+      <td>$\R^{\dblk}$</td>
+    </tr>
+    <tr>
+      <td>$y(t)$</td>
+      <td><strong>模型總輸出</strong></td>
+      <td>$\R^{\dout}$</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>以上所有向量全部都<strong>初始化</strong>成各自維度的<strong>零向量</strong>，也就是 $t = 0$ 時模型<strong>所有節點</strong>（除了<strong>輸入</strong>）都是 $0$</li>
+  <li>根據論文 4.4 節，可以<strong>同時</strong>擁有 $\nblk$ 個不同的<strong>記憶單元</strong>
+    <ul>
+      <li><a href="#paper-fig-2">圖 2</a> 模型共有 $2$ 個不同的記憶單元</li>
+      <li><strong>記憶單元區塊</strong>上標 $k$ 的數值範圍為 $k \in \set{1, \dots, \nblk}$</li>
+    </ul>
+  </li>
+  <li><strong>同一個</strong>記憶單元區塊<strong>共享閘門單元</strong>，因此 $y^{\opig}(t), y^{\opog}(t)$ 的維度為 $\nblk$</li>
+  <li>根據論文 4.3 節，<strong>記憶單元</strong>、<strong>閘門單元</strong>與<strong>隱藏單元</strong>都算是<strong>隱藏層（Hidden Layer）</strong>的一部份
+    <ul>
+      <li><strong>外部輸入</strong>會與<strong>隱藏層</strong>和<strong>總輸出</strong>連接</li>
+      <li><strong>隱藏層</strong>會與<strong>總輸出</strong>連接（但<strong>閘門</strong>不會）</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p><strong>All units</strong> (except for gate units) in all layers have <strong>directed</strong> connections (serve as input) to <strong>all units</strong> in the <strong>layer above</strong> (or to <strong>all higher layers</strong>; see experiments 2a and 2b)</p>
+</blockquote>
+
+<h3 id="section-10">計算定義</h3>
+
+<p>當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時，我們可以進行以下計算得到 $t + 1$ 時間點的總輸出 $y(t + 1)$</p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot (2 + \dblk) \tag{28}\label{28} \\
+\tilde{x}(t) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix} \in \R^D \tag{29}\label{29} \\
+k &amp; \in \set{1, \dots, \nblk} \tag{30}\label{30} \\
+y^{\ophid}(t + 1) &amp; = f^{\ophid}\pa{\opnet^{\ophid}(t + 1)} = f^{\ophid}\pa{\whid \cdot \tilde{x}(t)} \tag{31}\label{31} \\
+y^{\opig}(t + 1) &amp; = f^{\opig}\pa{\opnet^{\opig}(t + 1)} = f^{\opig}\pa{\wig \cdot \tilde{x}(t)} \tag{32}\label{32} \\
+y^{\opog}(t + 1) &amp; = f^{\opog}\pa{\opnet^{\opog}(t + 1)} = f^{\opog}\pa{\wog \cdot \tilde{x}(t)} \tag{33}\label{33} \\
+s^{\blk{k}}(t + 1) &amp; = s^{\blk{k}}(t) + y_k^{\opig}(t + 1) \cdot g\pa{\opnet^{\blk{k}}(t + 1)} \tag{34}\label{34} \\
+&amp; = s^{\blk{k}}(t) + y_k^{\opig}(t + 1) \cdot g\pa{\wblk{k} \cdot \tilde{x}(t)} \\
+y^{\blk{k}}(t + 1) &amp; = y_k^{\opog}(t + 1) \cdot h\pa{s^{\blk{k}}(t + 1)} \tag{35}\label{35} \\
+y(t + 1) &amp; = f^{\opout}(\opnet^{\opout}(t + 1)) = f^{\opout}\pa{\wout \cdot \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t + 1) \\
+y^{\blk{1}}(t + 1) \\
+\vdots \\
+y^{\blk{\nblk}}(t + 1)
+\end{pmatrix}} \tag{36}\label{36}
+\end{align*}\]
+
+<p>以上就是 LSTM（1997 版本）的計算流程。</p>
+
+<ul>
+  <li>$f^{\ophid}, f^{\opig}, f^{\opog}, f^{\opout}, g, h$ 都是 differentiable element-wise activation function，大部份都是 sigmoid 或是 sigmoid 的變形</li>
+  <li>$f^{\opig}, f^{\opog}$ 的數值範圍（range）必須限制在 $[0, 1]$，才能達成閘門的功能</li>
+  <li>$f^{\opout}$ 的數值範圍只跟任務有關</li>
+  <li>論文並沒有給 $f^{\ophid}, g, h$ 任何數值範圍的限制</li>
+</ul>
+
+<p>論文 4.3 節有提到可以完全沒有<strong>隱藏單元</strong>，而後續的研究（例如 <a href="https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM">LSTM-2000</a>、<a href="https://www.jmlr.org/papers/v3/gers02a.html">LSTM-2002</a>）也完全沒有使用隱藏單元，因此 $\eqref{31}$ 可以完全不存在。</p>
+
+<ul>
+  <li>$\eqref{29}$ 中的 $y^{\ophid}(t)$ 必須去除</li>
+  <li>$\eqref{36}$ 中的 $y^{\ophid}(t + 1)$ 必須去除</li>
+  <li>隱藏單元的設計等同於<strong>保留</strong> $\eqref{1} \eqref{2}$ 的架構，是個不好的設計，因此論文後續在<strong>最佳化</strong>的過程中動了手腳</li>
+</ul>
+
+<p>根據 $\eqref{32} \eqref{34}$，在計算完 $t + 1$ 時間點的<strong>輸入閘門</strong> $y^{\opig}(t + 1)$ 後便可以更新 $t + 1$ 時間點的<strong>記憶單元內部狀態</strong> $s^{\blk{k}}(t + 1)$。</p>
+
+<ul>
+  <li><strong>記憶單元淨輸入</strong>會與<strong>輸入閘門</strong>進行<strong>相乘</strong>，因此稱為<strong>乘法輸入閘門</strong></li>
+  <li>由於 $t + 1$ 時間點的資訊有加上 $t$ 時間點的資訊，因此稱為<strong>自連接線性單元</strong></li>
+  <li>同一個記憶單元區塊會<strong>共享</strong>同一個輸入閘門，因此 $\eqref{34}$ 中的乘法是<strong>純量乘上向量</strong>，這也是 $y^{ig}(t + 1) \in \R^{\nblk}$ 的理由</li>
+  <li>當模型認為<strong>輸入訊號不重要</strong>時，模型應該要<strong>關閉輸入閘門</strong>，即 $y_k^{\opig}(t + 1) \approx 0$
+    <ul>
+      <li>丟棄<strong>當前</strong>輸入訊號，只以<strong>過去資訊</strong>進行決策</li>
+      <li>在此狀態下 $t + 1$ 時間點的<strong>記憶單元內部狀態</strong>與 $t$ 時間點<strong>完全相同</strong>，達成 $\eqref{23} \eqref{25}$，藉此保障<strong>梯度不會消失</strong></li>
+    </ul>
+  </li>
+  <li>當模型認為<strong>輸入訊號重要</strong>時，模型應該要<strong>開啟輸入閘門</strong>，即 $y_k^{\opig}(t + 1) \approx 1$</li>
+  <li>不論<strong>輸入訊號</strong> $g\pa{\opnet^{\blk{k}}(t + 1)}$ 的大小，只要 $y_k^{\opig}(t + 1) \approx 0$，則輸入訊號<strong>完全無法影響</strong>接下來的所有計算，LSTM 以此設計避免 $\eqref{26}$ 所遇到的困境</li>
+</ul>
+
+<p>根據 $\eqref{33} \eqref{35}$，在計算完 $t + 1$ 時間點的<strong>輸出閘門</strong> $y^{\opog}(t + 1)$ 與<strong>記憶單元內部狀態</strong> $s^{\blk{k}}(t + 1)$ 後便可以得到 $t + 1$ 時間點的<strong>記憶單元輸出</strong> $y^{\blk{k}}(t + 1)$。</p>
+
+<ul>
+  <li><strong>記憶單元啟發值</strong>會與<strong>輸出閘門</strong>進行<strong>相乘</strong>，因此稱為<strong>乘法輸出閘門</strong></li>
+  <li>同一個記憶單元區塊會<strong>共享</strong>同一個輸出閘門，因此 $\eqref{35}$ 中的乘法是<strong>純量乘上向量</strong>，這也是 $y^{og}(t + 1) \in \R^{\nblk}$ 的理由</li>
+  <li>當模型認為<strong>輸出訊號</strong>會導致<strong>當前計算錯誤</strong>時，模型應該<strong>關閉輸出閘門</strong>，即 $y_k^{\opog}(t + 1) \approx 0$
+    <ul>
+      <li>在<strong>輸入</strong>閘門<strong>開啟</strong>的狀況下，<strong>關閉輸出</strong>閘門代表不讓<strong>現在</strong>時間點的資訊影響當前計算</li>
+      <li>在<strong>輸入</strong>閘門<strong>關閉</strong>的狀況下，<strong>關閉輸出</strong>閘門代表不讓<strong>過去</strong>時間點的資訊影響當前計算</li>
+    </ul>
+  </li>
+  <li>當模型認為<strong>輸出訊號包含重要資訊</strong>時，模型應該要開啟<strong>輸出閘門</strong>，即 $y_k^{\opog}(t + 1) \approx 1$
+    <ul>
+      <li>在<strong>輸入</strong>閘門<strong>開啟</strong>的狀況下，<strong>開啟輸出</strong>閘門代表讓<strong>現在</strong>時間點的資訊影響當前計算</li>
+      <li>在<strong>輸入</strong>閘門<strong>關閉</strong>的狀況下，<strong>開啟輸出</strong>閘門代表不讓<strong>過去</strong>時間點的資訊影響當前計算</li>
+    </ul>
+  </li>
+  <li>不論<strong>輸出訊號</strong> $h\pa{s^{\blk{k}}(t + 1)}$ 的大小，只要 $y_k^{\opog}(t + 1) \approx 0$，則輸出訊號<strong>完全無法影響</strong>接下來的所有計算，LSTM 以此設計避免 $\eqref{26} \eqref{27}$ 所遇到的困境</li>
+  <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html?highlight=lstm#torch.nn.LSTM">PyTorch 實作的 LSTM</a> 中 $h(t)$ 表達的意思是記憶單元輸出 $y^{\blk{k}}(t)$</li>
+</ul>
+
+<p>根據 $\eqref{36}$，得到 $t + 1$ 時間點的<strong>記憶單元輸出</strong> $y^{\blk{k}}(t + 1)$ 後就可以計算 $t + 1$ 時間點的模型<strong>總輸出</strong> $y(t + 1)$。</p>
+
+<ul>
+  <li>注意在計算 $\eqref{36}$ 時並沒有使用閘門單元，與 $\eqref{29}$ 的計算不同</li>
+  <li>注意 $y(t + 1)$ 與 $y^{\opog}$ 不同
+    <ul>
+      <li>$y(t + 1)$ 是<strong>總輸出</strong>，我的 $y(t + 1)$ 是論文中的 $y^k(t + 1)$</li>
+      <li>$y^{\opog}(t + 1)$ 是<strong>記憶單元</strong>的<strong>輸出閘門</strong>，我的 $y^{\opog}(t + 1)$ 是論文中的 $y^{\opout_i}(t + 1)$</li>
+    </ul>
+  </li>
+</ul>
+
+<p>根據論文 A.7 式下方的描述，$t + 1$ 時間點的<strong>總輸出</strong>只與 $t$ 時間點的<strong>模型狀態</strong>（<strong>不含閘門與總輸出</strong>）有關係，所以 $\eqref{31} \eqref{32} \eqref{33} \eqref{35}$ 的計算都只是在幫助 $t + 2$ 時間點的計算狀態<strong>鋪陳</strong>。</p>
+
+<p>我不確定這是否為作者的筆誤，畢竟附錄中所有分析的數學式都寫的蠻正確的，我認為這裡是筆誤的理由如下：</p>
+
+<ul>
+  <li>同個實驗室後續的研究（例如 <a href="https://www.jmlr.org/papers/v3/gers02a.html">LSTM-2002</a>）寫的式子不同</li>
+  <li>至少要傳播兩個時間點才能得到輸出，代表第 $1$ 個時間點的輸出完全無法利用到記憶單元的知識</li>
+  <li>後續的實驗架構設計中沒有將外部輸入連接到輸出，代表第 $1$ 個時間點的輸出完全依賴模型的初始狀態（常數），非常不合理</li>
+</ul>
+
+<p>因此我決定改用我認為是正確的版本撰寫後續的筆記，即 $t + 1$ 時間點的<strong>總輸出</strong>與 $t$ 時間點的<strong>外部輸入</strong>和 $t + 1$ 時間點的<strong>計算狀態</strong>有關。</p>
+
+<p>注意 $\eqref{32} \eqref{33}$ 沒有使用偏差項（bias term），但後續的分析會提到可以使用偏差項進行計算缺陷的修正。</p>
+
+<h3 id="section-11">參數結構</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>意義</th>
+      <th>輸出維度</th>
+      <th>輸入維度</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\whid$</td>
+      <td>產生<strong>隱藏單元</strong>的全連接參數</td>
+      <td>$\dhid$</td>
+      <td>$\din + \dhid + \nblk \cdot (2 + \dblk)$</td>
+    </tr>
+    <tr>
+      <td>$\wig$</td>
+      <td>產生<strong>輸入閘門</strong>的全連接參數</td>
+      <td>$\nblk$</td>
+      <td>$\din + \dhid + \nblk \cdot (2 + \dblk)$</td>
+    </tr>
+    <tr>
+      <td>$\wog$</td>
+      <td>產生<strong>輸出閘門</strong>的全連接參數</td>
+      <td>$\nblk$</td>
+      <td>$\din + \dhid + \nblk \cdot (2 + \dblk)$</td>
+    </tr>
+    <tr>
+      <td>$\wblk{k}$</td>
+      <td>產生第 $k$ 個<strong>記憶單元區塊淨輸入</strong>的全連接參數</td>
+      <td>$\dblk$</td>
+      <td>$\din + \dhid + \nblk \cdot (2 + \dblk)$</td>
+    </tr>
+    <tr>
+      <td>$\wout$</td>
+      <td>產生<strong>輸出</strong>的全連接參數</td>
+      <td>$\dblk$</td>
+      <td>$\din + \dhid + \nblk \cdot \dblk$</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="section-12">丟棄部份模型單元的梯度</h2>
+
+<p>過去的論文中提出以<strong>修改最佳化過程</strong>避免 RNN 訓練遇到<strong>梯度爆炸 / 消失</strong>的問題（例如 Truncated BPTT）。</p>
+
+<p>論文 4.5 節提到<strong>最佳化</strong> LSTM 的方法為 <strong>RTRL 的變種</strong>，主要精神如下：</p>
+
+<ul>
+  <li>最佳化的核心思想是確保能夠達成 <strong>CEC</strong> （見 $\eqref{25}$）</li>
+  <li>使用的手段是要求所有梯度<strong>反向傳播</strong>的過程在經過<strong>記憶單元區塊</strong>與<strong>隱藏單元</strong>後便<strong>停止</strong>傳播</li>
+  <li>停止傳播導致在完成 $t + 1$ 時間點的 forward pass 後梯度可以<strong>馬上計算完成</strong>（real time 的精神便是來自於此）</li>
+</ul>
+
+<p>首先我們定義新的符號 $\aptr$，代表計算<strong>梯度</strong>的過程會有<strong>部份梯度</strong>故意被<strong>丟棄</strong>（設定為 $0$），並以丟棄結果<strong>近似</strong>真正的<strong>全微分</strong>。</p>
+
+\[\pd{\opnet_i^a(t + 1)}{y_j^b(t)} \aptr 0 \quad \text{where } a, b \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \tag{37}\label{37}\]
+
+<p>所有與<strong>隱藏單元淨輸入</strong> $\nethid{i}{t + 1}$、<strong>輸入閘門淨輸入</strong> $\netig{i}{t + 1}$、<strong>輸出閘門淨輸入</strong> $\netog{i}{t + 1}$、<strong>記憶單元淨輸入</strong> $\netcell{i}{k}{t + 1}$ <strong>直接相連</strong>的 $t$ 時間點的<strong>單元</strong>，一律<strong>丟棄梯度</strong></p>
+
+<ul>
+  <li>注意論文在 A.1.2 節的開頭只提到<strong>輸入閘門</strong>、<strong>輸出閘門</strong>、<strong>記憶單元</strong>要<strong>丟棄梯度</strong></li>
+  <li>但論文在 A.9 式描述可以將<strong>隱藏單元</strong>的梯度一起<strong>丟棄</strong>，害我白白推敲公式好幾天</li>
+</ul>
+
+<blockquote>
+  <p>Here it would be possible to use the full gradient without affecting constant error flow through internal states of memory cells.</p>
+</blockquote>
+
+<p>根據 $\eqref{37}$ 我們可以進一步推得</p>
+
+\[\begin{align*}
+a &amp; \in \set{\ophid, \opig, \opog} \\
+b &amp; \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
+\pd{y_i^a(t + 1)}{y_j^b(t)} &amp; = \pd{y_i^a(t + 1)}{\opnet_i^a(t + 1)} \cdot \cancelto{0}{\pd{\opnet_i^a(t + 1)}{y_j^b(t)}} \aptr 0 \\
+k &amp; \in \set{1, 2, \dots, \nblk} \\
+\pd{y_i^{\blk{k}}(t + 1)}{y_j^b(t)} &amp; = \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t + 1)}{y_j^b(t)}} \\
+&amp; \quad + \pd{y_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t + 1}}{y_j^b(t)}} \\
+&amp; \quad + \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t + 1)}{y_j^b(t)}} \\
+&amp; \aptr 0
+\end{align*} \tag{38}\label{38}\]
+
+<p>由於 $y^{\opig}(t + 1), y^{\opog}(t + 1), \opnet^{\blk{k}}(t + 1)$ 並不是<strong>直接</strong>透過 $w^{\ophid}$ 產生，因此 $w^{\ophid}$ 只能透過參與 $t$ 時間點<strong>以前</strong>的計算<strong>間接</strong>對 $t + 1$ 時間點的計算造成影響（見 $\eqref{31}$），這也代表在 $\eqref{38}$ 作用的情況下 $w^{\ophid}$ <strong>無法</strong>從 $y^{\opig}(t + 1), y^{\opog}(t + 1), \opnet^{\blk{k}}(t + 1)$ 收到任何的<strong>梯度</strong>：</p>
+
+\[\begin{align*}
+a &amp; \in \set{\opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
+b &amp; \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
+\pd{y_i^a(t + 1)}{\whid_{p, q}} &amp; = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \bigg[\cancelto{0}{\pd{y_i^a(t + 1)}{y_j^b(t)}} \cdot \pd{y_j^b(t)}{\whid_{p, q}}\bigg] \aptr 0
+\end{align*} \tag{39}\label{39}\]
+
+<h3 id="section-13">相對於總輸出所得剩餘梯度</h3>
+
+<p>我們將論文的 A.8 式拆解成 $\eqref{41} \eqref{42} \eqref{43} \eqref{44}$。</p>
+
+<h4 id="section-14">總輸出參數</h4>
+
+<p>令 $\delta_{a, b}$ 為 <strong>Kronecker delta</strong>，i.e.，</p>
+
+\[\delta_{a, b} = \begin{dcases}
+1 &amp; \text{if } a = b \\
+0 &amp; \text{otherwise}
+\end{dcases} \tag{40}\label{40}\]
+
+<p>由於<strong>總輸出</strong> $y(t + 1)$ 不會像是 $\eqref{1} \eqref{2}$ 的方式<strong>回饋</strong>到模型的計算狀態中，因此<strong>總輸出參數</strong> $\wout$ 對<strong>總輸出</strong> $y(t + 1)$ 計算所得的<strong>梯度</strong>為</p>
+
+\[\begin{align*}
+i, p &amp; \in \set{1, \dots, \dout} \\
+q &amp; \in \set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
+\pd{y_i(t + 1)}{\wout_{p, q}} &amp; = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wout_{p, q}} \\
+&amp; = \dfnetout{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t + 1) \\
+y^{\blk{1}}(t + 1) \\
+\vdots \\
+y^{\blk{\nblk}}(t + 1)
+\end{pmatrix}_q
+\end{align*} \tag{41}\label{41}\]
+
+<ul>
+  <li>$\eqref{41}$ 就是論文中 A.8 式的第一個 case</li>
+  <li>由於 $p$ 可以是<strong>任意</strong>的輸出節點，因此在 $i \neq p$ 時 $\wout_{p, q}$ 對於 $y_i(t + 1)$ 的梯度為 $0$</li>
+</ul>
+
+<h4 id="section-15">隱藏單元參數</h4>
+
+<p>在 $\eqref{37} \eqref{38} \eqref{39}$ 的作用下，我們可以求得<strong>隱藏單元參數</strong> $\whid$ 在<strong>丟棄</strong>部份梯度後對於<strong>總輸出</strong> $y(t + 1)$ 計算所得的<strong>剩餘梯度</strong></p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot \dblk \\
+\tilde{x}(t + 1) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t + 1) \\
+y^{\blk{1}}(t + 1) \\
+\vdots \\
+y^{\blk{\nblk}}(t + 1)
+\end{pmatrix} \in \R^D \\
+i &amp; \in \set{1, \dots, \dout} \\
+p &amp; \in \set{1, \dots, \dhid} \\
+q &amp; \in \set{1, \dots, D} \\
+\pd{y_i(t + 1)}{\whid_{p, q}} &amp; = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\whid_{p, q}} \\
+&amp; = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t + 1)}{\whid_{p, q}}}} \\
+&amp; \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t + 1)}{\whid_{p, q}}
+\end{align*} \tag{42}\label{42}\]
+
+<p>$\eqref{42}$ 就是論文中 A.8 式的最後一個 case。</p>
+
+<h4 id="section-16">閘門單元參數</h4>
+
+<p>同 $\eqref{42}$，我們可以計算<strong>閘門單元參數</strong> $\wig, \wog$ 對<strong>總輸出</strong> $y(t + 1)$ 計算所得的<strong>剩餘梯度</strong></p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot \dblk \\
+\tilde{x}(t + 1) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t + 1) \\
+y^{\blk{1}}(t + 1) \\
+\vdots \\
+y^{\blk{\nblk}}(t + 1)
+\end{pmatrix} \in \R^D \\
+i &amp; \in \set{1, \dots, \dout} \\
+k &amp; \in \set{1, \dots, \nblk} \\
+q &amp; \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+\pd{y_i(t + 1)}{\wog_{k, q}} &amp; = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wog_{k, q}} \\
+&amp; = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t + 1)}{\wog_{k, q}}}} \\
+&amp; \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}} \\
+\pd{y_i(t + 1)}{\wig_{k, q}} &amp; \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}
+\end{align*} \tag{43}\label{43}\]
+
+<p>$\eqref{43}$ 就是論文中 A.8 式的第三個 case。</p>
+
+<h4 id="section-17">記憶單元淨輸入參數</h4>
+
+<p><strong>記憶單元淨輸入參數</strong> $\wblk{k}$ 對<strong>總輸出</strong> $y(t + 1)$ 計算所得的<strong>剩餘梯度</strong>與 $\eqref{43}$ 幾乎<strong>相同</strong></p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot \dblk \\
+\tilde{x}(t + 1) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t + 1) \\
+y^{\blk{1}}(t + 1) \\
+\vdots \\
+y^{\blk{\nblk}}(t + 1)
+\end{pmatrix} \in \R^D \\
+i &amp; \in \set{1, \dots, \dout} \\
+k &amp; \in \set{1, \dots, \nblk} \\
+p &amp; \in \set{1, \dots, \dblk} \\
+q &amp; \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+\pd{y_i(t + 1)}{\wblk{k}_{p, q}} &amp; = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wblk{k}_{p, q}} \\
+&amp; = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t + 1)}{\wblk{k}_{p, q}}}} \\
+&amp; \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pd{y_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}
+\end{align*} \tag{44}\label{44}\]
+
+<p>$\eqref{44}$ 就是論文中 A.8 式的第二個 case。</p>
+
+<h3 id="section-18">相對於隱藏單元所得剩餘梯度</h3>
+
+<p>我們將論文的 A.9 式拆解成 $\eqref{45} \eqref{46} \eqref{47}$。</p>
+
+<h4 id="section-19">隱藏單元參數</h4>
+
+<p>根據 $\eqref{37} \eqref{38}$ 我們可以得到<strong>隱藏單元參數</strong> $\whid$ 對於<strong>隱藏單元</strong> $y^{\ophid}(t + 1)$ 計算所得<strong>剩餘梯度</strong></p>
+
+\[\begin{align*}
+i, p &amp; \in \set{1, \dots, \dhid} \\
+q &amp; \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+\pd{y_i^{\ophid}(t + 1)}{\whid_{p, q}} &amp; = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \cancelto{\aptr}{\pd{\nethid{i}{t + 1}}{\whid_{p, q}}} \\
+&amp; \aptr \dfnethid{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix}_q
+\end{align*} \tag{45}\label{45}\]
+
+<h4 id="section-20">閘門單元參數</h4>
+
+<p>由於<strong>隱藏單元</strong> $y^{\ophid}(t + 1)$ 並不是<strong>直接</strong>透過<strong>閘門參數</strong> $\wig, \wog$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wig, \wog$ 對於 $y^{\ophid}(t + 1)$ <strong>剩餘梯度</strong>為 $0$</p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot (2 + \dblk) \\
+\tilde{x}(t) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix} \in \R^D \\
+i &amp; \in \set{1, \dots, \dhid} \\
+p &amp; \in \set{1, \dots, \nblk} \\
+q &amp; \in \set{1, \dots, D} \\
+\pd{y_i^{\ophid}(t + 1)}{\wog_{p, q}} &amp; = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wog_{p, q}}} \aptr 0 \\
+\pd{y_i^{\ophid}(t + 1)}{\wig_{p, q}} &amp; \aptr 0
+\end{align*} \tag{46}\label{46}\]
+
+<h4 id="section-21">記憶單元淨輸入參數</h4>
+
+<p>同 $\eqref{46}$，由於<strong>隱藏單元</strong> $y^{\ophid}(t + 1)$ 並不是<strong>直接</strong>透過<strong>記憶單元淨輸入參數</strong> $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\ophid}(t + 1)$ <strong>剩餘梯度</strong>為 $0$</p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot (2 + \dblk) \\
+\tilde{x}(t) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix} \in \R^D \\
+i &amp; \in \set{1, \dots, \dhid} \\
+k &amp; \in \set{1, \dots, \nblk} \\
+p &amp; \in \set{1, \dots, \dblk} \\
+q &amp; \in \set{1, \dots, D} \\
+\pd{y_i^{\ophid}(t + 1)}{\wblk{k}_{p, q}} &amp; = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0
+\end{align*} \tag{47}\label{47}\]
+
+<h3 id="section-22">相對於記憶單元輸出所得剩餘梯度</h3>
+
+<p>我們將論文的 A.13 式拆解成 $\eqref{48} \eqref{49} \eqref{50}$。</p>
+
+<h4 id="section-23">閘門單元參數</h4>
+
+<p>根據 $\eqref{37}$ 我們可以推得<strong>閘門單元參數</strong> $\wig, \wog$ 對於<strong>記憶單元輸出</strong> $y^{\blk{k}}(t + 1)$ 計算所得<strong>剩餘梯度</strong></p>
+
+\[\begin{align*}
+i &amp; \in \set{1, \dots, \dblk} \\
+k, p &amp; \in \set{1, \dots, \nblk} \\
+q &amp; \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+\pd{y_i^{\blk{k}}(t + 1)}{\wog_{p, q}} &amp; = \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \pd{y_k^{\opog}(t + 1)}{\wog_{p, q}} + \pd{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \cancelto{0}{\pd{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}}} \\
+&amp; \aptr h_i\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pd{y_k^{\opog}(t + 1)}{\wog_{k, q}} \tag{48}\label{48} \\
+\pd{y_i^{\blk{k}}(t + 1)}{\wig_{p, q}} &amp; = \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t + 1)}{\wig_{p, q}}} + \pd{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pd{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} \\
+&amp; \aptr y_k^{\opog}(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pd{s_i^{\blk{k}}(t + 1)}{\wig_{k, q}} \tag{49}\label{49}
+\end{align*}\]
+
+<h4 id="section-24">記憶單元淨輸入參數</h4>
+
+<p>同 $\eqref{49}$，使用 $\eqref{37}$ 推得<strong>記憶單元淨輸入參數</strong> $\wblk{k^{\star}}$ 對於<strong>記憶單元輸出</strong> $y^{\blk{k}}(t + 1)$ 計算所得<strong>剩餘梯度</strong>（注意 $k^{\star}$ 可以<strong>不等於</strong> $k$）</p>
+
+\[\begin{align*}
+i, p &amp; \in \set{1, \dots, \dblk} \\
+k, k^{\star} &amp; \in \set{1, \dots, \nblk} \\
+q &amp; \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+\pd{y_i^{\blk{k}}(t + 1)}{\wblk{k^{\star}}_{p, q}} &amp; = \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t + 1)}{\wblk{k^{\star}}_{p, q}}} + \pd{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pd{s_i^{\blk{k}}(t + 1)}{\wblk{k^{\star}}_{p, q}} \\
+&amp; \aptr y_k^{\opog}(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \pd{s_i^{\blk{k}}(t + 1)}{\wblk{k}_{i, q}}
+\end{align*} \tag{50}\label{50}\]
+
+<p><strong>注意錯誤</strong>：論文 A.13 式最後使用<strong>加法</strong> $\delta_{\opin_j l} + \delta_{c_j^v l}$，可能會導致梯度<strong>乘上常數</strong> $2$，因此應該修正成<strong>乘法</strong> $\delta_{\opin_j l} \cdot \delta_{c_j^v l}$</p>
+
+<h3 id="section-25">相對於閘門單元所得剩餘梯度</h3>
+
+<p>我們將論文的 A.10, A.11 式拆解成 $\eqref{51} \eqref{52}$。</p>
+
+<h4 id="section-26">閘門單元參數</h4>
+
+<p>根據 $\eqref{37} \eqref{38}$ 我們可以得到<strong>閘門單元參數</strong> $\wig, \wog$ 對於<strong>閘門單元</strong> $y^{\opig}(t + 1), y^{\opog}(t + 1)$ 計算所得<strong>剩餘梯度</strong></p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot (2 + \dblk) \\
+\tilde{x}(t) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}
+\end{pmatrix} \in \R^D \\
+k, p &amp; \in \set{1, \dots, \nblk} \\
+q &amp; \in \set{1, \dots, D} \\
+\pd{y_k^{\opig}(t + 1)}{[\wig ; \wog]_{p, q}} &amp; = \pd{y_k^{\opig}(t + 1)}{\netig{k}{t + 1}} \cdot \cancelto{\aptr}{\pd{\netig{k}{t + 1}}{[\wig ; \wog]_{p, q}}} \\
+&amp; \aptr \dfnetig{k}{t + 1} \cdot \delta_{k, p} \cdot \tilde{x}_q(t) \\
+\pd{y_k^{\opog}(t + 1)}{[\wig ; \wog]_{p, q}} &amp; \aptr \delta_{k, p} \cdot \dfnetog{k}{t + 1} \cdot \tilde{x}_q(t)
+\end{align*} \tag{51}\label{51}\]
+
+<h4 id="section-27">記憶單元淨輸入參數</h4>
+
+<p>由於<strong>閘門單元</strong> $y^{\opig}(t + 1), y^{\opog}(t + 1)$ 並不是<strong>直接</strong>透過<strong>記憶單元淨輸入參數</strong> $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\opig}(t + 1), y^{\opog}(t + 1)$ <strong>剩餘梯度</strong>為 $0$</p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot (2 + \dblk) \\
+\tilde{x}(t) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}
+\end{pmatrix} \in \R^D \\
+k &amp; \in \set{1, \dots, \nblk} \\
+p &amp; \in \set{1, \dots, \dblk} \\
+q &amp; \in \set{1, \dots, D} \\
+\pd{y_k^{\opig}(t + 1)}{\wblk{k}_{p, q}} &amp; = \pd{y_k^{\opig}(t + 1)}{\netig{k}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\netig{k}{t + 1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
+\pd{y_k^{\opog}(t + 1)}{\wblk{k}_{p, q}} &amp; \aptr 0
+\end{align*} \tag{52}\label{52}\]
+
+<h3 id="section-28">相對於記憶單元內部狀態所得剩餘梯度</h3>
+
+<p>我們將論文的 A.12 式拆解成 $\eqref{53} \eqref{54} \eqref{55}$。</p>
+
+<h4 id="section-29">閘門單元參數</h4>
+
+<p>將 $\eqref{37}$ 結合 $\eqref{51}$ 我們可以推得<strong>閘門單元參數</strong> $\wig, \wog$ 對於<strong>記憶單元內部狀態</strong> $s^{\blk{k}}(t + 1)$ 計算所得<strong>剩餘梯度</strong></p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot (2 + \dblk) \\
+\tilde{x}(t) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix} \in \R^D \\
+i &amp; \in \set{1, \dots, \dblk} \\
+k, p &amp; \in \set{1, \dots, \nblk} \\
+q &amp; \in \set{1, \dots, D} \\
+\pd{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}} &amp; = \pd{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\pd{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \pd{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t + 1)}{\wog_{p, q}}} \\
+&amp; \quad + \pd{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t + 1}}{\wog_{p, q}}} \\
+&amp; \aptr 0 \tag{53}\label{53} \\
+\pd{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} &amp; = \pd{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pd{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \pd{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \pd{y_k^{\opig}(t + 1)}{\wig_{p, q}} \\
+&amp; \quad + \pd{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t + 1}}{\wig_{p, q}}} \\
+&amp; \aptr 1 \cdot \delta_{k, p} \cdot \pd{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\pd{y_k^{\opig}(t + 1)}{\wig_{k, q}}} \\
+&amp; \aptr \delta_{k, p} \cdot \br{\pd{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
+\end{align*}\]
+
+<h4 id="section-30">記憶單元淨輸入參數</h4>
+
+<p>使用 $\eqref{37}$ 推得<strong>記憶單元淨輸入參數</strong> $\wblk{k^{\star}}$ 對於<strong>記憶單元內部狀態</strong> $s^{\blk{k}}(t + 1)$ 計算所得<strong>剩餘梯度</strong>（注意 $k^{\star}$ 可以<strong>不等於</strong> $k$）</p>
+
+\[\begin{align*}
+D &amp; = \din + \dhid + \nblk \cdot (2 + \dblk) \\
+\tilde{x}(t) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix} \in \R^D \\
+i, p &amp; \in \set{1, \dots, \dblk} \\
+k, k^{\star} &amp; \in \set{1, \dots, \nblk} \\
+q &amp; \in \set{1, \dots, D} \\
+\pd{s_i^{\blk{k}}(t + 1)}{\wblk{k^{\star}}_{p, q}} &amp; = \pd{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pd{s_i^{\blk{k}}(t)}{\wblk{k^{\star}}_{p, q}} + \pd{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t + 1)}{\wblk{k^{\star}}_{p, q}}} \\
+&amp; \quad + \pd{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \pd{\netcell{i}{k}{t + 1}}{\wblk{k^{\star}}_{p, q}} \\
+&amp; \aptr \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot 1 \cdot \pd{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} \\
+&amp; \quad + \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot y_k^{\opig}(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t) \\
+&amp; = \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \br{\pd{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + y_k^{\opig}(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t)}
+\end{align*} \tag{55}\label{55}\]
+
+<p><strong>注意錯誤</strong>：論文 A.12 式最後使用<strong>加法</strong> $\delta_{\opin_j l} + \delta_{c_j^v l}$，可能會導致梯度<strong>乘上常數</strong> $2$，因此應該修正成<strong>乘法</strong> $\delta_{\opin_j l} \cdot \delta_{c_j^v l}$</p>
+
+<h2 id="section-31">更新模型參數</h2>
+
+<h3 id="section-32">總輸出參數</h3>
+
+<p>從 $\eqref{4}$ 我們可以觀察出以下結論</p>
+
+\[\begin{align*}
+\tilde{x}(t + 1) &amp; = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t + 1) \\
+y^{\blk{1}}(t + 1) \\
+\vdots \\
+y^{\blk{\nblk}}(t + 1)
+\end{pmatrix} \\
+i &amp; \in \set{1, \dots, \dout} \\
+j &amp; \in \set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
+\pd{\Loss{t + 1}}{\wout_{i, j}} &amp; = \pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wout_{i, j}} \\
+&amp; = \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \pd{y_i(t + 1)}{\wout_{i, j}} \\
+&amp; = \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \tilde{x}_j(t + 1)
+\end{align*} \tag{56}\label{56}\]
+
+<h3 id="section-33">隱藏單元參數</h3>
+
+<p>從 $\eqref{4} \eqref{39} \eqref{42} \eqref{45}$ 我們可以觀察出以下結論</p>
+
+\[\begin{align*}
+&amp; p \in \set{1, \dots, \dhid} \\
+&amp; q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+&amp; \pd{\Loss{t + 1}}{\whid_{p, q}} = \sum_{i = 1}^{\dout} \br{\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\whid_{p, q}}} \\
+&amp; \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t + 1)}{\whid_{p, q}}} \\
+&amp; = \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \pd{y_p^{\ophid}(t + 1)}{\whid_{p, q}} \\
+&amp; \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \\
+&amp; \quad \quad \dfnethid{p}{t + 1} \cdot \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix}_j
+\end{align*} \tag{57}\label{57}\]
+
+<h3 id="section-34">輸出閘門單元參數</h3>
+
+<p>從 $\eqref{4} \eqref{43} \eqref{48} \eqref{51} \eqref{53}$ 我們可以觀察出以下結論</p>
+
+\[\begin{align*}
+k &amp; \in \set{1, \dots, \nblk} \\
+q &amp; \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+\pd{\Loss{t + 1}}{\wog_{k, q}} &amp; = \sum_{i = 1}^{\dout} \br{\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wog_{k, q}}} \\
+&amp; \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}}\Bigg] \\
+&amp; \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \pd{y_k^{\opog}(t + 1)}{\wog_{k, q}}}\Bigg] \\
+&amp; = \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \pd{y_k^{\opog}(t + 1)}{\wog_{k, q}} \\
+&amp; \aptr \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \\
+&amp; \quad \quad \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix}_q
+\end{align*} \tag{58}\label{58}\]
+
+<h3 id="section-35">輸入閘門單元參數</h3>
+
+<p>從 $\eqref{4} \eqref{43} \eqref{49} \eqref{51} \eqref{54}$ 我們可以觀察出以下結論</p>
+
+\[\begin{align*}
+&amp; \tilde{x}(t) = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix} \\
+&amp; k \in \set{1, \dots, \nblk} \\
+&amp; q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+&amp; \pd{\Loss{t + 1}}{\wig_{k, q}} = \sum_{i = 1}^{\dout} \br{\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wig_{k, q}}} \\
+&amp; \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
+&amp; \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pd{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
+&amp; = \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pd{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot y_k^{\opog}(t + 1) \\
+&amp; \aptr \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\pd{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
+&amp; \quad \quad g_j\pa{\netcell{j}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot y_k^{\opog}(t + 1)
+\end{align*} \tag{59}\label{59}\]
+
+<h3 id="section-36">記憶單元淨輸入參數</h3>
+
+<p>從 $\eqref{4} \eqref{44} \eqref{47} \eqref{50} \eqref{52} \eqref{55}$ 我們可以觀察出以下結論</p>
+
+\[\begin{align*}
+&amp; \tilde{x}(t) = \begin{pmatrix}
+x(t) \\
+y^{\ophid}(t) \\
+y^{\opig}(t) \\
+y^{\opog}(t) \\
+y^{\blk{1}}(t) \\
+\vdots \\
+y^{\blk{\nblk}}(t)
+\end{pmatrix} \\
+&amp; k \in \set{1, \dots, \nblk} \\
+&amp; p \in \set{1, \dots, \dblk} \\
+&amp; q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
+&amp; \pd{\Loss{t + 1}}{\wblk{k}_{p, q}} = \sum_{i = 1}^{\dout} \br{\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wblk{k}_{p, q}}} \\
+&amp; \aptr \sum_{i = 1}^{\dout} \bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+&amp; \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pd{y^{\blk{k}}_p(t + 1)}{\wblk{k}_{p, q}}\bigg] \\
+&amp; = \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+&amp; \quad \quad \pd{y^{\blk{k}}_p(t + 1)}{\wblk{k}_{p, q}} \\
+&amp; \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+&amp; \quad \quad y_k^{\opog}(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \pd{s_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}\Bigg] \\
+&amp; \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+&amp; \quad \quad y_k^{\opog}(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
+&amp; \quad \quad y_k^{\opig}(t + 1) \cdot g_p'\pa{\netcell{p}{k}{t + 1}} \cdot \tilde{x}_q(t)\Bigg]
+\end{align*} \tag{60}\label{60}\]
+
+<h2 id="section-37">架構分析</h2>
+
+<h3 id="section-38">時間複雜度</h3>
+
+<p>假設 $t + 1$ 時間點的 <strong>forward pass</strong> 已經執行完成，則<strong>更新</strong> $t + 1$ 時間點<strong>所有參數</strong>的<strong>時間複雜度</strong>為</p>
+
+\[O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)) \tag{61}\label{61}\]
+
+<ul>
+  <li>$\eqref{61}$ 就是論文中的 A.27 式</li>
+  <li>在 $t + 1$ 時間點<strong>參數更新</strong>需要考慮 $t$ 時間點的<strong>計算狀態</strong>，請見 $\eqref{57} \eqref{58} \eqref{59} \eqref{60}$</li>
+  <li>沒有如同 $\eqref{14}$ 的<strong>連乘積</strong>項，因此不會有<strong>梯度消失</strong>問題</li>
+  <li>整個計算過程需要額外紀錄的<strong>梯度</strong>項次<strong>只有</strong> $\eqref{59} \eqref{60}$ 中的 $\pd{s_j^{\blk{k}}(t)}{\wig_{k, q}}, \pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}}$
+    <ul>
+      <li>紀錄讓 LSTM 可以隨著 <strong>forward pass</strong> 的過程<strong>即時更新</strong></li>
+      <li><strong>不需要</strong>等到 $T$ 時間點的計算結束，因此不是採用 <strong>BPTT</strong> 的演算法</li>
+      <li><strong>即時更新</strong>（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 <strong>RTRL</strong> 的主要精神</li>
+    </ul>
+  </li>
+</ul>
+
+<p>總共會執行 $T + 1$ 個 <strong>forward pass</strong>，因此<strong>更新所有參數</strong>所需的<strong>總時間複雜度</strong>為</p>
+
+\[O\big(T \cdot \big[\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)\big]\big) \tag{62}\label{62}\]
+
+<h3 id="section-39">空間複雜度</h3>
+
+<p>我們也可以推得在 $t + 1$ 時間點<strong>更新所有參數</strong>所需的<strong>空間複雜度</strong></p>
+
+\[O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)) \tag{63}\label{63}\]
+
+<p>總共會執行 $T$ 個 <strong>forward pass</strong>，但<strong>更新</strong>所需的<strong>總空間複雜度</strong>仍然同 $\eqref{63}$</p>
+
+<ul>
+  <li>依照<strong>時間順序</strong>計算梯度，計算完 $t + 1$ 時間點的梯度時 $t$ 的資訊便可丟棄</li>
+  <li>這就是 <strong>RTRL</strong> 的最大優點</li>
+</ul>
+
+<h3 id="section-40">達成梯度常數</h3>
+
+<p>根據 $\eqref{37} \eqref{38}$ 我們可以推得</p>
+
+\[\begin{align*}
+i &amp; \in \set{1, \dots, \dblk} \\
+k &amp; \in \set{1, \dots, \nblk} \\
+\pd{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} &amp; = \pd{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\pd{y_k^{\opig}(t + 1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\netcell{i}{k}{t + 1}} + \\
+&amp; \quad y_k^{\opig}(t + 1) \cdot \cancelto{0}{\pd{g_i\pa{\netcell{i}{k}{t + 1}}}{s_i^{\blk{k}}(t)}} \\
+&amp; \aptr 1
+\end{align*} \tag{64}\label{64}\]
+
+<p>由於<strong>丟棄部份梯度</strong>的作用，$s^{\blk{k}}$ 的<strong>梯度</strong>是模型中<strong>唯一</strong>進行<strong>遞迴</strong>（跨過多個時間點）的計算節點。
+透過丟棄部份梯度我們從 $\eqref{64}$ 可以看出 LSTM 達成 $\eqref{23}$ 所設想的情況。</p>
+
+<h3 id="section-41">內部狀態偏差行為</h3>
+
+<p>觀察 $\eqref{54} \eqref{59}$，當 $h$ 是 sigmoid 函數時，我們可以發現</p>
+
+<ul>
+  <li>如果 $s^{\blk{k}}(t + 1)$ 是一個<strong>非常大</strong>的<strong>正數</strong>，則 $h_j’\pa{s_j^{\blk{k}}(t + 1)}$ 會變得<strong>非常小</strong></li>
+  <li>如果 $s^{\blk{k}}(t + 1)$ 是一個<strong>非常小</strong>的<strong>負數</strong>，則 $h_j’\pa{s_j^{\blk{k}}(t + 1)}$ 也會變得<strong>非常小</strong></li>
+  <li>在 $s^{\blk{k}}(t + 1)$ 極正或極負的情況下，<strong>輸入閘門參數</strong> $\wig$ 的<strong>梯度</strong>會<strong>消失</strong></li>
+  <li>此現象稱為<strong>內部狀態偏差行為</strong>（<strong>Internal State Drift</strong>）</li>
+  <li>同樣的現象也會發生在<strong>記憶單元淨輸入參數</strong> $\wblk{1}, \dots \wblk{\nblk}$ 身上，請見 $\eqref{60}$</li>
+  <li>此分析就是論文的 A.39 式改寫而來</li>
+</ul>
+
+<h3 id="internal-state-drift">解決 Internal State Drift</h3>
+
+<p>作者提出可以在 $\opnet^{\opig}$ 加上偏差項，並在<strong>訓練初期</strong>將偏差項弄成很小的<strong>負數</strong>，邏輯如下</p>
+
+\[\begin{align*}
+&amp; b^{\opig} \ll 0 \\
+\implies &amp; \opnet^{\opig}(1) \ll 0 \\
+\implies &amp; y^{\opig}(1) \approx 0 \\
+\implies &amp; s^{\wblk{k}}(1) = s^{\wblk{k}}(0) + y^{\opig}(1) \odot g\big(\opnet^{\wblk{k}}(1)\big) \\
+&amp; = y^{\opig}(1) \odot g\big(\opnet^{\wblk{k}}(1)\big) \approx 0 \\
+\implies &amp; \begin{dcases}
+s^{\wblk{k}}(t + 1) \not\ll 0 \\
+s^{\wblk{k}}(t + 1) \not\gg 0
+\end{dcases} \quad \forall t = 0, \dots, T - 1
+\end{align*} \tag{65}\label{65}\]
+
+<p>根據 $\eqref{65}$ 我們就不會得到 $s^{\blk{k}}(t)$ 極正或極負的情況，也就不會出現 Internal State Drift。</p>
+
+<p>雖然這種作法是種<strong>模型偏差</strong>（<strong>Model Bias</strong>）而且會導致 $y^{\opig}(\star)$ 與 $\dfnetig{k}{\star}$ <strong>變小</strong>，但作者認為這些影響比起 Internal State Drift 一點都不重要。</p>
+
+<h3 id="section-42">輸出閘門初始化</h3>
+
+<p>論文 4.7 節表示，在訓練的初期模型有可能濫用<strong>記憶單元的初始值</strong>作為計算的常數項（細節請見 $\eqref{41}$），導致模型在訓練的過程中學會完全<strong>不紀錄資訊</strong>。</p>
+
+<p>因此可以將<strong>輸出閘門</strong>加上偏差項，並初始化成<strong>較小的負數</strong>（理由類似於 $\eqref{65}$），讓記憶單元在<strong>計算初期</strong>輸出值為 $0$，迫使模型只在<strong>需要</strong>時指派記憶單元進行<strong>記憶</strong>。</p>
+
+<p>如果有多個記憶單元，則可以給予<strong>不同的負數</strong>，讓模型能夠按照需要<strong>依大小順序</strong>取得記憶單元（<strong>愈大的負數</strong>愈容易被取得）。</p>
+
+<h3 id="section-43">輸出閘門的優點</h3>
+
+<p>在訓練的初期<strong>誤差</strong>通常比較<strong>大</strong>，導致<strong>梯度</strong>跟著變<strong>大</strong>，使得模型在訓練初期的參數劇烈振盪。</p>
+
+<p>由於<strong>輸出閘門</strong>所使用的<strong>啟發函數</strong> $f^{\opog}$ 是 sigmoid，數值範圍是 $(0, 1)$，我們可以發現 $\eqref{59} \eqref{60}$ 的梯度乘積包含 $y^{\opog}$，可以避免<strong>過大誤差</strong>造成的<strong>梯度變大</strong>。</p>
+
+<p>但這些說法並沒有辦法真的保證一定會實現，算是這篇論文說服力比較薄弱的點。</p>
+
+<h2 id="section-44">實驗</h2>
+
+<h3 id="section-45">實驗設計</h3>
+
+<ul>
+  <li>要測試較長的時間差
+    <ul>
+      <li>資料集不可以出現短時間差</li>
+    </ul>
+  </li>
+  <li>任務要夠難
+    <ul>
+      <li>不可以只靠 random weight guessing 解決</li>
+      <li>需要比較多的參數或是高計算精度 (sparse in weight space)</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-46">控制變因</h3>
+
+<ul>
+  <li>使用 Online Learning 進行最佳化
+    <ul>
+      <li>意思就是 batch size 為 1</li>
+      <li>不要被 Online 這個字誤導</li>
+    </ul>
+  </li>
+  <li>使用 sigmoid 作為啟發函數
+    <ul>
+      <li>包含 $f^{\opout}, f^{\ophid}, f^{\opig}, f^{\opog}$</li>
+    </ul>
+  </li>
+  <li>資料隨機性
+    <ul>
+      <li>資料生成為隨機</li>
+      <li>訓練順序為隨機</li>
+    </ul>
+  </li>
+  <li>在每個時間點 $t$ 的計算順序為
+    <ol>
+      <li>將外部輸入 $x(t)$ 丟入模型</li>
+      <li>計算輸入閘門、輸出閘門、記憶單元、隱藏單元</li>
+      <li>計算總輸出</li>
+    </ol>
+  </li>
+  <li>訓練初期只使用一個記憶單元，即 $\nblk = 1$
+    <ul>
+      <li>如果訓練中發現最佳化做的不好，開始增加記憶單元，即 $\nblk = \nblk + 1$</li>
+      <li>一旦記憶單元增加，輸入閘門與輸出閘門也需要跟著增加</li>
+      <li>這個概念稱為 Sequential Network Construction</li>
+    </ul>
+  </li>
+  <li>$h^{\blk{k}}$ 與 $g^{\blk{k}}$ 函數如果沒有特別提及，就是使用 $\eqref{66} \eqref{67}$ 的定義</li>
+</ul>
+
+<p>$h^{\blk{k}} : \R \to [-1, 1]$ 函數的定義為</p>
+
+\[h^{\blk{k}}(x) = \frac{2}{1 + \exp(-x)} - 1 = 2 \sigma(x) - 1 \tag{66}\label{66}\]
+
+<p>$g^{\blk{k}} : \R \to [-2, 2]$ 函數的定義為</p>
+
+\[g^{\blk{k}}(x) = \frac{4}{1 + \exp(-x)} - 2 = 4 \sigma(x) - 2 \tag{67}\label{67}\]
+
+<h3 id="embedded-reber-grammar">實驗 1：Embedded Reber Grammar</h3>
+
+<p><a name="paper-fig-3"></a></p>
+
+<p>圖 3：Reber Grammar。
+一個簡單的有限狀態機，能夠生成的字母包含 BEPSTVX。
+圖片來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/frOl0Tf.png" alt="圖 3" /></p>
+
+<p><a name="paper-fig-4"></a></p>
+
+<p>圖 4：Embedded Reber Grammar。
+一個簡單的有限狀態機，包含兩個完全相同的 Reber Grammar，開頭跟結尾只能是 BT…TE 與 BP…PE。
+圖片來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/SVfVbJN.png" alt="圖 4" /></p>
+
+<h4 id="section-47">任務定義</h4>
+
+<ul>
+  <li>Embedded Reber Grammar 是實驗 RNN 短時間差（Short Time Lag）的基準測試資料集
+    <ul>
+      <li><a href="#paper-fig-3">圖 3</a> 只是 Reber Grammar，真正的生成資料是使用<a href="#paper-fig-4">圖 4</a> 的 Embedded Reber Grammar</li>
+      <li>Embedded Reber Grammar 時間差最短只有 $9$ 個單位</li>
+      <li>傳統 RNN 在此資料集上仍然表現不錯</li>
+      <li>資料生成為隨機，任何一個分支都有 $0.5$ 的機率被生成</li>
+    </ul>
+  </li>
+  <li>根據<a href="#paper-fig-3">圖 3</a> 的架構，生成的第一個字為 B，接著是 T 或 P
+    <ul>
+      <li>因此前兩個字生成 BT 或 BP 的機率各為 $0.5$</li>
+      <li>能夠生成的字母包含 BEPSTVX</li>
+      <li>生成直到產生 E 結束，結尾一定是 SE 或 VE</li>
+      <li>由於有限狀態機中有 Loop，因此 Reber Grammar 有可能產生<strong>任意長度</strong>的文字</li>
+    </ul>
+  </li>
+  <li>根據<a href="#paper-fig-4">圖 4</a> 的架構，生成的開頭為 BT 或 BP
+    <ul>
+      <li>前兩個字生成 BT 或 BP 的機率各為 $0.5$</li>
+      <li>如果生成 BT，則結尾一定要是 TE</li>
+      <li>如果生成 BP，則結尾一定要是 PE</li>
+      <li>因此 RNN 模型必須學會記住<strong>開頭</strong>的 T / P 與<strong>結尾搭配</strong>，判斷一個文字序列是否由 Embedded Reber Grammar 生成</li>
+    </ul>
+  </li>
+  <li>模型會在每個時間點 $t$ 收到一個字元，並輸出下一個時間點 $t + 1$ 會收到的字元
+    <ul>
+      <li>輸入與輸出都是 one-hot vector，維度為 $7$，每個維度各自代表 BEPSTVX 中的一個字元，取數值最大的維度作為預測結果</li>
+      <li>模型必須根據 $0, 1, \dots t - 1, t$ 時間點收到的字元預測 $t + 1$ 時間點輸出的字元</li>
+      <li>概念就是 Language Model</li>
+    </ul>
+  </li>
+  <li>資料數
+    <ul>
+      <li>訓練集：256 筆</li>
+      <li>測試集：256 筆</li>
+      <li>總共產生 3 組不同的訓練測試集</li>
+      <li>每組資料集都跑 $10$ 次實驗，每次實驗模型都隨機初始化</li>
+      <li>總共執行 $30$ 次實驗取平均</li>
+    </ul>
+  </li>
+  <li>評估方法
+    <ul>
+      <li>Accuracy</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="lstm--1">LSTM 架構</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\din$</td>
+      <td>$7$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dhid$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$(\nblk, \dblk)$</td>
+      <td>$\set{(3, 2), (4, 1)}$</td>
+      <td>至少有 $3$ 個記憶單元</td>
+    </tr>
+    <tr>
+      <td>$\dout$</td>
+      <td>$7$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dim(\whid)$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wblk{k})$</td>
+      <td>$\dblk \times [\din + \nblk \cdot (2 + \dblk)]$</td>
+      <td>全連接隱藏層</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wig)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wog)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wout)$</td>
+      <td>$\dout \times [\nblk \cdot \dblk]$</td>
+      <td>外部輸入沒有直接連接到總輸出</td>
+    </tr>
+    <tr>
+      <td>參數初始化範圍</td>
+      <td>$[-0.2, 0.2]$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸出閘門偏差項初始化範圍</td>
+      <td>$\set{-1, -2, -3, -4}$</td>
+      <td>由大到小依序初始化不同記憶單元對應輸出閘門偏差項</td>
+    </tr>
+    <tr>
+      <td>Learning rate</td>
+      <td>$\set{0.1, 0.2, 0.5}$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>總參數量</td>
+      <td>$\set{264, 276}$</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-48">實驗結果</h4>
+
+<p><a name="paper-table-1"></a></p>
+
+<p>表格 1：Embedded Reber Grammar 實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/51yPwmH.png" alt="表 1" /></p>
+
+<ul>
+  <li>LSTM + 丟棄梯度 + RTRL 在不同的實驗架構中都能解決任務
+    <ul>
+      <li>RNN + RTRL 無法完成</li>
+      <li>Elman Net + ELM 無法完成</li>
+    </ul>
+  </li>
+  <li>LSTM 收斂速度比其他模型都還要快</li>
+  <li>LSTM 使用的參數數量並沒有比其他的模型多太多</li>
+  <li>驗證<strong>輸出閘門</strong>的有效性
+    <ul>
+      <li>當 LSTM 模型記住第二個輸入是 T / P 之後，輸出閘門就會讓後續運算的啟發值接近 $0$，不讓記憶單元內部狀態影響模型學習簡單的 Reber Grammar</li>
+      <li>如果沒有輸出閘門，則<strong>收斂速度會變慢</strong></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="a">實驗 2a：無雜訊長時間差任務</h3>
+
+<h4 id="section-49">任務定義</h4>
+
+<p>定義 $p + 1$ 種不同的字元，標記為 $V = \set{\alpha, \beta, c_1, c_2, \dots, c_{p - 1}}$。</p>
+
+<p>定義 $2$ 種長度為 $p + 1$ 不同的序列 $\opseq_1, \opseq_2$，分別為</p>
+
+\[\begin{align*}
+\opseq_1 &amp; = \alpha, c_1, c_2, \dots, c_{p - 2}, c_{p - 1}, \alpha \\
+\opseq_2 &amp; = \beta, c_1, c_2, \dots, c_{p - 2}, c_{p - 1}, \beta
+\end{align*}\]
+
+<p>令 $\opseq_{\star} \in \set{\opseq_1, \opseq_2}$，令 $\opseq_{\star}$ 第 $t$ 個時間點的字元為 $\opseq_{\star}(t) \in V$。</p>
+
+<p>當給予模型 $\opseq_{\star}(t)$ 時，模型要能夠根據 $\opseq_{\star}(0), \opseq_{\star}(1), \dots \opseq_{\star}(t - 1), \opseq_{\star}(t)$ 預測 $\opseq_{\star}(t + 1)$。</p>
+
+<ul>
+  <li>模型需要記住 $c_1, \dots, c_{p - 1}$ 的順序</li>
+  <li>模型也需要記住開頭的 $\opseq_{\star}(0)$ 是 $\alpha$ 還是 $\beta$，並利用 $\opseq_{\star}(0)$ 的資訊預測 $\opseq_{\star}(p + 1)$</li>
+  <li>根據 $p$ 的大小這個任務可以是<strong>短</strong>時間差或<strong>長</strong>時間差</li>
+  <li>訓練資料
+    <ul>
+      <li>每次以各 $0.5$ 的機率抽出 $\opseq_1, \opseq_2$ 作為輸入</li>
+      <li>總共執行 $5000000$ 次抽樣與更新</li>
+    </ul>
+  </li>
+  <li>測試資料
+    <ul>
+      <li>每次以各 $0.5$ 的機率抽出 $\opseq_1, \opseq_2$ 作為輸入</li>
+      <li>每次錯誤率在 $0.25$ 以下就是成功，反之失敗</li>
+      <li>總共執行 $10000$ 次成功與失敗的判斷</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="lstm--2">LSTM 架構</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\din$</td>
+      <td>$p + 1$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dhid$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dblk$</td>
+      <td>$\dout$</td>
+      <td>總輸出就是記憶單元的輸出</td>
+    </tr>
+    <tr>
+      <td>$\nblk$</td>
+      <td>$1$</td>
+      <td>當誤差停止下降時，增加記憶單元</td>
+    </tr>
+    <tr>
+      <td>$\dout$</td>
+      <td>$p + 1$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$g$</td>
+      <td>$g(x) = \sigma(x)$</td>
+      <td>Sigmoid 函數</td>
+    </tr>
+    <tr>
+      <td>$h$</td>
+      <td>$h(x) = x$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dim(\whid)$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wblk{k})$</td>
+      <td>$\dblk \times [\din + (1 + \nblk) \cdot \dblk]$</td>
+      <td>全連接隱藏層</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wig)$</td>
+      <td>$\nblk \times [\din + (1 + \nblk) \cdot \dblk]$</td>
+      <td>全連接隱藏層</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wog)$</td>
+      <td>$0$</td>
+      <td>沒有輸出閘門</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wout)$</td>
+      <td>$0$</td>
+      <td>總輸出就是記憶單元的輸出</td>
+    </tr>
+    <tr>
+      <td>參數初始化範圍</td>
+      <td>$[-0.2, 0.2]$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Learning rate</td>
+      <td>$1$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>最大更新次數</td>
+      <td>$5000000$</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-50">實驗結果</h4>
+
+<p><a name="paper-table-2"></a></p>
+
+<p>表格 2：無雜訊長時間差任務實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/638FPkg.png" alt="表 2" /></p>
+
+<ul>
+  <li>在 $p = 4$ 時使用 RNN + RTRL 時部份實驗能夠預測序列
+    <ul>
+      <li>序列很短時 RNN 還是有能力完成任務</li>
+    </ul>
+  </li>
+  <li>在 $p \geq 10$ 時使用 RNN + RTRL 時直接失敗</li>
+  <li>在 $p = 100$ 時只剩 LSTM 能夠完全完成任務</li>
+  <li>LSTM 收斂速度最快</li>
+</ul>
+
+<h3 id="b">實驗 2b：有雜訊長時間差任務</h3>
+
+<p>實驗設計和 LSTM 的架構與實驗 2a 完全相同，只是序列 $\opseq_1, \opseq_2$ 中除了頭尾之外的字元可以替換成 $V$ 中任意的文字，總長度維持 $p + 1$。</p>
+
+<ul>
+  <li>此設計目的是為了確保實驗 2a 中的順序性無法被順利壓縮</li>
+  <li>先創造訓練資料，測試使用與訓練完全相同的資料</li>
+  <li>仍然只有 LSTM 能夠完全完成任務</li>
+  <li>LSTM 的誤差仍然很快就收斂
+    <ul>
+      <li>當 $p = 100$ 時只需要 $5680$ 次更新就能完成任務</li>
+      <li>代表 LSTM 能夠在有雜訊的情況下正常運作</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="c">實驗 2c：有雜訊超長時間差任務</h3>
+
+<h4 id="section-51">任務定義</h4>
+
+<p>實驗設計和 LSTM 的架構與實驗 2a 概念相同，只是 $V$ 增加了兩個字元 $b, e$，而序列長度可以不同。</p>
+
+<p>生成一個序列的概念如下：</p>
+
+<ol>
+  <li>固定一個正整數 $q$，代表序列基本長度</li>
+  <li>從 $c_1, \dots, c_{p - 1}$ 中隨機抽樣生成長度為 $q$ 的序列 $\opseq$</li>
+  <li>在序列的開頭補上 $b \alpha$ 或 $b \beta$（機率各為 $0.5$），讓序列長度變成 $q + 2$</li>
+  <li>接著以 $0.9$ 的機率從 $c_1, \dots, c_{p - 1}$ 中挑一個字補在序列 $\opseq$ 的尾巴，或是以 $0.1$ 的機率補上 $e$</li>
+  <li>如果生成 $e$ 就再補上 $\alpha$ 或 $\beta$（與開頭第二個字元相同）並結束</li>
+  <li>如果不是生成 $e$ 則重複步驟 4</li>
+</ol>
+
+<p>假設步驟 $4$ 執行了 $k + 1$ 次，則序列長度為 $2 + q + (k + 1) + 1 = q + k + 4$。
+序列的最短長度為 $q + 4$，長度的期望值為</p>
+
+\[\begin{align*}
+&amp; 4 + \sum_{k = 0}^\infty \frac{1}{10} \pa{\frac{9}{10}}^k (q + k) \\
+&amp; = 4 + \frac{q}{10} \br{\sum_{k = 0}^\infty \pa{\frac{9}{10}}^k} + \frac{1}{10} \br{\sum_{k = 0}^\infty \pa{\frac{9}{10}}^k \cdot k} \\
+&amp; = 4 + \frac{q}{10} \cdot 10 + \frac{1}{10} \cdot 100 \\
+&amp; = q + 14
+\end{align*}\]
+
+<p>其中</p>
+
+\[\begin{align*}
+&amp; \br{\sum_{k = 0}^n k x^k} - x \br{\sum_{k = 0}^n k x^k} \\
+&amp; = (0x^0 + 1x^1 + 2x^2 + 3x^3 + \dots + nx^n) - \\
+&amp; \quad (0x^1 + 1x^2 + 2x^3 + 3x^4 + \dots + nx^{n + 1}) \\
+&amp; = 0x^0 + 1x^1 + 1x^2 + 1x^3 + \dots + 1x^n - nx^{n + 1} \\
+&amp; = \br{\sum_{k = 0}^n x^k} - nx^{n + 1} \\
+&amp; = \frac{1 - x^{n + 1}}{1 - x} - nx^{n + 1} \\
+&amp; = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{1 - x}
+\end{align*}\]
+
+<p>因此</p>
+
+\[\begin{align*}
+&amp; \br{\sum_{k = 0}^n k x^k} - x \br{\sum_{k = 0}^n k x^k} = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{1 - x} \\
+\implies &amp; \sum_{k = 0}^n k x^k = \frac{1 - x^{n + 1} - nx^{n + 1} + nx^{n + 2}}{(1 - x)^2} \\
+\implies &amp; \sum_{k = 0}^\infty k x^k = \frac{1}{(1 - x)^2} \text{ when } 0 \leq x \lt 1
+\end{align*}\]
+
+<p>利用二項式分佈的期望值公式我們可以推得 $c_i \in V$ 出現次數的期望值</p>
+
+\[\begin{align*}
+&amp; \sum_{k = 0}^\infty \frac{1}{10} \cdot \pa{\frac{9}{10}}^k \cdot \br{\sum_{i = 0}^{q + k} \binom{q + k}{i} \cdot \pa{\frac{1}{p - 1}}^i \cdot \pa{1 - \frac{1}{p - 1}}^{q + k - i}} \\
+&amp; = \sum_{k = 0}^\infty \frac{1}{10} \cdot \pa{\frac{9}{10}}^k \cdot \frac{q + k}{p - 1} \\
+&amp; = \frac{q}{10(p - 1)} \br{\sum_{k = 0}^\infty \pa{\frac{9}{10}}^k} + \frac{1}{10(p - 1)} \br{\sum_{k = 0}^\infty \pa{\frac{9}{10}}^k \cdot k} \\
+&amp; = \frac{q}{p - 1} + \frac{10}{p - 1} \\
+&amp; \approx \frac{q}{p - 1} \text{ when } q \gg 0
+\end{align*}\]
+
+<p>訓練誤差只考慮最後一個時間點 $\opseq(2 + q + k + 2)$ 的預測結果，必須要跟第 $\opseq(1)$ 個時間點的輸入相同（概念同實驗 2a）。</p>
+
+<p>測試時會連續執行 $10000$ 次的實驗，預測誤差必須要永遠小於 $0.2$。
+會以 $20$ 次的測試結果取平均。</p>
+
+<h4 id="lstm--3">LSTM 架構</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\din$</td>
+      <td>$p + 4$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dhid$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dblk$</td>
+      <td>$1$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\nblk$</td>
+      <td>$2$</td>
+      <td>作者認為其實只要一個記憶單元就夠了</td>
+    </tr>
+    <tr>
+      <td>$\dout$</td>
+      <td>$2$</td>
+      <td>只考慮最後一個時間點的預測誤差，並且預測的可能結果只有 $2$ 種（$\alpha$ 或 $\beta$）</td>
+    </tr>
+    <tr>
+      <td>$\dim(\whid)$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wblk{k})$</td>
+      <td>$\dblk \times [\din + \nblk \cdot (2 + \dblk)]$</td>
+      <td>全連接隱藏層</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wig)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk)]$</td>
+      <td>全連接隱藏層</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wog)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk)]$</td>
+      <td>全連接隱藏層</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wout)$</td>
+      <td>$\dout \times [\nblk \cdot \dblk]$</td>
+      <td>外部輸入沒有直接連接到總輸出</td>
+    </tr>
+    <tr>
+      <td>參數初始化範圍</td>
+      <td>$[-0.2, 0.2]$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Learning rate</td>
+      <td>$0.01$</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-52">實驗結果</h4>
+
+<p><a name="paper-table-3"></a></p>
+
+<p>表格 3：有雜訊超長時間差任務實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/j8e0W2U.png" alt="表 3" /></p>
+
+<ul>
+  <li>其他方法沒有辦法完成任務，因此不列入表格比較</li>
+  <li>輸入序列長度可到達 $1000$</li>
+  <li>當輸入字元種類與輸入長度一起增加時，訓練時間只會緩慢增加</li>
+  <li>當單一字元的<strong>出現次數期望值增加</strong>時，<strong>學習速度會下降</strong>
+    <ul>
+      <li>作者認為是常見字詞的出現導致參數開始振盪</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="atwo-sequence-problem">實驗 3a：Two-Sequence Problem</h3>
+
+<h4 id="section-53">任務定義</h4>
+
+<p>給予一個<strong>實數</strong>序列 $\opseq$，該序列可能隸屬於兩種類別 $C_1, C_2$，隸屬機率分別是 $0.5$。</p>
+
+<p>如果 $\opseq \in C_1$，則該序列的前 $N$ 個數字都是 $1.0$，序列的最後一個數字為 $1.0$。
+如果 $\opseq \in C_2$，則該序列的前 $N$ 個數字都是 $-1.0$，序列的最後一個數字為 $0.0$。</p>
+
+<p>給定一個常數 $T$，並從 $[T, T + \frac{T}{10}]$ 的區間中隨機挑選一個整數作為序列 $\opseq$ 的長度 $L$。</p>
+
+<p>當 $L \geq N$ 時，任何在 $\opseq(N + 1), \dots \opseq(L - 1)$ 中的數字都是由常態分佈隨機產生，常態分佈的平均為 $0$ 變異數為 $0.2$。</p>
+
+<ul>
+  <li>此任務由 Bengio 提出</li>
+  <li>作者發現只要用隨機權重猜測（Random Weight Guessing）就能解決，因此在實驗 3c 提出任務的改進版本</li>
+  <li>訓練分成兩個階段
+    <ul>
+      <li>ST1：事先隨機抽取的 $256$ 筆測試資料完全分類正確</li>
+      <li>ST2：達成 ST1 後在 $2560$ 筆測試資料上平均錯誤低於 $0.01$</li>
+    </ul>
+  </li>
+  <li>實驗結果是執行 $10$ 次實驗的平均值</li>
+</ul>
+
+<h4 id="lstm--4">LSTM 架構</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\din$</td>
+      <td>$1$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dhid$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dblk$</td>
+      <td>$1$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\nblk$</td>
+      <td>$3$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dout$</td>
+      <td>$1$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dim(\whid)$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wblk{k})$</td>
+      <td>$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wig)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wog)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wout)$</td>
+      <td>$\dout \times [\nblk \cdot \dblk]$</td>
+      <td>外部輸入沒有直接連接到總輸出</td>
+    </tr>
+    <tr>
+      <td>參數初始化範圍</td>
+      <td>$[-0.1, 0.1]$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸入閘門偏差項初始化範圍</td>
+      <td>$\set{-1, -3, -5}$</td>
+      <td>由大到小依序初始化不同記憶單元對應輸入閘門偏差項</td>
+    </tr>
+    <tr>
+      <td>輸出閘門偏差項初始化範圍</td>
+      <td>$\set{-2, -4, -6}$</td>
+      <td>由大到小依序初始化不同記憶單元對應輸出閘門偏差項</td>
+    </tr>
+    <tr>
+      <td>Learning rate</td>
+      <td>$1$</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-54">實驗結果</h4>
+
+<p><a name="paper-table-4"></a></p>
+
+<p>表格 4：Two-Sequence Problem 實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/e1OKDP5.png" alt="表 4" /></p>
+
+<ul>
+  <li>偏差項初始化的數值其實不需要這麼準確</li>
+  <li>LSTM 能夠快速解決任務</li>
+  <li>LSTM 在輸入有雜訊（高斯分佈）時仍然能夠正常表現</li>
+</ul>
+
+<h3 id="btwo-sequence-problem--">實驗 3b：Two-Sequence Problem + 雜訊</h3>
+
+<p><a name="paper-table-5"></a></p>
+
+<p>表格 5：Two-Sequence Problem + 雜訊實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/DEkS8ST.png" alt="表 5" /></p>
+
+<p>實驗設計與 LSTM 完全與實驗 3a 相同，但對於序列 $\opseq$ 前 $N$ 個實數加上雜訊（與實驗 2a 相同的高斯分佈）。</p>
+
+<ul>
+  <li>兩階段訓練稍微做點修改
+    <ul>
+      <li>ST1：事先隨機抽取的 $256$ 筆測試資料少於 $6$ 筆資料分類錯誤</li>
+      <li>ST2：達成 ST1 後在 $2560$ 筆測試資料上平均錯誤低於 $0.04$</li>
+    </ul>
+  </li>
+  <li>結論
+    <ul>
+      <li>增加雜訊導致誤差收斂時間變長</li>
+      <li>相較於實驗 3a，雖然分類錯誤率上升，但 LSTM 仍然能夠保持較低的分類錯誤率</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="c-two-sequence-problem">實驗 3c：強化版 Two-Sequence Problem</h3>
+
+<p><a name="paper-table-6"></a></p>
+
+<p>表格 6：強化版 Two-Sequence Problem 實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/1eXhAr4.png" alt="表 6" /></p>
+
+<p>實驗設計與 LSTM 完全與實驗 3b 相同，但進行以下修改</p>
+
+<ul>
+  <li>$C_1$ 類別必須輸出 $0.2$，$C_2$ 類別必須輸出 $0.8$</li>
+  <li>高斯分佈變異數改為 $0.1$</li>
+  <li>預測結果與答案絕對誤差大於 $0.1$ 就算分類錯誤</li>
+  <li>任務目標是所有的預測絕對誤差平均值小於 $0.015$</li>
+  <li>兩階段訓練改為一階段
+    <ul>
+      <li>事先隨機抽取的 $256$ 筆測試資料完全分類正確</li>
+      <li>$2560$ 筆測試資料上絕對誤差平均值小於 $0.015$</li>
+    </ul>
+  </li>
+  <li>Learning rate 改成 $0.1$</li>
+  <li>結論
+    <ul>
+      <li>任務變困難導致收斂時間變更長</li>
+      <li>相較於實驗 3a，雖然分類錯誤率上升，但 LSTM 仍然能夠保持較低的分類錯誤率</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-55">實驗 4：加法任務</h3>
+
+<h4 id="section-56">任務定義</h4>
+
+<p>定義一個序列 $\opseq$，序列的每個元素都是由兩個實數組合而成，具體的數值範圍如下</p>
+
+\[\opseq(t) \in [-1, 1] \times \set{-1, 0, 1} \quad \forall t = 0, \dots, T\]
+
+<p>每個時間點的元素的第一個數值都是隨機從 $[-1, 1]$ 中取出，第二個數值只能是 $-1, 0, 1$ 三個數值的其中一個。</p>
+
+<p>令 $T$ 為序列的最小長度，則序列 $\opseq$ 的長度 $L$ 將會落在 $[T, T + T / 10]$ 之間。</p>
+
+<p>決定每個時間點的元素的第二個數值的方法如下：</p>
+
+<ol>
+  <li>首先將所有元素的第二個數值初始化成 $0$</li>
+  <li>將 $t = 0$ 與 $t = L$ 的第二個數值初始化成 $-1$</li>
+  <li>從 $t = 0, \dots, 9$ 隨機挑選一個時間點，並將該時間點的第二個數值加上 $1$</li>
+  <li>如果前一個步驟剛好挑到 $t = 0$，則 $t = 0$ 的第二個數值將會是 $0$，否則為 $-1$</li>
+  <li>從 $t = 0, \dots, T / 2 - 1$ 隨機挑選一個時間點，並只挑選第二個數值仍為 $0$ 的時間點，挑選後將該時間點的第二個數值設為 $1$</li>
+</ol>
+
+<p>透過上述步驟 $\opseq$ 最少會包含一個元素其第二個數值為 $1$，最多會包含二個元素其第二個數值為 $1$。</p>
+
+<p>模型在 $L + 1$ 時間點必須輸出所有元素中第二個數值為 $1$ 的元素，其第一個數值的總和，並轉換到 $[0, 1]$ 區間的數值，即</p>
+
+\[\hat{y}(L + 1) = 0.5 + \frac{1}{4} \sum_{t = 0}^{L} \br{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}\]
+
+<p>只考慮 $L + 1$ 時間點的誤差，誤差必須要低於 $0.04$ 才算預測正確。</p>
+
+<ul>
+  <li>模型必須要學會長時間關閉輸入閘門</li>
+  <li>在實驗中故意對所有參數加上偏差項，實驗<strong>內部狀態偏差行為</strong>造成的影響</li>
+  <li>當連續 $2000$ 次的誤差第於 $0.04$，且平均絕對誤差低於 $0.01$ 時停止訓練</li>
+  <li>測試資料集包含 $2560$ 筆資料</li>
+</ul>
+
+<h4 id="lstm--5">LSTM 架構</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\din$</td>
+      <td>$2$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dhid$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dblk$</td>
+      <td>$2$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\nblk$</td>
+      <td>$2$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dout$</td>
+      <td>$1$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dim(\whid)$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wblk{k})$</td>
+      <td>$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wig)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wog)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wout)$</td>
+      <td>$\dout \times [\nblk \cdot \dblk + 1]$</td>
+      <td>外部輸入沒有直接連接到總輸出，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>參數初始化範圍</td>
+      <td>$[-0.1, 0.1]$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸入閘門偏差項初始化範圍</td>
+      <td>$\set{-3, -6}$</td>
+      <td>由大到小依序初始化不同記憶單元對應輸入閘門偏差項</td>
+    </tr>
+    <tr>
+      <td>Learning rate</td>
+      <td>$0.5$</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-57">實驗結果</h4>
+
+<p><a name="paper-table-7"></a></p>
+
+<p>表格 7：加法任務實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/pGuMKyt.png" alt="表 7" /></p>
+
+<ul>
+  <li>LSTM 能夠達成任務目標
+    <ul>
+      <li>不超過 $3$ 筆以上預測錯誤的資料</li>
+    </ul>
+  </li>
+  <li>LSTM 能夠摹擬加法器，具有作為 distributed representation 的能力</li>
+  <li>能夠儲存時間差至少有 $T / 2$ 以上的資訊，因此不會被<strong>內部狀態偏差行為</strong>影響</li>
+</ul>
+
+<h3 id="section-58">實驗 5：乘法任務</h3>
+
+<h4 id="section-59">任務定義</h4>
+
+<p>從 LSTM 的架構上來看實驗 4 的加法任務可以透過 $\eqref{39}$ 輕鬆完成，因此實驗 5 的目標是確認模型是否能夠從加法上延伸出乘法的概念，確保實驗 4 並不只是單純因模型架構而解決。</p>
+
+<p>概念與實驗 4 的任務幾乎相同，只做以下修改：</p>
+
+<ul>
+  <li>每個時間點的元素第一個數值改為 $[0, 1]$ 之間的隨機值</li>
+  <li>$L + 1$ 時間點的輸出目標改成</li>
+</ul>
+
+\[\hat{y}(L + 1) = 0.5 + \frac{1}{4} \prod_{t = 0}^{L} \br{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}\]
+
+<ul>
+  <li>當連續 $2000$ 筆訓練資料中，不超過 $n_{\opseq}$ 筆資料的絕對誤差小於 $0.04$ 就停止訓練</li>
+  <li>$n_{\opseq} \in \set{13, 140}$
+    <ul>
+      <li>選擇 $140$ 的理由是模型已經有能力記住資訊，但計算結果不夠精確</li>
+      <li>選擇 $13$ 的理由是模型能夠精確達成任務</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="lstm--6">LSTM 架構</h4>
+
+<p>與實驗 4 完全相同，只做以下修改：</p>
+
+<ul>
+  <li>輸入閘門偏差項改成隨機初始化</li>
+  <li>Learning rate 改為 $0.1$</li>
+</ul>
+
+<h4 id="section-60">實驗結果</h4>
+
+<p><a name="paper-table-8"></a></p>
+
+<p>表格 8：乘法任務實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/bi9jJ3W.png" alt="表 8" /></p>
+
+<ul>
+  <li>LSTM 能夠達成任務目標
+    <ul>
+      <li>在 $n_{\opseq} = 140$ 時不超過 $170$ 筆以上預測錯誤的資料</li>
+      <li>在 $n_{\opseq} = 13$ 時不超過 $15$ 筆以上預測錯誤的資料</li>
+    </ul>
+  </li>
+  <li>如果額外使用隱藏單元，則收斂速度會更快</li>
+  <li>LSTM 能夠摹擬乘法器，具有作為 distributed representation 的能力</li>
+  <li>能夠儲存時間差至少有 $T / 2$ 以上的資訊，因此不會被<strong>內部狀態偏差行為</strong>影響</li>
+</ul>
+
+<h3 id="atemporal-order-with-4-classes">實驗 6a：Temporal Order with 4 Classes</h3>
+
+<h4 id="section-61">任務定義</h4>
+
+<p>給予一個序列 $\opseq$，其長度 $L$ 會落在 $[100, 110]$ 之間，序列中的所有元素都來自於集合 $V = \set{a, b, c, d, B, E, X, Y}$。</p>
+
+<p>序列 $\opseq$ 的開頭必定為 $B$，最後為 $E$，剩餘所有的元素都是 $a, b, c, d$，除了兩個時間點 $t_1, t_2$。</p>
+
+<p>$t_1, t_2$ 時間點只能出現 $X$ 或 $Y$，$t_1$ 時間點會落在 $[10, 20]$，$t_2$ 時間點會落在 $[50, 60]$。</p>
+
+<p>因此根據 $X, Y$ 出現的<strong>次數</strong>與<strong>順序</strong>共有 $4$ 種不同的類別</p>
+
+\[\begin{align*}
+C_1 &amp; = XX \\
+C_2 &amp; = XY \\
+C_3 &amp; = YX \\
+C_4 &amp; = YY
+\end{align*}\]
+
+<p>模型必須要在 $L + 1$ 時間點進行類別預測，誤差只會出現在 $L + 1$ 時間點。</p>
+
+<ul>
+  <li>$t_1, t_2$ 的最少時間差為 $30$</li>
+  <li>模型必須要記住資訊與<strong>出現順序</strong></li>
+  <li>當模型成功預測連續 $2000$ 筆資料，並且預測平均誤差低於 $0.1$ 時便停止訓練</li>
+  <li>測試資料共有 $2560$ 筆</li>
+</ul>
+
+<h4 id="lstm--7">LSTM 架構</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\din$</td>
+      <td>$8$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dhid$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dblk$</td>
+      <td>$2$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\nblk$</td>
+      <td>$2$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dout$</td>
+      <td>$4$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dim(\whid)$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wblk{k})$</td>
+      <td>$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wig)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wog)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wout)$</td>
+      <td>$\dout \times [\nblk \cdot \dblk + 1]$</td>
+      <td>外部輸入沒有直接連接到總輸出，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>參數初始化範圍</td>
+      <td>$[-0.1, 0.1]$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸入閘門偏差項初始化範圍</td>
+      <td>$\set{-2, -4}$</td>
+      <td>由大到小依序初始化不同記憶單元對應輸入閘門偏差項</td>
+    </tr>
+    <tr>
+      <td>Learning rate</td>
+      <td>$0.5$</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-62">實驗結果</h4>
+
+<p><a name="paper-table-9"></a></p>
+
+<p>表格 9：Temporal Order with 4 Classes 任務實驗結果。
+表格來源：<a href="https://ieeexplore.ieee.org/abstract/document/6795963">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/ucyQoeQ.png" alt="表 9" /></p>
+
+<ul>
+  <li>
+    <p>LSTM 的平均誤差低於 $0.1$</p>
+
+    <ul>
+      <li>沒有超過 $3$ 筆以上的預測錯誤</li>
+    </ul>
+  </li>
+  <li>
+    <p>LSTM 可能使用以下的方法進行解答</p>
+    <ul>
+      <li>擁有 $2$ 個記憶單元時，依照順序記住出現的資訊</li>
+      <li>只有 $1$ 個記憶單元時，LSTM 可以改成記憶狀態的轉移</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="btemporal-order-with-8-classes">實驗 6b：Temporal Order with 8 Classes</h3>
+
+<h4 id="section-63">任務定義</h4>
+
+<p>與實驗 6a 完全相同，只是多了一個 $t_3$ 時間點可以出現 $X, Y$。</p>
+
+<ul>
+  <li>$t_2$ 時間點改成落在 $[33, 43]$</li>
+  <li>$t_3$ 時間點落在 $[66, 76]$</li>
+  <li>類別變成 $8$ 種</li>
+</ul>
+
+<h4 id="lstm--8">LSTM 架構</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>數值（或範圍）</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$\din$</td>
+      <td>$8$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dhid$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dblk$</td>
+      <td>$2$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\nblk$</td>
+      <td>$3$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dout$</td>
+      <td>$8$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\dim(\whid)$</td>
+      <td>$0$</td>
+      <td>沒有隱藏單元</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wblk{k})$</td>
+      <td>$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wig)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wog)$</td>
+      <td>$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$</td>
+      <td>全連接隱藏層，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>$\dim(\wout)$</td>
+      <td>$\dout \times [\nblk \cdot \dblk + 1]$</td>
+      <td>外部輸入沒有直接連接到總輸出，有額外使用偏差項</td>
+    </tr>
+    <tr>
+      <td>參數初始化範圍</td>
+      <td>$[-0.1, 0.1]$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>輸入閘門偏差項初始化範圍</td>
+      <td>$\set{-2, -4, -6}$</td>
+      <td>由大到小依序初始化不同記憶單元對應輸入閘門偏差項</td>
+    </tr>
+    <tr>
+      <td>Learning rate</td>
+      <td>$0.1$</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-64">實驗結果</h4>
+
+<p>見<a href="#paper-table-9">表格 9</a>。</p>
+
+
+
+<!-- Avoid copy by China, method 1. -->
+<script>
+  console.log(`
+台.灣.獨.立.香.港.獨.立.西.藏.獨.立.新.疆.獨.立.內.蒙.古.獨.立.......
+..... ... ................:fffffLt.............一.九.八.九.六.四
+... ,i111i;............. ;L111111LL....習.包.子.近.平.小.熊.維.尼
+...iLfttttff,  ..,::;;;;;Cftt11111C:...........中.國.武.漢.肺.炎
+..;C1111111tf:ittfttttttttttfffft1L,..........................
+. ff11111111fCtt11111111111111ttfC1 ..........................
+. tf11111111ft11111111111111111111tt;. .......................
+..:L11111111t11111111111111111111111fti, .....................
+.. ;Lt11111111111111111111111111111111tCt:, ..................
+... ,tf111111111111111111tLLLt111111111LG00t..................
+.... 1f11111111111111111LGLtt1111111111111tLt.................
+....:f11111111111111111tf1111111111111111111t.................
+... 1f111111111111111111111111111111tt11111t,.................
+... tt111111111111111111111111111111L11LG11f:.................
+... tt111111111111111111111tGC111111Lt108111tti:..............
+... if111111111111111111111f8C111111ttttttfft1ttt,............
+....,f111111111111111111111111111111111fG0088C11tf............
+.....tt111111111111111111111111111111110@888@0111f; ..........
+.....,f111111111111111111111111111111111C000CL111Li ..........
+......;f11111111111111111111tt11111111111111ft111L,...........
+...... tt111111111111111111tfGf111111111111ff111L; ...........
+.....;fCt11111111111111111111f0Cft1111111fLt111Li ............
+.... fCCLftt111111111111111111fGGGCLLfLfff1111t; .............
+.....:CLLCCCCLLftt1111111111111tfLCGGG0L1111fL;...............
+..... LLLLLLLLLCCCLLftt1111111111ttffttt1ttCCLGf..............
+.... iCLLLLLLLLLLLLLCCCLLftt11111111tfffft1fGCC; .............
+... ;CLLLLLLLLLLLLCLLLLLLLCCLLLLLLffft1111tLGLL:,.. ..........
+...:GLLLLLLLLLLLLLCCCCCLLLLLLLLLCCLLLLLLLLCCLGGLLf1i:,. ......
+.. iCLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCLCCLLLCCCti. ....
+...iCLLLLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCCLLLGCCCLi,...
+.. iCLLLLLLLLLLLLLLLLLLLLLLCCGCCCLLLLLLLLLLLLLLLCLLCGLCCCGCti,
+. :LLLLLLLLLLLLLLLLLLLLLLCLt111tffLLCCCCCLLLLLLLGCLGGCLftLCCCL
+.;CLLLLLLLLLLLLLLLLLLLLLCf11111111111tttffLLLLLLLLfLft111CCCCG
+;GLLLLLLLLLLCCLLLLLLLLLCt1111111111111111111111111111111111ttt
+.;CLLLLLLLLLLCCCLLLLLLCf11111111111111111111111111111111111111
+`)
+</script>
+
+<!-- Avoid copy by China, method 2. -->
+<!--
+台獨教父 Xi Jinping
+⣿⣿⣿⣿⣿⠟⠋⠄⠄⠄⠄⠄⠄⠄⢁⠈⢻⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⡀⠭⢿⣿⣿⣿⣿
+⣿⣿⣿⣿⡟⠄⢀⣾⣿⣿⣿⣷⣶⣿⣷⣶⣶⡆⠄⠄⠄⣿⣿⣿⣿
+⣿⣿⣿⣿⡇⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣇⣼⣿⣿⠿⠶⠙⣿⡟⠡⣴⣿⣽⣿⣧⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣾⣿⣿⣟⣭⣾⣿⣷⣶⣶⣴⣶⣿⣿⢄⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⡟⣩⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣹⡋⠘⠷⣦⣀⣠⡶⠁⠈⠁⠄⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⠃⣴⣶⡔⠒⠄⣠⢀⠄⠄⠄⡨⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣦⡘⠿⣷⣿⠿⠟⠃⠄⠄⣠⡇⠈⠻⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠟⠋⢁⣷⣠⠄⠄⠄⠄⣀⣠⣾⡟⠄⠄⠄⠄⠉⠙⠻
+⡿⠟⠋⠁⠄⠄⠄⢸⣿⣿⡯⢓⣴⣾⣿⣿⡟⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⠄⣿⡟⣷⠄⠹⣿⣿⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣸⣿⡷⡇⠄⣴⣾⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣿⣿⠃⣦⣄⣿⣿⣿⠇⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⢸⣿⠗⢈⡶⣷⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet
+六四天安門事件 The Tiananmen Square protests of 1989
+天安門大屠殺 The Tiananmen Square Massacre
+反右派鬥爭 The Anti-Rightist Struggle
+大躍進政策 The Great Leap Forward
+文化大革命 The Great Proletarian Cultural Revolution
+人權 Human Rights
+民運 Democratization
+自由 Freedom
+獨立 Independence
+多黨制 Multi-party system
+台灣 臺灣 Taiwan Formosa
+西藏 土伯特 唐古特 Tibet
+達賴喇嘛 Dalai Lama
+法輪功 Falun Dafa
+新疆維吾爾自治區 The Xinjiang Uyghur Autonomous Region
+諾貝爾和平獎 Nobel Peace Prize
+劉暁波 Liu Xiaobo
+民主 言論 思想 反共 反革命 抗議 運動 騷亂 暴亂 騷擾 擾亂 抗暴 平反 維權 示威游行 李洪志
+法輪大法 大法弟子 強制斷種 強制堕胎 民族淨化 人體實驗 肅清 胡耀邦 趙紫陽 魏京生 王丹
+還政於民 和平演變 激流中國 北京之春 大紀元時報 九評論共産黨 獨裁 專制 壓制 統一 監視 鎮壓
+迫害 侵略 掠奪 破壞 拷問 屠殺 活摘器官 誘拐 買賣人口
+Winnie the Pooh
+-->
+
+    </div>
+
+</article>
+<div class="post-nav"><span></span><a class="next" href="/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html" title="Local Feedback Multilayered Networks">Local Feedback Multilayered Networks</a></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/general%20sequence%20modeling/2021/12/29/learning-precise-timing-with-lstm-recurrent-networks.html" title="Local Feedback Multilayered Networks">Learning Precise Timing with LSTM Recurrent Networks</a></li><li><a class="post-link" href="/text%20modeling/2022/08/29/generating-sequences-with-recurrent-neural-networks.html" title="Local Feedback Multilayered Networks">Generating Sequences with Recurrent Neural Networks</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html" title="Local Feedback Multilayered Networks">Local Feedback Multilayered Networks</a></li><li><a class="post-link" href="/acoustic%20modeling/2021/12/06/a-time-delay-neural-network-architecture-for-isolated-word-recognition.html" title="Local Feedback Multilayered Networks">A time-delay neural network architecture for isolated word recognition</a></li></ul>
+    </div><div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>

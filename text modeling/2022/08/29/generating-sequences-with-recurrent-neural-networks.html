@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Generating Sequences with Recurrent Neural Networks | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="Generating Sequences with Recurrent Neural Networks" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="目標 使用 LSTM 進行 sequence generation 作者 Alex Graves 隸屬單位 University of Toronto 期刊/會議名稱 arXiv 發表時間 2013 論文連結 https://arxiv.org/abs/1308.0850" />
+<meta property="og:description" content="目標 使用 LSTM 進行 sequence generation 作者 Alex Graves 隸屬單位 University of Toronto 期刊/會議名稱 arXiv 發表時間 2013 論文連結 https://arxiv.org/abs/1308.0850" />
+<link rel="canonical" href="/text%20modeling/2022/08/29/generating-sequences-with-recurrent-neural-networks.html" />
+<meta property="og:url" content="/text%20modeling/2022/08/29/generating-sequences-with-recurrent-neural-networks.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-08-29T15:30:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Generating Sequences with Recurrent Neural Networks" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-08-29T15:30:00+08:00","datePublished":"2022-08-29T15:30:00+08:00","description":"目標 使用 LSTM 進行 sequence generation 作者 Alex Graves 隸屬單位 University of Toronto 期刊/會議名稱 arXiv 發表時間 2013 論文連結 https://arxiv.org/abs/1308.0850","headline":"Generating Sequences with Recurrent Neural Networks","mainEntityOfPage":{"@type":"WebPage","@id":"/text%20modeling/2022/08/29/generating-sequences-with-recurrent-neural-networks.html"},"url":"/text%20modeling/2022/08/29/generating-sequences-with-recurrent-neural-networks.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] [] -->
+  
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Generating Sequences with Recurrent Neural Networks</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2022-08-29T15:30:00+08:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Aug 29, 2022
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_article_words] 14710 -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 1 hour 31 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#BPTT">#BPTT</a><a class="post-tag" href="/tags.html#LSTM">#LSTM</a><a class="post-tag" href="/tags.html#RNN">#RNN</a><a class="post-tag" href="/tags.html#language model">#language model</a><a class="post-tag" href="/tags.html#model architecture">#model architecture</a><a class="post-tag" href="/tags.html#neural network">#neural network</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!-- Setup mathjax auto rendering. -->
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目標</td>
+      <td>使用 LSTM 進行 sequence generation</td>
+    </tr>
+    <tr>
+      <td>作者</td>
+      <td>Alex Graves</td>
+    </tr>
+    <tr>
+      <td>隸屬單位</td>
+      <td>University of Toronto</td>
+    </tr>
+    <tr>
+      <td>期刊/會議名稱</td>
+      <td>arXiv</td>
+    </tr>
+    <tr>
+      <td>發表時間</td>
+      <td>2013</td>
+    </tr>
+    <tr>
+      <td>論文連結</td>
+      <td><a href="https://arxiv.org/abs/1308.0850">https://arxiv.org/abs/1308.0850</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!--
+  Define LaTeX command which will be used through out the writing.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+
+  <!-- c but bold. -->
+  $\providecommand{\cb}{}$
+  $\renewcommand{\cb}{\mathbf{c}}$
+  <!-- h but bold. -->
+  $\providecommand{\hb}{}$
+  $\renewcommand{\hb}{\mathbf{h}}$
+  <!-- x but bold. -->
+  $\providecommand{\xb}{}$
+  $\renewcommand{\xb}{\mathbf{x}}$
+  <!-- y but bold. -->
+  $\providecommand{\yb}{}$
+  $\renewcommand{\yb}{\mathbf{y}}$
+
+  <!-- H but curly. -->
+  $\providecommand{\Hc}{}$
+  $\renewcommand{\Hc}{\mathcal{H}}$
+  <!-- L but curly. -->
+  $\providecommand{\Lc}{}$
+  $\renewcommand{\Lc}{\mathcal{L}}$
+  <!-- N but curly. -->
+  $\providecommand{\Nc}{}$
+  $\renewcommand{\Nc}{\mathcal{N}}$
+  <!-- Y but curly. -->
+  $\providecommand{\Yc}{}$
+  $\renewcommand{\Yc}{\mathcal{Y}}$
+
+  <!-- alpha with hat. -->
+  $\providecommand{\alphah}{}$
+  $\renewcommand{\alphah}{\hat{\alpha}}$
+  <!-- beta with hat. -->
+  $\providecommand{\betah}{}$
+  $\renewcommand{\betah}{\hat{\beta}}$
+  <!-- e with hat. -->
+  $\providecommand{\eh}{}$
+  $\renewcommand{\eh}{\hat{e}}$
+  <!-- gamma with hat. -->
+  $\providecommand{\gammah}{}$
+  $\renewcommand{\gammah}{\hat{\gamma}}$
+  <!-- kappa with hat. -->
+  $\providecommand{\kappah}{}$
+  $\renewcommand{\kappah}{\hat{\kappa}}$
+  <!-- mu with hat. -->
+  $\providecommand{\muh}{}$
+  $\renewcommand{\muh}{\hat{\mu}}$
+  <!-- pi with hat. -->
+  $\providecommand{\pih}{}$
+  $\renewcommand{\pih}{\hat{\pi}}$
+  <!-- rho with hat. -->
+  $\providecommand{\rhoh}{}$
+  $\renewcommand{\rhoh}{\hat{\rho}}$
+  <!-- sigma with hat. -->
+  $\providecommand{\sigmah}{}$
+  $\renewcommand{\sigmah}{\hat{\sigma}}$
+  <!-- y with hat. -->
+  $\providecommand{\yh}{}$
+  $\renewcommand{\yh}{\hat{y}}$
+
+</p>
+
+<!-- End LaTeX command define section. -->
+
+<h2 id="section">重點</h2>
+
+<ul>
+  <li>採用全微分更新 LSTM 時要記得作 gradient clipping</li>
+  <li>LSTM + residual connection 才能讓多層模型正常訓練</li>
+  <li>作者使用單詞中的平均字數估算 BPC 與 perplexity 的轉換公式
+    <ul>
+      <li>早年的 BPC 與 perplexity 需要對不同的 n-gram 進行計算，由於神經網路可以直接模擬完整序列因此不需要呈現不同 n 對應的數據</li>
+      <li>不論是 BPC 還是 perplexity 都是以 $2$ 為底，Pytorch 與 Tensorflow 中的 entropy 都是以自然對數為底，計算數值要小心</li>
+    </ul>
+  </li>
+  <li>透過 Hutter prize 實驗證實 LSTM 擁有處理長距離資訊的能力
+    <ul>
+      <li>能夠生成對稱的 XML tags</li>
+      <li>能夠生成對稱的標點符號</li>
+    </ul>
+  </li>
+  <li>LSTM + Gaussian mixture models 可以模擬實數序列，例如生成手寫字跡
+    <ul>
+      <li>同時提出 seq2seq 架構的雛型</li>
+      <li>同時提出控制生成風格的方法雛型</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-1">模型</h2>
+
+<h3 id="section-2">整體模型架構</h3>
+
+<p><a name="paper-fig-1"></a></p>
+
+<p>圖 1：整體模型架構。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/Sv7n7wk.png" alt="圖 1" /></p>
+
+<p>令 $(x_1, \dots, x_T, x_{T+1})$ 為一向量序列：</p>
+
+<ul>
+  <li>$\xb = (x_1, \dots, x_T)$ 會作為模型的輸入，得到輸出向量序列 $\yb = (y_1, \dots, y_T)$</li>
+  <li>$(x_2, \dots, x_{T+1})$ 會作為模型的預測目標，對任意的 $t \in \set{1, \dots, T}$，模型在輸入 $x_t$ 之後必須要讓輸出 $x_{t+1}$ 的機率值最大化，即最大化 $\Pr(x_{t + 1} \vert y_t)$</li>
+  <li>令 $x_1$ 代表 begin-of-sequence token，作者將 $x_1$ 所有數值設成 $0$</li>
+</ul>
+
+<p>令 $N$ 為序列模型中的 RNN 層數，令第 $n$ 層（$n \in \set{1, \dots, N}$）的輸出結果為 $\hb^n = (h_1^n, \dots, h_T^n)$：</p>
+
+<ul>
+  <li>將 RNN 模型以 $\Hc$ 表示</li>
+  <li>論文中每一層 RNN 模型都是採用 LSTM 模型（見<a href="#paper-fig-2">圖 2</a>），但當前討論先假設是廣義的 RNN</li>
+  <li>根據<a href="#paper-fig-1">圖 1</a>，每層模型都有 skip connections 將輸入 $x_t$ 與 $h_t^n$ 相連，作者說這是為了避免梯度消失（gradient vanishing）問題</li>
+  <li>根據<a href="#paper-fig-1">圖 1</a>，每個時間點不同 RNN 隱藏層的輸出會進行轉換並疊加，計算結果作為最後的預測的來源</li>
+</ul>
+
+<p>正式的數學描述如下：</p>
+
+\[\begin{align*}
+&amp; \algoProc{SeqModel}(\xb, h_0^1, \dots, h_0^N) \\
+&amp; \hspace{1em} \algoFor{t \in \set{1, \dots, T}} \\
+&amp; \hspace{2em} h_t^1 \algoEq \Hc(W_{i h^1} x_t + W_{h^1 h^1} h_{t-1}^1 + b_h^1) &amp;&amp; \tag{1}\label{1} \\
+&amp; \hspace{2em} \algoFor{n \in \set{2, \dots, N}} \\
+&amp; \hspace{3em} h_t^n \algoEq \Hc(W_{i h^n} x_t + W_{h^{n-1} h^n} h_t^{n-1} + W_{h^n h^n} h_{t-1}^n + b_h^n) &amp;&amp; \tag{2}\label{2} \\
+&amp; \hspace{2em} \algoEndFor \\
+&amp; \hspace{2em} \yh_t \algoEq b_y + \sum_{n = 1}^N W_{h^n y} h_t^n &amp;&amp; \tag{3}\label{3} \\
+&amp; \hspace{2em} y_t \algoEq \Yc(\yh_t) &amp;&amp; \tag{4}\label{4} \\
+&amp; \hspace{1em} \algoEndFor \\
+&amp; \hspace{1em} \Pr(\xb) \algoEq \prod_{t = 1}^T \Pr(x_{t+1} \vert y_t) &amp;&amp; \tag{5}\label{5} \\
+&amp; \hspace{1em} \Lc(\xb) \algoEq -\sum_{t = 1}^T \log \Pr(x_{t+1} \vert y_t) &amp;&amp; \tag{6}\label{6} \\
+&amp; \hspace{1em} \algoReturn \Pr(\xb), \Lc(\xb) \\
+&amp; \algoEndProc
+\end{align*}\]
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>意義</th>
+      <th>節點</th>
+      <th>意義</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$W_{i h^1}$</td>
+      <td>連接輸入與第 $1$ 層 RNN</td>
+      <td>$\xb$</td>
+      <td>輸入向量序列</td>
+    </tr>
+    <tr>
+      <td>$W_{h^n h^n}$</td>
+      <td>第 $n$ 層 RNN 的自連接層</td>
+      <td>$h_0^n$</td>
+      <td>第 $n$ 層 RNN 的起始狀態</td>
+    </tr>
+    <tr>
+      <td>$W_{h^{n-1} h^n}$</td>
+      <td>連接第 $n-1$ 層 RNN 與第 $n$ 層 RNN</td>
+      <td>$h_t^n$</td>
+      <td>第 $n$ 層 RNN 第 $t$ 時間點的狀態</td>
+    </tr>
+    <tr>
+      <td>$W_{h^n y}$</td>
+      <td>連接第 $N$ 層 RNN 的狀態與輸出層</td>
+      <td>$\yh_t$</td>
+      <td>所有 RNN 隱藏第 $t$ 時間點的狀態疊加結果</td>
+    </tr>
+    <tr>
+      <td>$b_h^n$</td>
+      <td>第 $n$ 層 RNN 的輸入 bias</td>
+      <td>$y_t$</td>
+      <td>$t$ 時間點的輸出</td>
+    </tr>
+    <tr>
+      <td>$\Yc$</td>
+      <td>輸出層</td>
+      <td>$\Pr(x_{t+1} \vert y_t)$</td>
+      <td>$y_t$ 預測答案 $x_{t+1}$ 的機率值</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td>$\Lc(\xb)$</td>
+      <td>Negative log-likelihood of $\xb$</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="lstm-">LSTM 模型架構</h3>
+
+<p><a name="paper-fig-2"></a></p>
+
+<p>圖 2：LSTM 模型架構。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/quKKMOh.png" alt="圖 2" /></p>
+
+<p>將<a href="#paper-fig-1">圖 1</a> 中的 $\Hc$ 定義成 <a href="LSTM2002">LSTM-2002</a>，正式定義如下</p>
+
+\[\begin{align*}
+&amp; \algoProc{LSTM}(x_t, h_{t-1}, c_{t-1}) \\
+&amp; \hspace{1em} i_t \algoEq \sigma(W_{x i} x_t + W_{h i} h_{t-1} + W_{c i} \odot c_{t - 1} + b_i) &amp;&amp; \tag{7}\label{7} \\
+&amp; \hspace{1em} f_t \algoEq \sigma(W_{x f} x_t + W_{h f} h_{t-1} + W_{c f} \odot c_{t - 1} + b_f) &amp;&amp; \tag{8}\label{8} \\
+&amp; \hspace{1em} c_t \algoEq f_t \odot c_{t-1} + i_t \odot \tanh(W_{x c} x_t + W_{h c} h_{t-1} + b_c) &amp;&amp; \tag{9}\label{9} \\
+&amp; \hspace{1em} o_t \algoEq \sigma(W_{x o} x_t + W_{h o} h_{t-1} + W_{c o} c_t + b_o) &amp;&amp; \tag{10}\label{10} \\
+&amp; \hspace{1em} h_t \algoEq o_t \odot \tanh(c_t) &amp;&amp; \tag{11}\label{11} \\
+&amp; \hspace{1em} \algoReturn h_t, c_t \\
+&amp; \algoEndProc
+\end{align*}\]
+
+<table>
+  <thead>
+    <tr>
+      <th>參數</th>
+      <th>意義</th>
+      <th>節點</th>
+      <th>意義</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$W_{x g}$</td>
+      <td>連接輸入與 gate $g \in \set{i, f, o}$</td>
+      <td>$x_t$</td>
+      <td>$t$ 時間點的輸入向量</td>
+    </tr>
+    <tr>
+      <td>$W_{h g}$</td>
+      <td>連接 LSTM hidden states 與 gate $g \in \set{i, f, o}$</td>
+      <td>$h_t$</td>
+      <td>$t$ 時間點的 LSTM hidden states</td>
+    </tr>
+    <tr>
+      <td>$W_{c g}$</td>
+      <td>連接 LSTM internal states 與 gate $g \in \set{i, f, o}$</td>
+      <td>$c_t$</td>
+      <td>$t$ 時間點的 LSTM internal states</td>
+    </tr>
+    <tr>
+      <td>$b_g$</td>
+      <td>bias of gate $g \in \set{i, f, o}$</td>
+      <td>$i_t$</td>
+      <td>$t$ 時間點的 input gate</td>
+    </tr>
+    <tr>
+      <td>$W_{x c}$</td>
+      <td>連接輸入與 memory cell</td>
+      <td>$f_t$</td>
+      <td>$t$ 時間點的 forget gate</td>
+    </tr>
+    <tr>
+      <td>$W_{h c}$</td>
+      <td>連接 LSTM hidden states 與 memory cell</td>
+      <td>$o_t$</td>
+      <td>$t$ 時間點的 output gate</td>
+    </tr>
+    <tr>
+      <td>$b_c$</td>
+      <td>memory cell bias</td>
+      <td>$c_t$</td>
+      <td>$t$ 時間點的 LSTM internal states</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>在替換 $\eqref{1} \eqref{2}$ 中的 RNN $\mathcal{H}$ 為上述定義的 LSTM 後，仍然採用<a href="#paper-fig-1">圖 1</a> 中的計算方法，可以想成把 LSTM 的輸入 $x_t$ 換成 $W_{i h^n} x_t + W_{h^{n-1} h^n} h_t^{n-1}$。</p>
+
+<h3 id="lstm--1">LSTM 最佳化</h3>
+
+<p><a href="https://ieeexplore.ieee.org/abstract/document/6795963">原版的 LSTM</a> 使用 truncated RTRL 的變種計算梯度，而在此篇論文中作者採用 BPTT 全微分作為更新梯度。
+然而原始的梯度計算方法是為了避免梯度爆炸（gradient explosion）問題，因此作者提出手動將超過數值範圍的梯度設為符合事先定義的範圍（gradient clipping）。
+作者說他之前發表的研究其實都有作 gradient clipping，但他忘記講了，好壞。</p>
+
+<h2 id="section-3">預測文字</h2>
+
+<p>定義 $\eqref{4}$ 的計算方法為</p>
+
+\[\forall k \in \set{1, \dots, K}, \Pr(x_{t+1} = k \vert y_t) = y_t^k = \dfrac{\exp(\yh_t^k)}{\sum_{k' = 1}^K \exp(\yh_t^{k'})}. \tag{12}\label{12}\]
+
+<p>其中 $K$ 代表類別數量，在預測文字的任務中代表字典大小。
+而輸入 $x_t \in \R^K$ 則對應到 one-hot encoding。
+將 $\eqref{12}$ 代入 $\eqref{6}$ 可以推得</p>
+
+\[\Lc(\xb) = -\sum_{t = 1}^T \log y_t^{x_{t + 1}}. \tag{13}\label{13}\]
+
+<p>而 $\Lc(\xb)$ 相對於 $\yh_t^k$ 的梯度為</p>
+
+\[\begin{align*}
+\pd{\Lc(\xb)}{\yh_t^k} &amp; = \pd{\Lc(\xb)}{y_t^{x_{t+1}}} \pd{y_t^{x_{t+1}}}{\yh_t^k} \\
+&amp; = -\pd{\log y_t^{x_{t+1}}}{y_t^{x_{t+1}}} \pd{y_t^{x_{t+1}}}{\yh_t^k} \\
+&amp; = \dfrac{-1}{y_t^{x_{t+1}}} \pd{y_t^{x_{t+1}}}{\yh_t^k} \\
+&amp; = \dfrac{-1}{y_t^{x_{t+1}}} \pa{\dfrac{\exp(\yh_t^{x_{t+1}})}{\sum_{k' = 1}^K \exp(\yh_t^{k'})} \delta_{k, x_{t+1}} - \dfrac{\exp(y_t^{x_{t+1}}) \exp(\yh_t^k)}{\pa{\sum_{k' = 1}^K \exp(\yh_t^k)}^2}} \\
+&amp; = \dfrac{-1}{y_t^{x_{t+1}}} \pa{y_t^{x_{t+1}} \delta_{k, x_{t+1}} - y_t^{x_{t+1}} y_t^k} \\
+&amp; = y_t^k - \delta_{k, x_{t + 1}}. &amp;&amp; \tag{14}\label{14}
+\end{align*}\]
+
+<p>當 $K$ 很大時（常見的單詞數量 $&gt; 100000$），計算 softmax 成本就會很高，因此不少論文提出減少 $K$ 的方法，其中 character-level language model 就是能夠有效減少 $K$ 的手段。</p>
+
+<h3 id="penn-treebank---wall-street-journal">實驗 1：Penn Treebank - Wall Street Journal</h3>
+
+<p><a name="paper-fig-3"></a></p>
+
+<p>圖 3：PTB-WSJ 實驗結果。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/n9115bj.png" alt="圖 3" /></p>
+
+<ul>
+  <li>Penn Treebank 中的 Wall Street Journal（WSJ）用來作為 language modeling benchmark
+    <ul>
+      <li>Training set：930000 words</li>
+      <li>Validation set：74000 words</li>
+      <li>Test set：82000 words</li>
+    </ul>
+  </li>
+  <li>評估方法
+    <ul>
+      <li>
+        <p>BPC（bit-per-character）：average value of $-\log_2 \Pr(x_{t+1} \vert y_t)$ over the whole test set, i.e.,</p>
+
+\[\dfrac{-1}{\hash\text{characters in dataset}} \sum_{\xb \text{ in dataset}} \log_2 \Pr(x_{t+1} \vert y_t)\]
+      </li>
+      <li>
+        <p>Perplexity：two to the power of the average number of bits per word, i.e.,</p>
+
+\[\dfrac{-1}{\hash\text{words in dataset}} \sum_{\xb \text{ in dataset}} \log_2 \Pr(x_{t+1} \vert y_t)\]
+      </li>
+      <li>
+        <p>當 token 設定成 word 時，BPC 無法直接計算，作者認為由於 WSJ 中的所有 word 平均擁有 5.6 個 characters，因此套用以下公式進行近似計算：</p>
+
+\[\operatorname{perplexity} \approx 2^{5.6 \operatorname{BPC}}\]
+      </li>
+      <li>
+        <p>當 token 設定成 character 時，word 機率值為組成的 characters 的機率值連乘積，因此 perplexity 仍然可以正常計算</p>
+      </li>
+    </ul>
+  </li>
+  <li>每個文字序列都有插入 end-of-sentence token，注意是 sentence 不是 sequence，代表單一文字序列中可能有多個 end-of-sentence token
+    <ul>
+      <li>End-of-sentence token 會參與誤差計算</li>
+      <li>由於 begin-of-sequence token 已經定義，因此不需要定義 start-of-sentence token，可以由 end-of-sentence token 替代 start-of-sentence token</li>
+    </ul>
+  </li>
+  <li>模型架構
+    <ul>
+      <li>只使用 $1$ 層 LSTM（$N = 1$），隱藏層單元數為 $1000$（$h_t^1 \in \R^{1000}$）</li>
+      <li>作者將模型字典大小設定為 $10000$ tokens，不在字典中的所有字都定義成 unknown token</li>
+      <li>當 token 設定成 character 時
+        <ul>
+          <li>字典大小為 $49$</li>
+          <li>資料集中幾乎沒有任何的 unknown token</li>
+          <li>參數總數約為 $4.3$ M</li>
+        </ul>
+      </li>
+      <li>當 token 設定成 word 時
+        <ul>
+          <li>字典大小為 $10000$</li>
+          <li>資料集中會包含不少的 unknown token</li>
+          <li>參數總數約為 $54$ M</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>最佳化演算法為 SGD（stochastic gradient descent）
+    <ul>
+      <li>Learning rate 設為 $0.0001$</li>
+      <li>Momentum 設為 $0.99$</li>
+      <li>Gradient clipping 的範圍為 $[-1, 1]$</li>
+    </ul>
+  </li>
+  <li>由於模型容易 overfitting，因此作者加入 2 種不同的 regularization 技巧
+    <ul>
+      <li>Weight noise with std set to $0.075$</li>
+      <li>Adaptive weight noise + minimum description length</li>
+    </ul>
+  </li>
+  <li>參數初始化策略
+    <ul>
+      <li>使用 weight noise 的模型參數初始化為不使用 weight noise 訓練的模型參數</li>
+      <li>使用 adaptive weight noise 的模型參數初始化為使用 weight noise 訓練的模型參數</li>
+      <li>作者發現使用訓練過的模型作為初始化的參數收斂速度快於從頭訓練 + regularization</li>
+      <li>Word-level language model 使用 adaptive weight noise 訓練太慢，因此只使用 fix weight noise</li>
+    </ul>
+  </li>
+  <li>結論
+    <ul>
+      <li>Word-level 表現比 character-level 好，但使用 regularization 可讓兩者差異減少</li>
+      <li>當 test set 也被用來更新模型（只更新 1 次，稱為 dynamic evaluation），模型表現更好</li>
+      <li>作者與 Tomas Mikolov 的實驗結果比較，發現 LSTM + dynamic evaluation 表現比 RNN + dynamic evaluation 更好</li>
+      <li>此階段的 NN 模型比 N-gram 統計模型表現還要差（perplexity 最低可到 $89.4$）</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="hutter-prize">實驗 2：Hutter prize</h3>
+
+<p><a name="paper-fig-4"></a></p>
+
+<p>圖 4：Hutter prize 實驗結果。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/ZK80PEG.png" alt="圖 4" /></p>
+
+<ul>
+  <li>First $100$ million bytes of English Wikipedia dumped at March 3rd 2006
+    <ul>
+      <li>包含 XML、數字、中文等非英文文字</li>
+      <li>Hutter prize 是在比賽壓縮演算法，作者用 LSTM 來測試 BPC</li>
+    </ul>
+  </li>
+  <li>作者自己定義 train-valid split
+    <ul>
+      <li>Training set：the first $96$ M bytes</li>
+      <li>Validation set：the remaining $4$ M bytes</li>
+      <li>切成以 $100$ bytes 為單位的 sequence 進行計算</li>
+      <li>以 $1$ byte 為單位來計算共有 $205$ 個不同的 unicode symbols</li>
+      <li>以 character 為單位來計算遠超過 $205$ 個不同的 unicode characters</li>
+      <li>作者決定以 $1$ byte 作為字典基礎單位，所以字典大小為 $205$</li>
+      <li>由於以 $1$ byte 作為單位，因此計算 BPC 時每個 character 的機率是由組成的 bytes 的機率值的連乘積估算而得</li>
+    </ul>
+  </li>
+  <li>由於資料中有 XML 結構的存在，模型需要能夠記憶長距離資訊才能讓 bit per byte 下降
+    <ul>
+      <li>特別寫出結構與長距離問題其實是作者想要強調 LSTM 擁有該能力</li>
+      <li>每隔 $100$ 個 sequences（共 $10000$ bytes）才手動重設一次 LSTM 的狀態（$h_t$ 與 $c_t$）</li>
+      <li>每次的模型更新都只限制在 $1$ 個 sequence（共 $100$ bytes）內，以此加速訓練</li>
+      <li>由於想要摹擬長距離的能力，因此資料集不進行隨機抽樣</li>
+    </ul>
+  </li>
+  <li>模型架構
+    <ul>
+      <li>使用 $7$ 層 LSTM（$N = 7$），隱藏層單元數為 $700$（$h_t^1 \in \R^{700}$）</li>
+      <li>定義 token 為 $1$ byte，參數總量約為 $21.3$ M</li>
+    </ul>
+  </li>
+  <li>最佳化演算法為 SGD
+    <ul>
+      <li>Learning rate 設為 $0.0001$</li>
+      <li>Momentum 設為 $0.9$</li>
+      <li>Gradient clipping 的範圍為 $[-1, 1]$</li>
+      <li>需要訓練 $4$ 個 epoch 才會收斂</li>
+    </ul>
+  </li>
+  <li>結論
+    <ul>
+      <li>使用 dynamic evaluation 在 validation set 上表現比較好
+        <ul>
+          <li>與 PTB-WSJ 實驗結果一致</li>
+          <li>作者認為在 validation set 上的分佈與 training set 不同，因此 dynamic evaluation 表現較好是理所當然</li>
+        </ul>
+      </li>
+      <li>使用 dynamic evaluation 在 validation set 上表現比 training set 好
+        <ul>
+          <li>作者認為可能是模型在 training set 上仍然 underfitting 所導致</li>
+          <li>作者認為可能部份資料比較難 fitting（例如 plain text），而 validation set 都拿到剛好比較容易 fitting 的資料（例如 XML tag）</li>
+        </ul>
+      </li>
+      <li>此階段的 NN 模型比 N-gram 統計模型表現還要差，但 LSTM 在 NN 模型中表現最好
+        <ul>
+          <li>N-gram 模型 BPC 最低可到 $1.28$</li>
+          <li>zip 壓縮演算法 BPC 會高於 $2$</li>
+          <li>Character-level RNN，且只處理 plain text 不包含 XML，BPC 最低可到 $1.47$</li>
+        </ul>
+      </li>
+      <li>將 LSTM 模型用於生成文字內容，作者觀察發現 LSTM 有學到文字中包含的結構
+        <ul>
+          <li>學到常見單詞與 sub-words，並且能夠任意組合 sub-words</li>
+          <li>學到標點符號的用法</li>
+          <li>學到對稱的 quotation marks 與 parentheses 證明模型擁有記憶長距離資訊的能力</li>
+          <li>進一步學會對稱生成 <code class="language-plaintext highlighter-rouge">==</code> 符號（wiki 用來標記 header 的符號）、XML tags 與縮排結構（indentation）</li>
+        </ul>
+      </li>
+      <li>雖然生成的有模有樣，但作者認為從 phrase 結構來看生成的結果是無法作為正常文字使用的
+        <ul>
+          <li>作者認為更好的模擬方法可以從加大與加深模型下手（與 2019–2022 的趨勢相同）</li>
+          <li>作者認為增加訓練資料也是一個強化模型的方法（再度與 2019–2022 的趨勢相同）</li>
+          <li>作者認為不論讓模型多有效的模擬文字生成，最後都無法模擬人類（想法不如 GPT 等研究樂觀）</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-4">手寫文字預測</h2>
+
+<p>模型將會接收到連續的數值，代表筆尖（pen-tip）的座標隨著時間移動的軌跡</p>
+
+<ul>
+  <li>作者把這類型的連續數值稱為 online handwriting data</li>
+  <li>相對於 online，offline 的意思是直接獲得最終的手寫圖片進行辨識</li>
+  <li>相較於 offline，online 的優勢為輸入數字每個時間點都只有 2 個數值，因此數值結構比起完整的圖片來說維度較低</li>
+</ul>
+
+<p>沿用 $\eqref{1}–\eqref{11}$ 定義的 LSTM 模型，定義每個時間點的模型輸入如下</p>
+
+\[x_t = (x_{t, 1}, x_{t, 2}, x_{t, 3}) \tag{15}\label{15}\]
+
+<ul>
+  <li>$(x_{t, 1}, x_{t, 2}) \in \R^2$ 代表平面座標</li>
+  <li>$x_{t, 3} \in \set{0, 1}$ 代表筆尖是否離開智慧白板（end-of-stroke）</li>
+</ul>
+
+<p>模型預測目標共有兩個，分別為下個時間點的筆跡座標值與筆尖是否離開智慧白板。
+作者將 LSTM 模型結合 mixture density network 使用，主要概念為將 LSTM 模型的輸出作為 Gaussian mixture models（GMM）的參數（parameters）使用，因此定義每個時間點的輸出如下</p>
+
+\[y_t = \pa{e_t, \set{\pi_t^j, \mu_t^j, \sigma_t^j, \rho_t^j}_{j = 1}^M} \tag{16}\label{16}\]
+
+<ul>
+  <li>由於預測目標共有兩個，因此使用兩個不同的機率分佈進行模擬</li>
+  <li>$e_t \in (0, 1)$ 代表 end-of-stroke 的機率值，因此採用 Bernoulli distribution 進行模擬</li>
+  <li>作者假設下個時間點的筆尖座標值符合 bivariate Gaussian distribution，因此使用 GMM 進行模擬</li>
+  <li>$M$ 代表 bivariate Gaussian models 的數量</li>
+  <li>$\mu_t^j \in \R^2$ 代表第 $j$ 個 bivariate Gaussian model 的平均值</li>
+  <li>$\sigma_t^j \in \R^2$ 代表第 $j$ 個 bivariate Gaussian model 的標準差</li>
+  <li>$\rho_t^j \in \R$ 代表第 $j$ 個 bivariate Gaussian model 的相關係數</li>
+  <li>$\pi_t^j \in \R$ 代表第 $j$ 個 bivariate Gaussian model 的組合權重</li>
+</ul>
+
+<p>根據 $\eqref{16}$，作者將 $\eqref{3}$ 的定義改為</p>
+
+\[\yh_t = \pa{\eh_t, \set{\pih_t^j, \muh_t^j, \sigmah_t^j, \rhoh_t^j}_{j = 1}^M} = b_y + \Sum_{n = 1}^N W_{h^n y} h_t^n \tag{17}\label{17}\]
+
+<p>接著定義 $\eqref{16}$ 的計算方法：</p>
+
+\[\begin{align*}
+e_t        &amp; = \dfrac{1}{1 + \exp(\eh_t)}                                                              &amp;&amp; \implies e_t \in (0, 1)                                 &amp;&amp; \tag{18}\label{18} \\
+\pi_t^j    &amp; = \softmax\pa{\pih_t^j} = \dfrac{\exp\pa{\pih_t^j}}{\Sum_{j' = 1}^M \exp\pa{\pih_t^{j'}}} &amp;&amp; \implies \pi_t^j \in (0, 1), \Sum_{j = 1}^M \pi_t^j = 1 &amp;&amp; \tag{19}\label{19} \\
+\mu_t^j    &amp; = \muh_t^j                                                                                &amp;&amp; \implies \muh_t^j \in \R^2                              &amp;&amp; \tag{20}\label{20} \\
+\sigma_t^j &amp; = \exp\pa{\sigmah_t^j}                                                                    &amp;&amp; \implies \sigma_t^j \in \R_+^2                          &amp;&amp; \tag{21}\label{21} \\
+\rho_t^j   &amp; = \tanh\pa{\rhoh_t^j}                                                                     &amp;&amp; \implies \rho_t^j \in (-1, 1)                           &amp;&amp; \tag{22}\label{22}
+\end{align*}\]
+
+<p>注意 $\eqref{18}$ 與 sigmoid function 類似但不是 sigmoid function。
+接著定義 GMM 的計算方法：</p>
+
+\[\Pr(x_{t+1} \vert y_t) = \begin{dcases}
+  \Sum_{j = 1}^M \pi_t^j \cdot \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j} \cdot e_t       &amp; \text{if } x_{t+1, 3} = 1 \\
+  \Sum_{j = 1}^M \pi_t^j \cdot \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j} \cdot (1 - e_t) &amp; \text{otherwise}
+\end{dcases} \tag{23}\label{23}\]
+
+<p>其中 $\Nc$ 代表 bivariate Gaussian distribution，計算方法為</p>
+
+\[\begin{align*}
+&amp; \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j} = \dfrac{1}{2 \pi \sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}} \cdot \exp\pa{\dfrac{-Z}{2 (1 - (\rho_t^j)^2)}} &amp;&amp; \tag{24}\label{24} \\
+&amp; Z = \pa{\dfrac{x_{t+1, 1} - \mu_{t, 1}^j}{\sigma_{t, 1}^j}}^2 + \pa{\dfrac{x_{t+1, 2} - \mu_{t, 2}^j}{\sigma_{t, 2}^j}}^2 - \dfrac{2 \rho_t^j \pa{x_{t+1, 1} - \mu_{t, 1}^j} \pa{x_{t+1, 2} - \mu_{t, 2}^j}}{\sigma_{t, 1}^j \sigma_{t, 2}^j} &amp;&amp; \tag{25}\label{25}
+\end{align*}\]
+
+<p>注意 $\eqref{23}$ 中的 $e_t$ 與 $\Sum_{j = 1}^M$ 無關，因此 $\eqref{6}$ 可以改寫為</p>
+
+\[\begin{align*}
+\Lc(\xb) &amp; = \Sum_{t = 1}^T -\log \Pr(x_{t+1} \vert y_t) \\
+&amp; = \begin{dcases}
+  \Sum_{t = 1}^T -\log \pa{\Sum_{j = 1}^M \pi_t^j \cdot \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j} \cdot e_t}       &amp; \text{if } x_{t+1, 3} = 1 \\
+  \Sum_{t = 1}^T -\log \pa{\Sum_{j = 1}^M \pi_t^j \cdot \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j} \cdot (1 - e_t)} &amp; \text{otherwise}
+\end{dcases} \\
+&amp; = \begin{dcases}
+  \Sum_{t = 1}^T \pa{-\log \pa{\Sum_{j = 1}^M \pi_t^j \cdot \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j}} - \log e_t}       &amp; \text{if } x_{t+1, 3} = 1 \\
+  \Sum_{t = 1}^T \pa{-\log \pa{\Sum_{j = 1}^M \pi_t^j \cdot \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j}} - \log (1 - e_t)} &amp; \text{otherwise}
+\end{dcases} &amp;&amp; \tag{26}\label{26}
+\end{align*}\]
+
+<p>作者接著推導微分，首先計算 $\pd{\Lc(\xb)}{\eh_t}$：</p>
+
+\[\begin{align*}
+\pd{\Lc(\xb)}{\eh_t} &amp; = \begin{dcases}
+  \pd{-\log(e_t)}{e_t} \pd{e_t}{\eh_t}     &amp; \text{if } x_{t+1, 3} = 1 \\
+  \pd{-\log(1 - e_t)}{e_t} \pd{e_t}{\eh_t} &amp; \text{otherwise}
+\end{dcases} \\
+&amp; = \begin{dcases}
+  \dfrac{-1}{e_t} \dfrac{-\exp(\eh_t)}{(1 + \exp(\eh_t))^2}    &amp; \text{if } x_{t+1, 3} = 1 \\
+  \dfrac{1}{1 - e_t} \dfrac{-\exp(\eh_t)}{(1 + \exp(\eh_t))^2} &amp; \text{otherwise}
+\end{dcases} \\
+&amp; = \begin{dcases}
+  1 - e_t &amp; \text{if } x_{t+1, 3} = 1 \\
+  -e_t    &amp; \text{otherwise}
+\end{dcases} \\
+&amp; = x_{t+1, 3} - e_t. &amp;&amp; \tag{27}\label{27}
+\end{align*}\]
+
+<p>推導與 GMM 相關的微分比較複雜，首先定義 $\gammah_t^j$ 輔助推導過程</p>
+
+\[\begin{align*}
+\gammah_t^j &amp; = \pi_t^j \cdot \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j} &amp;&amp; \tag{28}\label{28} \\
+\gamma_t^j  &amp; = \dfrac{\gammah_t^j}{\Sum_{j' = 1}^M \gammah_t^{j'}}               &amp;&amp; \tag{29}\label{29}
+\end{align*}\]
+
+<p>接著推導 $\pd{\Lc(\xb)}{\pih_t^j}$：</p>
+
+\[\begin{align*}
+\pd{\Lc(\xb)}{\pih_t^j} &amp; = \Sum_{i = 1}^M \pa{\pd{-\log \Sum_{j' = 1}^M \gammah_t^{j'}}{\pi_t^i} \pd{\pi_t^i}{\pih_t^j}} \\
+&amp; = \Sum_{i = 1}^M \pa{\dfrac{-1}{\Sum_{j' = 1}^M \gammah_t^{j'}} \cdot \pd{\gammah_t^i}{\pi_t^i} \cdot (\delta_{i, j} \pi_t^i - \pi_t^i \pi_t^j)} \\
+&amp; = \Sum_{i = 1}^M \pa{\dfrac{-\Nc\pa{x_{t+1} \vert \mu_t^i, \sigma_t^i, \rho_t^i}}{\Sum_{j' = 1}^M \gammah_t^{j'}} \cdot (\delta_{i, j} \pi_t^i - \pi_t^i \pi_t^j)} \\
+&amp; = \Sum_{i = 1}^M \pa{\dfrac{-\delta_{i, j} \pi_t^i \Nc\pa{x_{t+1} \vert \mu_t^i, \sigma_t^i, \rho_t^i}}{\Sum_{j' = 1}^M \gammah_t^{j'}}} + \Sum_{i = 1}^M \pa{\dfrac{\pi_t^i \pi_t^j \Nc\pa{x_{t+1} \vert \mu_t^i, \sigma_t^i, \rho_t^i}}{\Sum_{j' = 1}^M \gammah_t^{j'}}} \\
+&amp; = -\gamma_t^j + \pi_t^j \\
+&amp; = \pi_t^j - \gamma_t^j. &amp;&amp; \tag{30}\label{30}
+\end{align*}\]
+
+<p>接著推導 $\Lc(\xb)$ 對於 $\muh_{t, 1}^j, \muh_{t, 2}^j, \sigmah_{t, 1}^j, \sigmah_{t, 2}^j, \rhoh_t^j$ 的微分，由於結構類似，為了方便一起表達成 $\pd{\Lc(\xb)}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)}$：</p>
+
+\[\begin{align*}
+&amp; \pd{\Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} \\
+&amp; = \pd{\dfrac{1}{2 \pi \sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} \cdot \exp\pa{\dfrac{-Z}{2 (1 - (\rho_t^j)^2)}} \\
+&amp; \quad + \dfrac{1}{2 \pi \sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}} \cdot \pd{\exp\pa{\dfrac{-Z}{2 (1 - (\rho_t^j)^2)}}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} \\
+&amp; = \dfrac{-\Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j}}{2 \pi \sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}} \cdot \pd{2 \pi \sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} + \Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j} \cdot \pd{\dfrac{-Z}{2 (1 - (\rho_t^j)^2)}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} \\
+&amp; = -\Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j} \cdot \pa{\dfrac{1}{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}} \cdot \pd{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} + \pd{\dfrac{Z}{2 (1 - (\rho_t^j)^2)}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)}}.
+\end{align*}\]
+
+\[\begin{align*}
+&amp; \pd{\Lc(\xb)}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} \\
+&amp; = \pd{-\log \Sum_{j' = 1}^M \gammah_t^{j'}}{\gammah_t^j} \pd{\gammah_t^j}{\Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j}} \pd{\Nc\pa{x_{t+1} \vert \mu_t^j, \sigma_t^j, \rho_t^j}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} \\
+&amp; = \gamma_t^j \cdot \pa{\dfrac{1}{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}} \cdot \pd{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)} + \pd{\dfrac{Z}{2 (1 - (\rho_t^j)^2)}}{(\muh_t^j, \sigmah_t^j, \rhoh_t^j)}} &amp;&amp; \tag{31}\label{31}
+\end{align*}\]
+
+<p>各個微分項次各自展開可以得到以下結果：</p>
+
+\[\begin{align*}
+\pd{\Lc(\xb)}{\muh_{t, 1}^j} &amp; = r_t^j \cdot \pd{\dfrac{Z}{2 (1 - (\rho_t^j)^2)}}{\muh_{t, 1}^j} \\
+&amp; = \dfrac{r_t^j}{2 (1 - (\rho_t^j)^2)} \cdot \pa{-2 \dfrac{x_{t+1, 1} - \mu_{t, 1}^j}{(\sigma_{t, 1}^j)^2} + \dfrac{2 \rho_t^j (x_{t+1, 2} - \mu_{t, 2}^j)}{\sigma_{t, 1}^j \sigma_{t, 2}^j}} \\
+&amp; = \dfrac{-r_t^j}{\sigma_{t, 1}^j (1 - (\rho_t^j)^2)} \cdot \pa{\dfrac{x_{t+1, 1} - \mu_{t, 1}^j}{\sigma_{t, 1}^j} - \dfrac{\rho_t^j (x_{t+1, 2} - \mu_{t, 2}^j)}{\sigma_{t, 2}^j}} &amp;&amp; \tag{32}\label{32} \\
+\pd{\Lc(\xb)}{\muh_{t, 2}^j} &amp; = \dfrac{-r_t^j}{\sigma_{t, 2}^j (1 - (\rho_t^j)^2)} \cdot \pa{\dfrac{x_{t+1, 2} - \mu_{t, 2}^j}{\sigma_{t, 2}^j} - \dfrac{\rho_t^j (x_{t+1, 1} - \mu_{t, 2}^j)}{\sigma_{t, 1}^j}} &amp;&amp; \tag{33}\label{33} \\
+\pd{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}{\sigmah_{t, 1}^j} &amp; = \pd{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}{\sigma_{t, 1}^j} \cdot \pd{\sigma_{t, 1}^j}{\sigmah_{t, 1}^j} \\
+&amp; = \sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2} \\
+\pd{\dfrac{Z}{2 (1 - (\rho_t^j)^2)}}{\sigmah_{t, 1}^j} &amp; = \dfrac{1}{2 (1 - (\rho_t^j)^2)} \pd{Z}{\sigma_{t, 1}^j} \pd{\sigma_{t, 1}^j}{\sigmah_{t, 1}^j} \\
+&amp; = \dfrac{1}{2 (1 - (\rho_t^j)^2)} \pa{\dfrac{-2 (x_{t+1, 1} - \mu_{t, 1}^j)^2}{(\sigma_{t, 1}^j)^2} + \dfrac{2 \rho_t^j \pa{x_{t+1, 1} - \mu_{t, 1}^j} \pa{x_{t+1, 2} - \mu_{t, 2}^j}}{\sigma_{t, 1}^j \sigma_{t, 2}^j}} \\
+&amp; = \dfrac{-\pa{x_{t+1, 1} - \mu_{t, 1}^j}}{\sigma_{t, 1}^j (1 - (\rho_t^j)^2)} \pa{\dfrac{x_{t+1, 1} - \mu_{t, 1}^j}{\sigma_{t, 1}^j} - \dfrac{\rho_t^j \pa{x_{t+1, 2} - \mu_{t, 2}^j}}{\sigma_{t, 2}^j}} \\
+\pd{\Lc(\xb)}{\sigmah_{t, 1}^j} &amp; = r_t^j \cdot \pa{\dfrac{1}{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}} \cdot \pd{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}{\sigmah_{t, 1}^j} + \pd{\dfrac{Z}{2 (1 - (\rho_t^j)^2)}}{\sigmah_{t, 1}^j}} \\
+&amp; = r_t^j \pa{1 - \dfrac{x_{t+1, 1} - \mu_{t, 1}^j}{\sigma_{t, 1}^j (1 - (\rho_t^j)^2)} \pa{\dfrac{x_{t+1, 1} - \mu_{t, 1}^j}{\sigma_{t, 1}^j} - \dfrac{\rho_t^j \pa{x_{t+1, 2} - \mu_{t, 2}^j}}{\sigma_{t, 2}^j}}} &amp;&amp; \tag{34}\label{34} \\
+\pd{\Lc(\xb)}{\sigmah_{t, 2}^j} &amp; = r_t^j \pa{1 - \dfrac{x_{t+1, 2} - \mu_{t, 2}^j}{\sigma_{t, 2}^j (1 - (\rho_t^j)^2)} \pa{\dfrac{x_{t+1, 2} - \mu_{t, 2}^j}{\sigma_{t, 2}^j} - \dfrac{\rho_t^j \pa{x_{t+1, 1} - \mu_{t, 1}^j}}{\sigma_{t, 1}^j}}} &amp;&amp; \tag{35}\label{35} \\
+\pd{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}{\rhoh_t^j} &amp; = \sigma_{t, 1}^j \sigma_{t, 2}^j \pd{\sqrt{1 - (\rho_t^j)^2}}{\rho_t^j} \pd{\rho_t^j}{\rhoh_t^j} \\
+&amp; = \sigma_{t, 1}^j \sigma_{t, 2}^j \dfrac{-2 \rho_t^j}{2 \sqrt{1 - (\rho_t^j)^2}} (1 - (\rho_t^j)^2) \\
+&amp; = -\sigma_{t, 1}^j \sigma_{t, 2}^j \rho_t^j \sqrt{1 - (\rho_t^j)^2} \\
+\pd{\dfrac{Z}{2 (1 - (\rho_t^j)^2)}}{\rhoh_t^j} &amp; = \pd{Z}{\rho_t^j} \pd{\rho_t^j}{\rhoh_t^j} \dfrac{1}{2 (1 - (\rho_t^j)^2)} + \dfrac{Z}{2} \pd{\dfrac{1}{1 - (\rho_t^j)^2}}{\rho_t^j} \pd{\rho_t^j}{\rhoh_t^j} \\
+&amp; = -\dfrac{\pa{x_{t+1, 1} - \mu_{t, 1}^j} \pa{x_{t+1, 2} - \mu_{t, 2}^j}}{\sigma_{t, 1}^j \sigma_{t, 2}^j} + Z \dfrac{\rho_t^j}{1 - (\rho_t^j)^2} \\
+\pd{\Lc(\xb)}{\rhoh_t^j} &amp; = r_t^j \cdot \pa{\dfrac{1}{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}} \cdot \pd{\sigma_{t, 1}^j \sigma_{t, 2}^j \sqrt{1 - (\rho_t^j)^2}}{\rhoh_t^j} + \pd{\dfrac{Z}{2 (1 - (\rho_t^j)^2)}}{\rhoh_t^j}} \\
+&amp; = r_t^j \pa{-\rho_t^j - \dfrac{\pa{x_{t+1, 1} - \mu_{t, 1}^j} \pa{x_{t+1, 2} - \mu_{t, 2}^j}}{\sigma_{t, 1}^j \sigma_{t, 2}^j} + Z \dfrac{\rho_t^j}{1 - (\rho_t^j)^2}} \\
+&amp; = r_t^j \pa{-\dfrac{\pa{x_{t+1, 1} - \mu_{t, 1}^j} \pa{x_{t+1, 2} - \mu_{t, 2}^j}}{\sigma_{t, 1}^j \sigma_{t, 2}^j} + \rho_t^j \pa{\dfrac{Z}{1 - (\rho_t^j)^2} - 1}} \tag{36}\label{36}
+\end{align*}\]
+
+<h3 id="iam-ondb">實驗 3：IAM-OnDB</h3>
+
+<p><a name="paper-fig-5"></a></p>
+
+<p>圖 5：手寫辨識訓練結果。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/NEM0awl.png" alt="圖 5" /></p>
+
+<p><a name="paper-fig-6"></a></p>
+
+<p>圖 6：手寫輸入為 <em>under</em> 時模型的預測分佈。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/LBVkors.png" alt="圖 6" /></p>
+
+<ul>
+  <li>此論文所有與手寫文字相關的資料都是來自於 IAM-OnDB 資料集
+    <ul>
+      <li>資料來源為 $221$ 位不同的寫作者在智慧白板（smart whiteboard）上的筆跡</li>
+      <li>所有寫作者都被要求在智慧白板上寫下 Lancaster-Oslo-bergen text corpus</li>
+      <li>所有的筆跡都是由智慧白板角落配備的紅外線感應裝置進行偵測與紀錄</li>
+      <li>缺少的紀錄數值都用內插法（interpolation）進行填補</li>
+      <li>超過特定長度的手寫數值序列會被從資料集中移除</li>
+      <li>平均一個字母有 $25$ 個座標值，白板上的一行文字平均有 $700$ 個座標值</li>
+      <li>Training set 有 $5364$ 行</li>
+      <li>共有兩個 validation sets，分別有 $1438$ 與 $1518$ 行
+        <ul>
+          <li>作者把比較大的 validation set 作為 training data 使用</li>
+          <li>作者把比較小的 validation set 作為 early-stopping 的評估手段</li>
+        </ul>
+      </li>
+      <li>Test set 有 $3859$ 行</li>
+    </ul>
+  </li>
+  <li>預測結果將會作為下個時間點的輸入，概念跟 language model 一樣
+    <ul>
+      <li>此論文是第一篇論文採用 language model 的作法模擬與生成手寫文字</li>
+      <li>一個字母的最後預測目標為 end-of-stroke</li>
+      <li>與大部分的方法不同，LSTM 沒有任何特殊的前處理，只有簡單的將座標值 normalize 成平均值為 $0$ 標準差為 $1$</li>
+    </ul>
+  </li>
+  <li>模型架構
+    <ul>
+      <li>共有 $20$ 個 mixture models（$M = 20$）
+        <ul>
+          <li>每個時間點包含 $20$ 個組合權重 $\pi_t^1, \dots, \pi_t^{20}$</li>
+          <li>每個時間點包含 $40$ 個平均值 $\mu_{t, 1}^1, \mu_{t, 2}^1, \dots, \mu_{t, 1}^{20}, \mu_{t, 2}^{20}$</li>
+          <li>每個時間點包含 $40$ 個標準差 $\sigma_{t, 1}^1, \sigma_{t, 2}^1, \dots, \sigma_{t, 1}^{20}, \sigma_{t, 2}^{20}$</li>
+          <li>每個時間點包含 $20$ 個相關係數 $\rho_t^1, \dots, \rho_t^{20}$</li>
+          <li>每個時間點共有 $120$ 個參數用於模擬座標值</li>
+        </ul>
+      </li>
+      <li>每個時間點都有 $1$ 個 end-of-stoke 機率值，因此每個時間點共有 $121$ 個參數用於模擬 $x_{t+1}$</li>
+      <li>實驗兩種大小不同的 LSTM
+        <ul>
+          <li>版本 1：$3$ 層 LSTM（$N = 3$），隱藏層單元數為 $400$（$h_t^n \in \R^{400}$）</li>
+          <li>版本 2：$1$ 層 LSTM（$N = 1$），隱藏層單元數為 $900$（$h_t^1 \in \R^{900}$）</li>
+          <li>兩個版本的總參數量約為 $3.4$ M</li>
+          <li>版本 1 有額外使用 adaptive weight noise，std 初始化為 $0.075$</li>
+          <li>實驗證實使用 fixed weight noise 對模型沒有幫助，因此不採用</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>最佳化演算法為 RMSProp，公式定義如下</p>
+
+\[\begin{align*}
+  n_i &amp; = \aleph n_{i - 1} + (1 - \aleph) \pa{\pd{\Lc(\xb)}{w_i}}^2 \\
+  g_i &amp; = \aleph g_{i - 1} + (1 - \aleph) \pd{\Lc(\xb)}{w_i} \\
+  \Delta_i &amp; = \lambda \Delta_{i - 1} - \eta \dfrac{\pd{\Lc(\xb)}{w_i}}{\sqrt{n_i - g_i^2 + \epsilon}} \\
+  w_i &amp; = w_{i - 1} + \Delta_i
+\end{align*}\]
+
+    <ul>
+      <li>定義 $w_i$ 為參數</li>
+      <li>$\aleph = 0.95$</li>
+      <li>$\lambda = 0.9$</li>
+      <li>$\eta = 0.0001$</li>
+      <li>$\epsilon = 0.0001$</li>
+      <li>Gradient clipping 的範圍為 $[-10, 10]$</li>
+      <li>針對 $\pd{\Lc(\xb)}{\yh_t}$，gradient clipping 的範圍為 $[-100, 100]$，實驗證實此舉能夠穩定數值計算</li>
+      <li>當模型開始 overfitting 時仍然會出現數值問題</li>
+    </ul>
+  </li>
+  <li><a href="#paper-fig-5">圖 5</a> 中紀錄了模型平均預測誤差（以對數呈現，愈低愈好），平均值的計算方法區分成以序列為資料點或以每個時間點的座標為資料點
+    <ul>
+      <li>以序列為資料點時，$3$ 層 LSTM 模型的平均預測誤差低於 $1$ 層 LSTM 模型</li>
+      <li>以每個時間點的座標為資料點時，$3$ 層 LSTM 模型的平均預測誤差高於 $1$ 層 LSTM 模型</li>
+      <li>使用 adaptive weight noise 能夠降低以序列為資料點的平均預測誤差</li>
+      <li>使用 adaptive weight noise 無法降低以每個時間點的座標為資料點的平均預測誤差</li>
+    </ul>
+  </li>
+  <li><a href="#paper-fig-6">圖 6</a> 的上半部是預測手寫文字 <em>under</em> 的筆跡時畫出的座標值機率分佈
+    <ul>
+      <li>觀察發現預測分佈出現兩種不同的泡泡（blobs）</li>
+      <li>小的泡泡是單一字母內的連續筆跡，由於下一個的座標有主要軌跡，造成標準差 $\sigma_{t, 1}^j, \sigma_{t, 2}^j$ 較小</li>
+      <li>大的泡泡出現在字的結尾，由於下一個字母的起始座標比較沒有預測邏輯，造成標準差 $\sigma_{t, 1}^j, \sigma_{t, 2}^j$ 較大</li>
+    </ul>
+  </li>
+  <li><a href="#paper-fig-6">圖 6</a> 的下半部是預測手寫文字 <em>under</em> 的筆跡時 $\pi_t^j$ 的權重分佈
+    <ul>
+      <li>觀察發現 end-of-stroke 所使用的權重分佈與單一字母中使用的權重分佈不同</li>
+    </ul>
+  </li>
+  <li>從生成結果來看能夠生成出 end-of-stroke 以及一些常用字（<em>of</em>、<em>the</em> 等）
+    <ul>
+      <li>由於一個字母平均由 $25$ 個座標點組合而成，因此作者認為這證實 LSTM 擁有模擬長距離資訊的能力</li>
+      <li>作者沒有給出具體的生成方法，推測是將輸出的平均值 $\mu_{t, 1}^j \mu_{t, 2}^j$ 以 $\pi_t^j$ 進行加權平均當成下個時間點的座標點</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-5">透過文字序列生成手寫字跡</h2>
+
+<p><a name="paper-fig-7"></a></p>
+
+<p>圖 7：文字需列生成手寫字跡模型架構。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/TENhiJm.png" alt="圖 7" /></p>
+
+<p><a name="paper-fig-8"></a></p>
+
+<p>圖 8：驗證模型學會文字與筆跡間的對應關係（alignment）。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/bgJf57n.png" alt="圖 8" /></p>
+
+<p>作者嘗試讓模型在獲得文字輸入的狀態下生成手寫字跡。
+當時並沒有 sequence-to-sequence 架構，並且資料集也沒有標記文字與筆跡之間的對應關係（alignment），因此作者基於 LSTM + GMM 提出了新架構。
+從現在（2022）的角度來看，此架構就是 encoder + decoder，並且擁有類似 attention 的計算架構。</p>
+
+<p>首先定義 window $w_t$，功能就是 encoder，目標為將文字序列的所有資訊輸入給 LSTM 幫助生成手寫字跡。
+令 $\cb = (c_1, \dots, c_U)$ 為文字序列，每個 $c_u$ 代表一個文字對應的 one-hot-encoding。
+令 $\xb = (x_1, \dots, x_T)$ 為座標值序列，每個 $x_t$ 定義如同 $\eqref{15}$。
+則 $w_t$ 的計算方法如下</p>
+
+\[\begin{align*}
+\phi(t, u) &amp; = \Sum_{k = 1}^K \alpha_t^k \exp\pa{-\beta_t^k \pa{\kappa_t^k - u}^2} &amp;&amp; \tag{37}\label{37} \\
+w_t &amp; = \Sum_{u = 1}^U \phi(t, u) c_u &amp;&amp; \tag{38}\label{38}
+\end{align*}\]
+
+<ul>
+  <li>共有 $K$ 個 Gaussian distribution</li>
+  <li>$\phi(t, u)$ 代表文字 $c_u$ 對於時間點 $t$ 的預測重要程度（window weight of $c_u$ at time step $t$）
+    <ul>
+      <li>這代表 $\phi(t, u)$ 應該要是一個非負實數，甚至應該要加上 $\Sum_{u = 1}^U \phi(t, u) = 1$ 的限制</li>
+      <li>作者在這篇論文中並沒有加上總和為 $1$ 的限制</li>
+    </ul>
+  </li>
+  <li>$\pa{\kappa_t^k - u}^2$ 代表距離（window location）
+    <ul>
+      <li>距離愈大數值就愈大</li>
+      <li>此項次的目標是希望距離愈遠的文字影響力愈小</li>
+      <li>這代表 $\kappa_t^k$ 應該要是一個非負實數</li>
+    </ul>
+  </li>
+  <li>$\beta_t^k$ 代表距離的影響力（window width）
+    <ul>
+      <li>數值愈大影響力愈小，理由是會將計算結果取負號後在取指數</li>
+      <li>這代表 $\beta_t^k$ 應該要是一個非負實數</li>
+    </ul>
+  </li>
+  <li>$\alpha_t^k$ 代表 GMM 的結合權重
+    <ul>
+      <li>這代表 $\alpha_t^k$ 應該要是一個非負實數</li>
+    </ul>
+  </li>
+  <li>$w_t$ 的維度與 $c_u$ 的維度相同</li>
+</ul>
+
+<p>接著定義 $\eqref{37} \eqref{38}$ 的符號細節</p>
+
+\[\begin{align*}
+p &amp; = \set{\alphah_t^k, \betah_t^k, \kappah_t^k}_{k = 1}^K = W_{h^1 p} h_t^1 + b_p &amp;&amp; \tag{39}\label{39} \\
+\alpha_t^k &amp; = \exp(\alphah_t^k) &amp;&amp; \tag{40}\label{40} \\
+\beta_t^k &amp; = \exp(\betah_t^k) &amp;&amp; \tag{41}\label{41} \\
+\kappa_t^k &amp; = \kappa_{t-1}^k + \exp(\kappah_t^k) &amp;&amp; \tag{42}\label{42} \\
+h_t^1 &amp; = \Hc\pa{W_{i h^1} x_t + W_{h^1 h^1} h_{t-1}^1 + W_{w h^1} w_{t-1} + b_h^1} &amp;&amp; \tag{43}\label{43} \\
+h_t^n &amp; = \Hc\pa{W_{i h^n} x_t + W_{h^{n-1} h^n} h_t^{n-1} + W_{h^n h^n} h_{t-1}^n + W_{w h^n} w_t + b_h^n} &amp;&amp; \tag{44}\label{44} \\
+\Lc(\xb) &amp; = -\log \Pr(\xb \vert \cb) &amp;&amp; \tag{45}\label{45} \\
+\Pr(\xb \vert \cb) &amp; = \Prod_{t = 1}^T \Pr(x_{t+1} \vert y_t) &amp;&amp; \tag{46}\label{46}
+\end{align*}\]
+
+<ul>
+  <li>$p \in \R^{3K}$，$y_t$ 的定義沿用 $\eqref{17} – \eqref{22}$</li>
+  <li>$\eqref{42}$ 的定義是為了讓模型能夠模擬 sliding window 的概念</li>
+  <li>$\eqref{43} \eqref{44}$ 是修改 $\eqref{1} \eqref{2}$ 而得，架構見<a href="#paper-fig-7">圖 7</a></li>
+  <li>由於 $h_t^1$ 用於建立 $w_t$，因此 $h_t^1$ 會收到 $w_{t-1}$ 而不是 $w_t$</li>
+  <li>由於 $h_t^n$ 的輸出是基於 encoder 資訊，因此 $h_t^n$ 會收到 $w_t$ 而不是 $w_{t-1}$</li>
+</ul>
+
+<p>接下來的微分推導我就跳過了，因為很懶，先相信他是對的。</p>
+
+<h3 id="iam-ondb-1">實驗 4：IAM-OnDB</h3>
+
+<p><a name="paper-fig-9"></a></p>
+
+<p>圖 9：給予文字預測手寫軌跡的訓練結果。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/h7VV4Zp.png" alt="圖 9" /></p>
+
+<p><a name="paper-fig-10"></a></p>
+
+<p>圖 10：給予文字 <em>under</em> 時預測手寫軌跡的機率分佈。
+圖片來源：<a href="https://arxiv.org/abs/1308.0850">論文</a>。
+<img src="https://i.imgur.com/bbrhMg7.png" alt="圖 10" /></p>
+
+<ul>
+  <li>資料集一樣是 IAM-OnDB</li>
+  <li>將 token 定義為 character
+    <ul>
+      <li>區分大小寫，包含標點符號與數字</li>
+      <li>共有 $80$ 個不同的符號，但作者只使用 $57$ 個符號，將大多數數字與標點符號換成 non-letter</li>
+    </ul>
+  </li>
+  <li>模型架構
+    <ul>
+      <li>預測座標一共使用 $20$ 個 mixture models（$M = 20$）</li>
+      <li>Encoder 一共使用 $10$ 個 mixture models（$K = 10$）</li>
+      <li>$w_t \in \R^{57}$</li>
+      <li>$3$ 層 LSTM（$N = 3$），隱藏層單元數為 $400$（$h_t^n \in \R^{400}$）</li>
+      <li>總參數量約為 $3.7$ M</li>
+    </ul>
+  </li>
+  <li>最佳化演算法為 RMSProp，設定與實驗 3 完全相同</li>
+  <li>根據<a href="#paper-fig-9">圖 9</a>
+    <ul>
+      <li>以序列為資料點時，使用 adaptive weight noise 表現較好</li>
+      <li>以每個時間點的座標為資料點時，使用 adaptive weight noise 沒有差別</li>
+      <li>相比於<a href="#paper-fig-5">圖 5</a>，作者認為實驗 4 表現較好</li>
+    </ul>
+  </li>
+  <li>比較<a href="#paper-fig-10">圖 10</a> 與<a href="#paper-fig-6">圖 6</a>，可以發現預測的信心度上升導致圓形泡泡都縮小</li>
+</ul>
+
+<h2 id="unbiased--biased-sampling">Unbiased / Biased Sampling</h2>
+
+<p>首先定義 unbiased sampling 的概念：
+生成一個座標序列 $x_1, x_2, \dots, x_T$ 時，最佳解為從機率分佈中挑選機率值最高的答案。
+但由於排列組合數過高，因此實行上效率很低。
+作者便採用每個時間點獨立挑選機率值最高的答案作為近似解。
+而生成結束的判斷依據則是當生成 end-of-sequence（index 定義成 $U + 1$）的機率值高於其他 token 時則結束，即滿足以下條件</p>
+
+\[\forall 1 \leq u \leq U, \phi(t, U + 1) &gt; \phi(t, u).\]
+
+<p>而作者認為在 inference 階段可以人為刻意讓生成的機率值偏向特定 Gaussian distribution，甚至讓 Gaussian distribution 的 std 變小確保生成差異性變小，概念就像是生成「平均手寫結果」。
+作者稱此方法為 biased sampling，具體上採用的公式如下（修改 $\eqref{19} \eqref{21}$ 而得）：</p>
+
+\[\begin{align*}
+\sigma_t^j &amp; = \exp\pa{\sigmah_j^t - b}; \\
+\pi_t^j &amp; = \dfrac{\exp(\pih_t^j (1 + b))}{\Sum_{j' = 1}^M \exp\pa{\pih_t^{j'} (1 + b)}}.
+\end{align*}\]
+
+<p>其中 $b \in [0, \infty)$.
+當 $b = 0$ 時等同於採用 unbiased sampling，當 $b \to \infty$ 時等同於 std 為 0 且永遠採用一個 Gaussian distribution。</p>
+
+<p>根據生成範例可以發現，使用 biased sampling 的結果真的能夠讓生成差異變小，而在 $b = 0.15$ 時能夠在維持生成多樣性與減少差異達到不錯的平衡點。</p>
+
+<h2 id="primed-sampling">Primed Sampling</h2>
+
+<p>作者認為如果想要指定生成特定寫作者的字跡，最簡單的作法就是讓模型只訓練在該作者的字跡資料上。
+而作者額外提出以特殊符號代表寫作者，並加入至 encoder 的輸入 $\cb$ 之中，如此就可以訓練一個模型模擬所有寫作者的風格。
+此方法稱為 primed sampling，根據生成範例證實此方法可行。</p>
+
+
+
+<!-- Avoid copy by China, method 1. -->
+<script>
+  console.log(`
+台.灣.獨.立.香.港.獨.立.西.藏.獨.立.新.疆.獨.立.內.蒙.古.獨.立.......
+..... ... ................:fffffLt.............一.九.八.九.六.四
+... ,i111i;............. ;L111111LL....習.包.子.近.平.小.熊.維.尼
+...iLfttttff,  ..,::;;;;;Cftt11111C:...........中.國.武.漢.肺.炎
+..;C1111111tf:ittfttttttttttfffft1L,..........................
+. ff11111111fCtt11111111111111ttfC1 ..........................
+. tf11111111ft11111111111111111111tt;. .......................
+..:L11111111t11111111111111111111111fti, .....................
+.. ;Lt11111111111111111111111111111111tCt:, ..................
+... ,tf111111111111111111tLLLt111111111LG00t..................
+.... 1f11111111111111111LGLtt1111111111111tLt.................
+....:f11111111111111111tf1111111111111111111t.................
+... 1f111111111111111111111111111111tt11111t,.................
+... tt111111111111111111111111111111L11LG11f:.................
+... tt111111111111111111111tGC111111Lt108111tti:..............
+... if111111111111111111111f8C111111ttttttfft1ttt,............
+....,f111111111111111111111111111111111fG0088C11tf............
+.....tt111111111111111111111111111111110@888@0111f; ..........
+.....,f111111111111111111111111111111111C000CL111Li ..........
+......;f11111111111111111111tt11111111111111ft111L,...........
+...... tt111111111111111111tfGf111111111111ff111L; ...........
+.....;fCt11111111111111111111f0Cft1111111fLt111Li ............
+.... fCCLftt111111111111111111fGGGCLLfLfff1111t; .............
+.....:CLLCCCCLLftt1111111111111tfLCGGG0L1111fL;...............
+..... LLLLLLLLLCCCLLftt1111111111ttffttt1ttCCLGf..............
+.... iCLLLLLLLLLLLLLCCCLLftt11111111tfffft1fGCC; .............
+... ;CLLLLLLLLLLLLCLLLLLLLCCLLLLLLffft1111tLGLL:,.. ..........
+...:GLLLLLLLLLLLLLCCCCCLLLLLLLLLCCLLLLLLLLCCLGGLLf1i:,. ......
+.. iCLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCLCCLLLCCCti. ....
+...iCLLLLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCCLLLGCCCLi,...
+.. iCLLLLLLLLLLLLLLLLLLLLLLCCGCCCLLLLLLLLLLLLLLLCLLCGLCCCGCti,
+. :LLLLLLLLLLLLLLLLLLLLLLCLt111tffLLCCCCCLLLLLLLGCLGGCLftLCCCL
+.;CLLLLLLLLLLLLLLLLLLLLLCf11111111111tttffLLLLLLLLfLft111CCCCG
+;GLLLLLLLLLLCCLLLLLLLLLCt1111111111111111111111111111111111ttt
+.;CLLLLLLLLLLCCCLLLLLLCf11111111111111111111111111111111111111
+`)
+</script>
+
+<!-- Avoid copy by China, method 2. -->
+<!--
+台獨教父 Xi Jinping
+⣿⣿⣿⣿⣿⠟⠋⠄⠄⠄⠄⠄⠄⠄⢁⠈⢻⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⡀⠭⢿⣿⣿⣿⣿
+⣿⣿⣿⣿⡟⠄⢀⣾⣿⣿⣿⣷⣶⣿⣷⣶⣶⡆⠄⠄⠄⣿⣿⣿⣿
+⣿⣿⣿⣿⡇⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣇⣼⣿⣿⠿⠶⠙⣿⡟⠡⣴⣿⣽⣿⣧⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣾⣿⣿⣟⣭⣾⣿⣷⣶⣶⣴⣶⣿⣿⢄⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⡟⣩⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣹⡋⠘⠷⣦⣀⣠⡶⠁⠈⠁⠄⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⠃⣴⣶⡔⠒⠄⣠⢀⠄⠄⠄⡨⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣦⡘⠿⣷⣿⠿⠟⠃⠄⠄⣠⡇⠈⠻⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠟⠋⢁⣷⣠⠄⠄⠄⠄⣀⣠⣾⡟⠄⠄⠄⠄⠉⠙⠻
+⡿⠟⠋⠁⠄⠄⠄⢸⣿⣿⡯⢓⣴⣾⣿⣿⡟⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⠄⣿⡟⣷⠄⠹⣿⣿⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣸⣿⡷⡇⠄⣴⣾⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣿⣿⠃⣦⣄⣿⣿⣿⠇⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⢸⣿⠗⢈⡶⣷⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet
+六四天安門事件 The Tiananmen Square protests of 1989
+天安門大屠殺 The Tiananmen Square Massacre
+反右派鬥爭 The Anti-Rightist Struggle
+大躍進政策 The Great Leap Forward
+文化大革命 The Great Proletarian Cultural Revolution
+人權 Human Rights
+民運 Democratization
+自由 Freedom
+獨立 Independence
+多黨制 Multi-party system
+台灣 臺灣 Taiwan Formosa
+西藏 土伯特 唐古特 Tibet
+達賴喇嘛 Dalai Lama
+法輪功 Falun Dafa
+新疆維吾爾自治區 The Xinjiang Uyghur Autonomous Region
+諾貝爾和平獎 Nobel Peace Prize
+劉暁波 Liu Xiaobo
+民主 言論 思想 反共 反革命 抗議 運動 騷亂 暴亂 騷擾 擾亂 抗暴 平反 維權 示威游行 李洪志
+法輪大法 大法弟子 強制斷種 強制堕胎 民族淨化 人體實驗 肅清 胡耀邦 趙紫陽 魏京生 王丹
+還政於民 和平演變 激流中國 北京之春 大紀元時報 九評論共産黨 獨裁 專制 壓制 統一 監視 鎮壓
+迫害 侵略 掠奪 破壞 拷問 屠殺 活摘器官 誘拐 買賣人口
+Winnie the Pooh
+-->
+
+    </div>
+
+</article>
+<div class="post-nav"><a class="previous" href="/dataset/2022/08/19/the-penn-treebank-annotating-predicate-argument-structure.html" title="The Penn Treebank: Annotating Predicate Argument Structure">The Penn Treebank: Annotating Predicate Argument...</a><span></span></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/dataset/2022/08/06/a-standard-corpus-of-edited-present-day-american-english.html" title="">A Standard Corpus of Edited Present-Day American English</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/12/29/learning-precise-timing-with-lstm-recurrent-networks.html" title="">Learning Precise Timing with LSTM Recurrent Networks</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html" title="">Local Feedback Multilayered Networks</a></li><li><a class="post-link" href="/acoustic%20modeling/2021/12/06/a-time-delay-neural-network-architecture-for-isolated-word-recognition.html" title="">A time-delay neural network architecture for isolated word recognition</a></li></ul>
+    </div><div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>

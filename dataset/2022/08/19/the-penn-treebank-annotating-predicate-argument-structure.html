@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>The Penn Treebank: Annotating Predicate Argument Structure | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="The Penn Treebank: Annotating Predicate Argument Structure" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="目標 在 Penn Treebank 上額外標記 text categories、predicate argument structure、grammatical functions、semantic roles 作者 Mitchell Marcus, Grace Kim, Mary Ann Marcinkiewicz, Robert MacIntyre, Ann Bies, Mark Ferguson, Karen Katz, Britta Schasberger 隸屬單位 University of Pennsylvania 期刊/會議名稱 Human Language Technology 發表時間 1994 論文連結 https://aclanthology.org/H94-1020/ 參考手冊 https://www.ldc.upenn.edu/sites/www.ldc.upenn.edu/files/penn-etb-2-style-guidelines.pdf" />
+<meta property="og:description" content="目標 在 Penn Treebank 上額外標記 text categories、predicate argument structure、grammatical functions、semantic roles 作者 Mitchell Marcus, Grace Kim, Mary Ann Marcinkiewicz, Robert MacIntyre, Ann Bies, Mark Ferguson, Karen Katz, Britta Schasberger 隸屬單位 University of Pennsylvania 期刊/會議名稱 Human Language Technology 發表時間 1994 論文連結 https://aclanthology.org/H94-1020/ 參考手冊 https://www.ldc.upenn.edu/sites/www.ldc.upenn.edu/files/penn-etb-2-style-guidelines.pdf" />
+<link rel="canonical" href="/dataset/2022/08/19/the-penn-treebank-annotating-predicate-argument-structure.html" />
+<meta property="og:url" content="/dataset/2022/08/19/the-penn-treebank-annotating-predicate-argument-structure.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-08-19T22:26:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="The Penn Treebank: Annotating Predicate Argument Structure" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-08-19T22:26:00+08:00","datePublished":"2022-08-19T22:26:00+08:00","description":"目標 在 Penn Treebank 上額外標記 text categories、predicate argument structure、grammatical functions、semantic roles 作者 Mitchell Marcus, Grace Kim, Mary Ann Marcinkiewicz, Robert MacIntyre, Ann Bies, Mark Ferguson, Karen Katz, Britta Schasberger 隸屬單位 University of Pennsylvania 期刊/會議名稱 Human Language Technology 發表時間 1994 論文連結 https://aclanthology.org/H94-1020/ 參考手冊 https://www.ldc.upenn.edu/sites/www.ldc.upenn.edu/files/penn-etb-2-style-guidelines.pdf","headline":"The Penn Treebank: Annotating Predicate Argument Structure","mainEntityOfPage":{"@type":"WebPage","@id":"/dataset/2022/08/19/the-penn-treebank-annotating-predicate-argument-structure.html"},"url":"/dataset/2022/08/19/the-penn-treebank-annotating-predicate-argument-structure.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] [] -->
+  
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">The Penn Treebank: Annotating Predicate Argument Structure</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2022-08-19T22:26:00+08:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Aug 19, 2022
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_article_words] 4362 -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 27 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#Penn Treebank">#Penn Treebank</a><a class="post-tag" href="/tags.html#part of speech">#part of speech</a><a class="post-tag" href="/tags.html#constituent parse">#constituent parse</a><a class="post-tag" href="/tags.html#predicate argument structure">#predicate argument structure</a><a class="post-tag" href="/tags.html#semantic role labeling">#semantic role labeling</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!-- Setup mathjax auto rendering. -->
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目標</td>
+      <td>在 Penn Treebank 上額外標記 text categories、predicate argument structure、grammatical functions、semantic roles</td>
+    </tr>
+    <tr>
+      <td>作者</td>
+      <td>Mitchell Marcus, Grace Kim, Mary Ann Marcinkiewicz, Robert MacIntyre, Ann Bies, Mark Ferguson, Karen Katz, Britta Schasberger</td>
+    </tr>
+    <tr>
+      <td>隸屬單位</td>
+      <td>University of Pennsylvania</td>
+    </tr>
+    <tr>
+      <td>期刊/會議名稱</td>
+      <td>Human Language Technology</td>
+    </tr>
+    <tr>
+      <td>發表時間</td>
+      <td>1994</td>
+    </tr>
+    <tr>
+      <td>論文連結</td>
+      <td><a href="https://aclanthology.org/H94-1020/">https://aclanthology.org/H94-1020/</a></td>
+    </tr>
+    <tr>
+      <td>參考手冊</td>
+      <td><a href="https://www.ldc.upenn.edu/sites/www.ldc.upenn.edu/files/penn-etb-2-style-guidelines.pdf">https://www.ldc.upenn.edu/sites/www.ldc.upenn.edu/files/penn-etb-2-style-guidelines.pdf</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="section">重點</h2>
+
+<ul>
+  <li>此論文是 Penn Treebank project 的第二階段
+    <ul>
+      <li><a href="https://catalog.ldc.upenn.edu/LDC93T1">第一階段</a>已經標記 part of speech 與 constituent</li>
+      <li>第一階段已經蒐集大量的資料（over 1 million words）</li>
+      <li>新的標記資料可在 <a href="https://catalog.ldc.upenn.edu/LDC95T7">LCD</a> 下載</li>
+    </ul>
+  </li>
+  <li>由於 Penn Treebank 在研究上的成效卓越，成功替代了 Brown Corpus 作為英文計算語言學主要研究資料集，同時進一步擴充標記內容
+    <ul>
+      <li>增加 predicate-argument structure 標記</li>
+      <li>新增加的標記啟蒙了後續的 SemEval 比賽內容</li>
+    </ul>
+  </li>
+  <li>為了有效的標記 predicate argument structure，且不破壞 treebank context-free 的結構，作者提出以下手段進行標記
+    <ul>
+      <li>Null elements</li>
+      <li>Co-index</li>
+      <li>Pseudo-attach</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-1">新的標記準則</h2>
+
+<ul>
+  <li>作者花了非常大量的時間撰寫新的標記準則，並編寫成參考手冊（style-book）
+    <ul>
+      <li>主要目的是讓所有標記人員在標記資料上達成共識，增加標記的一致性</li>
+      <li>希望標記人員能夠透過討論標記手冊的內容更加了解標記流程與規則，並藉此提高標記資料單位時間的產出（throughput）</li>
+      <li>不同標記人員取得的資料中擁有 10% 的重疊，以此確保標記的一致性（之前 POS 與 constituent 的標記並沒有此規則）</li>
+      <li>標記時間共花了 8 個月，每個禮拜標記工時為 10 小時</li>
+    </ul>
+  </li>
+  <li>新的標記準則希望能夠達成 4 個目標
+    <ul>
+      <li>讓標記具有一致性</li>
+      <li>描述 null element 的使用方法</li>
+      <li>提供 non-context free 標記方法</li>
+      <li>清楚的區分 verb arguments and adjuncts</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="predicate-argument-structure">Predicate Argument Structure</h2>
+
+<p>原始 Penn Treebank 每個 constituent 只有一個標記，並只與語法有關。
+明顯的缺點就是當一個 constituent 語法上有明確分類，但語意上卻作為其他功能使用（例如：logical subject）時無法清楚標記。
+新版的標記允許同一個 constituent 最多同時擁有 4 個不同的標記，包含 standard syntactic labels、text categories、grammatical functions 與 semantic roles。</p>
+
+<h3 id="text-categories">Text Categories</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>tag</th>
+      <th>meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-HLN</code></td>
+      <td>headlines and datelines</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-LST</code></td>
+      <td>list markers</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-TTL</code></td>
+      <td>titles</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="grammatical-functions">Grammatical Functions</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>tag</th>
+      <th>meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-CLF</code></td>
+      <td>true clefs</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-NOM</code></td>
+      <td>non <code class="language-plaintext highlighter-rouge">NP</code>s that function as <code class="language-plaintext highlighter-rouge">NP</code>s</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-ADV</code></td>
+      <td>clausal and <code class="language-plaintext highlighter-rouge">NP</code> adverbials</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-LGS</code></td>
+      <td>logical subjects in passives</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-PRD</code></td>
+      <td>non <code class="language-plaintext highlighter-rouge">VP</code> predicates</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-SBJ</code></td>
+      <td>surface subject</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-TPC</code></td>
+      <td>topicalized and fronted constituents</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-CLR</code></td>
+      <td>closed related</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>當 <code class="language-plaintext highlighter-rouge">NP</code> 或 <code class="language-plaintext highlighter-rouge">S</code> 明確的作為 predicate argument 使用時則不需任何標記
+    <ul>
+      <li>常見的 predicate argument 有兩種
+        <ul>
+          <li>Predicate argument 是 lowest（right most branching）<code class="language-plaintext highlighter-rouge">VP</code></li>
+          <li>Predicate argument 是 copular BE 的 immediately subconstituent</li>
+        </ul>
+      </li>
+      <li>如果不是以上狀況則額外使用 <code class="language-plaintext highlighter-rouge">-PRD</code> 進行標記</li>
+    </ul>
+  </li>
+  <li>當 constituent 明確的作為 predication adjunction 使用時標記為 <code class="language-plaintext highlighter-rouge">-CLR</code></li>
+  <li>作者說在實際上區隔 argument 與 adjunction 是非常困難的</li>
+</ul>
+
+<p>例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">I am happy .
+
+(S
+  (NP-SBJ I)
+  (VP am
+    (ADJP happy)
+  )
+  .
+)
+
+Predicate Argument Structure:
+be(I, happy)</code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">I consider Kris a fool .
+
+(S
+  (NP-SBJ I)
+  (VP consider
+    (S
+      (NP-SBJ Kris)
+      (NP-PRD a fool)
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+consider(I, a fool)</code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Was he ever successful ?
+
+(SQ Was
+  (NP-SBJ he)
+  (ADVP-TMP ever)
+  (ADJP-PRD successful)
+  ?
+)
+
+Predicate Argument Structure:
+be(he, successful)</code></pre></figure>
+
+<h3 id="semantic-roles">Semantic Roles</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>tag</th>
+      <th>meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-VOC</code></td>
+      <td>vocatives</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-DIR</code></td>
+      <td>direction &amp; trajectory</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-LOC</code></td>
+      <td>location</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-MNR</code></td>
+      <td>manner</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-PRP</code></td>
+      <td>purpose and reason</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-TMP</code></td>
+      <td>temporal phrase</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="null-elements--co-indexing">Null Elements + Co-indexing</h2>
+
+<ul>
+  <li>使用 <code class="language-plaintext highlighter-rouge">*T*</code> 標記 wh-movement 與 topicalization</li>
+  <li>使用 <code class="language-plaintext highlighter-rouge">*</code> 標記其他 null elements</li>
+  <li>所有的 null elements 都會補上數字（稱為 co-indexing）連結替代的 constituents</li>
+</ul>
+
+<p>例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">What is Tim eating ?
+
+(SBARQ
+  (WHNP-1 What)
+  (SQ is
+    (NP-SBJ Tim)
+    (VP eating
+      (NP *T*-1)
+    )
+  )
+  ?
+)
+
+Predicate Argument Structure:
+eat(Tim, what)</code></pre></figure>
+
+<p>表達 passives（被動語氣）時，surface subject 會標記為 <code class="language-plaintext highlighter-rouge">-SBJ</code>，並加入提示 <code class="language-plaintext highlighter-rouge">(NP *)</code>，且與 surface subject 共享數字（co-indexing）。
+而 logical subject 會標記為 <code class="language-plaintext highlighter-rouge">-LGS</code>。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">The ball was thrown by Chris .
+
+(S
+  (NP-SBJ-1 The ball)
+  (VP was
+    (VP thrown
+      (NP *-1)
+      (PP by
+        (NP-LGS Chris)
+      )
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+throw(Chris, ball)</code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Who was believed to have been shot ?
+
+(SBARQ
+  (WHNP-1 Who)
+  (SQ was
+    (NP-SBJ-2 *T*-1)
+    (VP believed
+      (S
+        (NP-SBJ-3 *-2)
+        (VP to
+          (VP have
+            (VP been
+              (VP shot
+                (NP *-3)
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+  ?
+)
+
+Predicate Argument Structure:
+believe(*someone*, shoot(*someone*, Who))</code></pre></figure>
+
+<p>Null elements 也用來作為 null subject of infinitive complement clause。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Chris wants to throw the ball .
+
+(S
+  (NP-SBJ-1 Chris)
+  (VP wants
+    (S
+      (NP-SBJ *-1)
+      (VP to
+        (VP throw
+          (NP the ball)
+        )
+      )
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+want(Chris, throw(Chris, ball))</code></pre></figure>
+
+<p>當 argument 被強調（topicalized）導致順序掉換時使用 null element 表達原本的結構，而 adjunct 被強調時則不使用 null element 做任何標記。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">This every man contains within him .
+
+(S
+  (NP-TPC-1 This)
+  (NP-SBJ every man)
+  (VP contains
+    (NP *T*-1)
+    (PP-LOC within
+      (NP him)
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+contains(every man, this)</code></pre></figure>
+
+<p>當 argument 是由 <code class="language-plaintext highlighter-rouge">VP</code> 組成，且因 topicalized 導致順序掉換時，使用 null element 表達原本的結構。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Marching past the reviewing stand were 500 musicians .
+
+(SINV
+  (VP-TPC-1 Marching
+    (PP-CLR past
+      (NP the reviewing stand)
+    )
+  )
+  (VP were
+    (VP *T*-1)
+  )
+  (NP-SBJ 500 musicians)
+  .
+)
+
+Predicate Argument Structure:
+be(500 musicians, marching)</code></pre></figure>
+
+<h2 id="pseudo-attach">Pseudo-Attach</h2>
+
+<p>由於 Penn Treebank 的標記方法屬於 context-free，因此部份資訊無法在此標記架構下清楚表達。
+主要的例子是出現在 verb + sentential adverb 之後，做為補語使用的 constituents（constituents which serve as complements to the verb occur after a sentential level adverb）。
+這類型的 constituents 有兩種標記方法：</p>
+
+<ul>
+  <li>將 adverb 留在 <code class="language-plaintext highlighter-rouge">VP</code> 內，導致 constituents 一起留在 <code class="language-plaintext highlighter-rouge">VP</code> 之中</li>
+  <li>將 <code class="language-plaintext highlighter-rouge">VP</code> 結束，獨立出 adverb，導致 constituents 與 <code class="language-plaintext highlighter-rouge">VP</code> 平行</li>
+</ul>
+
+<p>此類現象通稱為 discontinuous constituents 或 trapping problems。
+作者認為可以透過 co-index + null element 進行標記解決 discontinuous constituents 的現象。
+由於該現象的特殊性，作者決定給予獨特的標記，稱為 pseudo-attach。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>tag</th>
+      <th>meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">*ICH*</code></td>
+      <td>interpret constituent here</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">*PPA*</code></td>
+      <td>permanent predictable ambiguity</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">*RNR*</code></td>
+      <td>right node raising</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">*EXP*</code></td>
+      <td>expletive</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">*ICH*</code> 就是專門用來解決簡單版 discontinuous constituents 的標記。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Chris knew yesterday that Terry would catch the ball .
+
+(S
+  (NP-SBJ Chris)
+  (VP knew
+    (SBAR *ICH*-1)
+    (NP-TMP yesterday)
+    (SBAR-1 that
+      (S
+        (NP-SBJ Terry)
+        (VP would
+          (VP catch
+            (NP the ball)
+          )
+        )
+      )
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+know(Chris, that)</code></pre></figure>
+
+<p><code class="language-plaintext highlighter-rouge">*PPA*</code> 是專門用來表達永遠無法判斷 subconstituent 要連結到哪個 constituent 的狀態。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">I saw the man with the telescope .
+
+(S
+  (NP-SBJ I)
+  (VP saw
+    (NP
+      (NP the man)
+      (PP *PPA*-1)
+    )
+    (PP-CLR-1 with
+      (NP the telescope)
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+see(I, the man)</code></pre></figure>
+
+<p>當使用連接詞（conjunction）連接不同片段（conjuncts），且將共同的 constituent 提出時，使用 <code class="language-plaintext highlighter-rouge">*RNR*</code> 進行標記。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">But our outlook has been , and continues to be , defensive .
+
+(S But
+  (NP-SBJ-2 our outlook)
+  (VP
+    (VP has
+      (VP been
+        (ADJP *RNR*-1)
+      )
+    )
+    ,
+    and
+    (VP continues
+      (S
+        (NP-SBJ *-2)
+        (VP to
+          (VP be
+            (ADJP *RNR*-1)
+          )
+        )
+      )
+    )
+    ,
+    (ADJP-1 defensive)
+  )
+  .
+)
+
+Predicate Argument Structure:
+be(our outlook, defensive)
+continues(our outlook, be(our outlook, defensive))</code></pre></figure>
+
+<p>由於用 It 作為句子開頭進行強調的用法很常見，作者決定給與特別標籤 <code class="language-plaintext highlighter-rouge">*EXP*</code>。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">It is a pleasure to teach her .
+
+(S
+  (NP-SBJ
+    (NP It)
+    (S *EXP*-1)
+  )
+  (VP is
+    (NP a pleasure)
+  )
+  (S-1
+    (NP-SBJ *)
+    (VP to
+      (VP teach
+        (NP her)
+      )
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+pleasure(teach(*someone*, her))</code></pre></figure>
+
+<h2 id="conjunction-and-gapping">Conjunction and Gapping</h2>
+
+<p>作者採用 Chomsky adjunction structure 標記 coordination。
+Word level conjuntion 不給予標記，兩個字以上的 conjunction 才會給予明確標記。</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Terry knew the person who threw the ball and who caught it .
+
+(S
+  (NP-SBJ Terry)
+  (VP knew
+    (NP
+      (NP the person)
+      (SBAR
+        (SBAR
+          (WHNP-1 who)
+          (S
+            (NP-SBJ T-1)
+            (VP threw
+              (NP the ball)
+            )
+          )
+        )
+        and
+        (SBAR
+          (WHNP-2 who)
+          (S
+            (NP-SBJ T-2)
+            (VP caught
+              (NP it)
+            )
+          )
+        )
+      )
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+know(Terry, person(
+  and(
+    throw(*who*, ball),
+    catch(*who*, it)
+  )
+))</code></pre></figure>
+
+<p>當遇到 conjuntion 共享 predicate 時採用 <code class="language-plaintext highlighter-rouge">=</code> 進行標記。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">John gave Mary a book and Bill a pencil .
+
+(S
+  (S
+    (NP-SBJ John)
+    (VP gave
+      (NP-1 Mary)
+      (NP-2 a book)
+    )
+  )
+  and
+  (S
+    (NP=1 Bill)
+    (NP=2 a pencil)
+  )
+  .
+)
+
+Predicate Argument Structure:
+give(John, Mary, a book) and give(John, Bill, a pencil)</code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">I eat breakfast in the morning and lunch in the afternoon .
+
+(S
+  (S
+    (NP-SBJ I)
+    (VP eat
+      (NP-1 breakfast)
+      (PP-TMP-2 in
+        (NP the morning)
+      )
+    )
+  )
+  and
+  (S
+    (NP=1 lunch)
+    (PP-TMP=2 in
+      (NP the afternoon)
+    )
+  )
+  .
+)
+
+Predicate Argument Structure:
+eat(I, breakfast) and eat(I, lunch)</code></pre></figure>
+
+<p>在口語上的共享詞時常省略且必須依賴前後文還原。
+作者認為在此狀態下不需進行標記還原，並給予特殊標記 <code class="language-plaintext highlighter-rouge">FRAG</code> 表示無法取得 predicate argument structure。
+例如：</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Who threw the ball ? Chris , yesterday .
+
+(FRAG
+  (NP Chris)
+  ,
+  (NP-TMP yesterday)
+  .
+)</code></pre></figure>
+
+
+
+<!-- Avoid copy by China, method 1. -->
+<script>
+  console.log(`
+台.灣.獨.立.香.港.獨.立.西.藏.獨.立.新.疆.獨.立.內.蒙.古.獨.立.......
+..... ... ................:fffffLt.............一.九.八.九.六.四
+... ,i111i;............. ;L111111LL....習.包.子.近.平.小.熊.維.尼
+...iLfttttff,  ..,::;;;;;Cftt11111C:...........中.國.武.漢.肺.炎
+..;C1111111tf:ittfttttttttttfffft1L,..........................
+. ff11111111fCtt11111111111111ttfC1 ..........................
+. tf11111111ft11111111111111111111tt;. .......................
+..:L11111111t11111111111111111111111fti, .....................
+.. ;Lt11111111111111111111111111111111tCt:, ..................
+... ,tf111111111111111111tLLLt111111111LG00t..................
+.... 1f11111111111111111LGLtt1111111111111tLt.................
+....:f11111111111111111tf1111111111111111111t.................
+... 1f111111111111111111111111111111tt11111t,.................
+... tt111111111111111111111111111111L11LG11f:.................
+... tt111111111111111111111tGC111111Lt108111tti:..............
+... if111111111111111111111f8C111111ttttttfft1ttt,............
+....,f111111111111111111111111111111111fG0088C11tf............
+.....tt111111111111111111111111111111110@888@0111f; ..........
+.....,f111111111111111111111111111111111C000CL111Li ..........
+......;f11111111111111111111tt11111111111111ft111L,...........
+...... tt111111111111111111tfGf111111111111ff111L; ...........
+.....;fCt11111111111111111111f0Cft1111111fLt111Li ............
+.... fCCLftt111111111111111111fGGGCLLfLfff1111t; .............
+.....:CLLCCCCLLftt1111111111111tfLCGGG0L1111fL;...............
+..... LLLLLLLLLCCCLLftt1111111111ttffttt1ttCCLGf..............
+.... iCLLLLLLLLLLLLLCCCLLftt11111111tfffft1fGCC; .............
+... ;CLLLLLLLLLLLLCLLLLLLLCCLLLLLLffft1111tLGLL:,.. ..........
+...:GLLLLLLLLLLLLLCCCCCLLLLLLLLLCCLLLLLLLLCCLGGLLf1i:,. ......
+.. iCLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCLCCLLLCCCti. ....
+...iCLLLLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCCLLLGCCCLi,...
+.. iCLLLLLLLLLLLLLLLLLLLLLLCCGCCCLLLLLLLLLLLLLLLCLLCGLCCCGCti,
+. :LLLLLLLLLLLLLLLLLLLLLLCLt111tffLLCCCCCLLLLLLLGCLGGCLftLCCCL
+.;CLLLLLLLLLLLLLLLLLLLLLCf11111111111tttffLLLLLLLLfLft111CCCCG
+;GLLLLLLLLLLCCLLLLLLLLLCt1111111111111111111111111111111111ttt
+.;CLLLLLLLLLLCCCLLLLLLCf11111111111111111111111111111111111111
+`)
+</script>
+
+<!-- Avoid copy by China, method 2. -->
+<!--
+台獨教父 Xi Jinping
+⣿⣿⣿⣿⣿⠟⠋⠄⠄⠄⠄⠄⠄⠄⢁⠈⢻⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⡀⠭⢿⣿⣿⣿⣿
+⣿⣿⣿⣿⡟⠄⢀⣾⣿⣿⣿⣷⣶⣿⣷⣶⣶⡆⠄⠄⠄⣿⣿⣿⣿
+⣿⣿⣿⣿⡇⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣇⣼⣿⣿⠿⠶⠙⣿⡟⠡⣴⣿⣽⣿⣧⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣾⣿⣿⣟⣭⣾⣿⣷⣶⣶⣴⣶⣿⣿⢄⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⡟⣩⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣹⡋⠘⠷⣦⣀⣠⡶⠁⠈⠁⠄⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⠃⣴⣶⡔⠒⠄⣠⢀⠄⠄⠄⡨⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣦⡘⠿⣷⣿⠿⠟⠃⠄⠄⣠⡇⠈⠻⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠟⠋⢁⣷⣠⠄⠄⠄⠄⣀⣠⣾⡟⠄⠄⠄⠄⠉⠙⠻
+⡿⠟⠋⠁⠄⠄⠄⢸⣿⣿⡯⢓⣴⣾⣿⣿⡟⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⠄⣿⡟⣷⠄⠹⣿⣿⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣸⣿⡷⡇⠄⣴⣾⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣿⣿⠃⣦⣄⣿⣿⣿⠇⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⢸⣿⠗⢈⡶⣷⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet
+六四天安門事件 The Tiananmen Square protests of 1989
+天安門大屠殺 The Tiananmen Square Massacre
+反右派鬥爭 The Anti-Rightist Struggle
+大躍進政策 The Great Leap Forward
+文化大革命 The Great Proletarian Cultural Revolution
+人權 Human Rights
+民運 Democratization
+自由 Freedom
+獨立 Independence
+多黨制 Multi-party system
+台灣 臺灣 Taiwan Formosa
+西藏 土伯特 唐古特 Tibet
+達賴喇嘛 Dalai Lama
+法輪功 Falun Dafa
+新疆維吾爾自治區 The Xinjiang Uyghur Autonomous Region
+諾貝爾和平獎 Nobel Peace Prize
+劉暁波 Liu Xiaobo
+民主 言論 思想 反共 反革命 抗議 運動 騷亂 暴亂 騷擾 擾亂 抗暴 平反 維權 示威游行 李洪志
+法輪大法 大法弟子 強制斷種 強制堕胎 民族淨化 人體實驗 肅清 胡耀邦 趙紫陽 魏京生 王丹
+還政於民 和平演變 激流中國 北京之春 大紀元時報 九評論共産黨 獨裁 專制 壓制 統一 監視 鎮壓
+迫害 侵略 掠奪 破壞 拷問 屠殺 活摘器官 誘拐 買賣人口
+Winnie the Pooh
+-->
+
+    </div>
+
+</article>
+<div class="post-nav"><a class="previous" href="/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html" title="Building a Large Annotated Corpus of English : The Penn Treebank">Building a Large Annotated Corpus of...</a><a class="next" href="/text%20modeling/2022/08/29/generating-sequences-with-recurrent-neural-networks.html" title="Generating Sequences with Recurrent Neural Networks">Generating Sequences with Recurrent Neural Networks...</a></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/acoustic%20modeling/2021/12/06/a-time-delay-neural-network-architecture-for-isolated-word-recognition.html" title="Generating Sequences with Recurrent Neural Networks">A time-delay neural network architecture for isolated word recognition</a></li><li><a class="post-link" href="/dataset/2022/08/06/a-standard-corpus-of-edited-present-day-american-english.html" title="Generating Sequences with Recurrent Neural Networks">A Standard Corpus of Edited Present-Day American English</a></li><li><a class="post-link" href="/text%20modeling/2021/12/21/finding-structure-in-time.html" title="Generating Sequences with Recurrent Neural Networks">Finding Structure in Time</a></li><li><a class="post-link" href="/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html" title="Generating Sequences with Recurrent Neural Networks">Building a Large Annotated Corpus of English : The Penn Treebank</a></li></ul>
+    </div><div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>

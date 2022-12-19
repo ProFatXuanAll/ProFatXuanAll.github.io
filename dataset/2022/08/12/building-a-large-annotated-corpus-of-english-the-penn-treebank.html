@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Building a Large Annotated Corpus of English : The Penn Treebank | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="Building a Large Annotated Corpus of English : The Penn Treebank" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="目標 建立大型文字標記資料集，基於 Brown Corpus 的詞性標記作修改 作者 Mitchell Marcus, Beatrice Santorini, Mary Ann Marcinkiewicz 隸屬單位 University of Pennsylvania 期刊/會議名稱 Computational Linguistics 發表時間 1993 論文連結 https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf 詞性標記參考手冊 https://repository.upenn.edu/cgi/viewcontent.cgi?article=1603&amp;context=cis_reports 語法成份分析標記參考手冊 http://languagelog.ldc.upenn.edu/myl/PennTreebank1995.pdf（找不到原版）" />
+<meta property="og:description" content="目標 建立大型文字標記資料集，基於 Brown Corpus 的詞性標記作修改 作者 Mitchell Marcus, Beatrice Santorini, Mary Ann Marcinkiewicz 隸屬單位 University of Pennsylvania 期刊/會議名稱 Computational Linguistics 發表時間 1993 論文連結 https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf 詞性標記參考手冊 https://repository.upenn.edu/cgi/viewcontent.cgi?article=1603&amp;context=cis_reports 語法成份分析標記參考手冊 http://languagelog.ldc.upenn.edu/myl/PennTreebank1995.pdf（找不到原版）" />
+<link rel="canonical" href="/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html" />
+<meta property="og:url" content="/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-08-12T15:24:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Building a Large Annotated Corpus of English : The Penn Treebank" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-08-12T15:24:00+08:00","datePublished":"2022-08-12T15:24:00+08:00","description":"目標 建立大型文字標記資料集，基於 Brown Corpus 的詞性標記作修改 作者 Mitchell Marcus, Beatrice Santorini, Mary Ann Marcinkiewicz 隸屬單位 University of Pennsylvania 期刊/會議名稱 Computational Linguistics 發表時間 1993 論文連結 https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf 詞性標記參考手冊 https://repository.upenn.edu/cgi/viewcontent.cgi?article=1603&amp;context=cis_reports 語法成份分析標記參考手冊 http://languagelog.ldc.upenn.edu/myl/PennTreebank1995.pdf（找不到原版）","headline":"Building a Large Annotated Corpus of English : The Penn Treebank","mainEntityOfPage":{"@type":"WebPage","@id":"/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html"},"url":"/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] [] -->
+  
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Building a Large Annotated Corpus of English : The Penn Treebank</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2022-08-12T15:24:00+08:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Aug 12, 2022
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_article_words] 18038 -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 1 hour 52 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#Penn Treebank">#Penn Treebank</a><a class="post-tag" href="/tags.html#part of speech">#part of speech</a><a class="post-tag" href="/tags.html#constituent parse">#constituent parse</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!-- Setup mathjax auto rendering. -->
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目標</td>
+      <td>建立大型文字標記資料集，基於 Brown Corpus 的詞性標記作修改</td>
+    </tr>
+    <tr>
+      <td>作者</td>
+      <td>Mitchell Marcus, Beatrice Santorini, Mary Ann Marcinkiewicz</td>
+    </tr>
+    <tr>
+      <td>隸屬單位</td>
+      <td>University of Pennsylvania</td>
+    </tr>
+    <tr>
+      <td>期刊/會議名稱</td>
+      <td>Computational Linguistics</td>
+    </tr>
+    <tr>
+      <td>發表時間</td>
+      <td>1993</td>
+    </tr>
+    <tr>
+      <td>論文連結</td>
+      <td><a href="https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf">https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf</a></td>
+    </tr>
+    <tr>
+      <td>詞性標記參考手冊</td>
+      <td><a href="https://repository.upenn.edu/cgi/viewcontent.cgi?article=1603&amp;context=cis_reports">https://repository.upenn.edu/cgi/viewcontent.cgi?article=1603&amp;context=cis_reports</a></td>
+    </tr>
+    <tr>
+      <td>語法成份分析標記參考手冊</td>
+      <td><a href="http://languagelog.ldc.upenn.edu/myl/PennTreebank1995.pdf">http://languagelog.ldc.upenn.edu/myl/PennTreebank1995.pdf</a>（找不到原版）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="section">重點</h2>
+
+<ul>
+  <li>包含超過 4.5M 個詞的英文（American）資料集</li>
+  <li>標記資料執行了三年（1989–1992），標記了詞性（part-of-speech，POS）與語法成份分析（constituent parse）</li>
+  <li>資料可以在 <a href="https://catalog.ldc.upenn.edu/LDC93T1">Linguistic Data Consortium（LDC）</a>付費下載</li>
+  <li>資料是先採用自動化標記，後由人工校正的標記流程
+    <ul>
+      <li>此流程速度較快、一致性高</li>
+      <li>當不採用自動化標記的流程時，速度較慢，一致性降低</li>
+    </ul>
+  </li>
+  <li>Penn Treebank 詞性標記受到 Brown Corpus 的啟發
+    <ul>
+      <li>Brown Corpus 共有 87 種基礎詞性標記</li>
+      <li>Brown Corpus 允許透過基礎詞性標記進行組合，因此共有 187 種基礎型 + 組合型詞性標記</li>
+      <li>Brown Corpus 後續的研究通常都是將詞性標記分的更細，目的是為了將每個詞在不同文法下的功能進行區分（The ideal of providing distinct codings for all classes of words having distinct grammatical behaviour）
+        <ul>
+          <li>Lancaster-Oslo / Bergen（LOB）Corpus 擁有 135 種詞性標記</li>
+          <li>Lancaster UCREL group 擁有 165 種詞性標記</li>
+          <li>London-Lund Corpus of Spoken English 擁有 197 種詞性標記</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Penn Treebank 的詞性標記是將 Brown Corpus 的詞性標記種類減少後得到的結構
+    <ul>
+      <li>作者宣稱這是基於<strong>統計</strong>且考量詞彙（lexical）與語法（syntactic）的資訊下進行標記簡化</li>
+      <li>在 Brown Corpus 中隸屬於特定詞彙的標籤都在 Penn Treebank 中被視為多餘資訊並移除</li>
+      <li>Penn Treebank 的去除標籤範例見<a href="#paper-fig-1">圖 1</a></li>
+      <li>標記總詞數約為 4.88M</li>
+    </ul>
+  </li>
+  <li>Penn Treebank 的語法成份分析標記將 Lancaster UCREL Treebank Project 中的結構精減（skeletal syntactic structure）
+    <ul>
+      <li>以 <strong>context free grammar</strong> 為前提進行標記</li>
+      <li>標記總詞數約為 2.88M</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-1">詞性標記</h2>
+
+<p>作者認為 Penn Treebank 的出發點為<strong>統計</strong>，因此在考量<strong>詞彙</strong>（<strong>lexical</strong>）與<strong>語法</strong>（<strong>syntactic</strong>）的資訊下將 Brown Corpus 中的 POS 標記種類種類減少。</p>
+
+<h3 id="brown-corpus-">與 Brown Corpus 的差別</h3>
+
+<p><a name="paper-fig-1"></a></p>
+
+<p>圖 1：Penn Treebank 動詞標記。
+圖片來源：<a href="https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/CMZtL3B.png" alt="圖 1" /></p>
+
+<ul>
+  <li>Penn Treebank 基於<strong>詞彙還原度</strong>（<strong>lexical recoverability</strong>）減少標記種類
+    <ul>
+      <li>在 Brown Corpus 中許多類似的標記被進一步細分，作者認為這些區分只要<strong>觀察詞彙本身</strong>就能夠區分差異，不需要在標記進行區別</li>
+      <li>例如：Brown Corpus 中的<strong>助動詞</strong>（<strong>auxiliary verb</strong>）有獨立標記，在 Penn Treebank 中採用一致的<strong>動詞</strong>（<strong>verb</strong>）標記（見<a href="#paper-fig-1">圖 1</a>）</li>
+      <li>例如：Brown Corpus 中<strong>限定詞前置程度詞</strong>（<strong>pre-qualifiers</strong>，標記為 <code class="language-plaintext highlighter-rouge">ABL</code>）、<strong>限定詞前置量詞</strong>（<strong>pre-quantifiers</strong>，標記為 <code class="language-plaintext highlighter-rouge">ABN</code>）或是 <em>both</em>（標記為 <code class="language-plaintext highlighter-rouge">ABX</code>）都有不同的標記，Penn Treebank 統一標記為<strong>限定詞前置詞</strong>（<strong>predeterminer</strong>，標記為 <code class="language-plaintext highlighter-rouge">PDT</code>）</li>
+      <li>例如：Brown Corpus 中<strong>單數反身人稱代名詞</strong>（<strong>singular reflexive personal pronoun</strong>，標記為 <code class="language-plaintext highlighter-rouge">PPL</code>）與<strong>複數反身人稱代名詞</strong>（<strong>plural reflexive personal pronoun</strong>，標記為 <code class="language-plaintext highlighter-rouge">PPLS</code>）各有不同標記，在 Penn Treebank 中都合併進入<strong>人稱代名詞</strong>（<strong>personal pronoun</strong>，標記為 <code class="language-plaintext highlighter-rouge">PRP</code>）</li>
+      <li>例如：Brown Corpus 中<strong>名詞性副詞</strong>（<strong>nominal adverb</strong>，標記為 <code class="language-plaintext highlighter-rouge">RN</code>）有獨立標記，在 Penn Treebank 中合併進入<strong>副詞</strong>（<strong>adverb</strong>，標記為 <code class="language-plaintext highlighter-rouge">RB</code>）</li>
+    </ul>
+  </li>
+  <li>Penn Treebank 基於<strong>語法還原度</strong>（<strong>syntactic structure recoverability</strong>）減少標記種類
+    <ul>
+      <li>在 Brown Corpus 中許多名詞因為語法結構不同被賦與特殊標記，作者認為只要<strong>觀察語法結構</strong>就能夠區分差異，不需要在標記上進行區別</li>
+      <li>例如：Brown Corpus 中<strong>主詞代名詞</strong>（<strong>subject pronoun</strong>，標記為 <code class="language-plaintext highlighter-rouge">PPSS</code>）與<strong>受詞代名詞</strong>（<strong>object pronoun</strong>，標記為 <code class="language-plaintext highlighter-rouge">PPO</code>）有不同標記，在 Penn Treebank 中合併成<strong>人身代名詞</strong>（<strong>personal pronoun</strong>，標記為 <code class="language-plaintext highlighter-rouge">PRP</code>）</li>
+      <li>例如：Brown Corpus 中<strong>從屬子句連接詞</strong>（<strong>subordinating conjunction</strong>，標記為 <code class="language-plaintext highlighter-rouge">CS</code>）有獨立標記，在 Penn Treebank 中合併進入<strong>介系詞</strong>（<strong>preposition</strong>，標記為 <code class="language-plaintext highlighter-rouge">IN</code>）</li>
+    </ul>
+  </li>
+  <li>Penn Treebank 具有<strong>一致性</strong>（<strong>consistency</strong>）
+    <ul>
+      <li>作者宣稱在同時考量詞彙還原度與語法還原度後能夠減少標記不一致的問題</li>
+      <li>例如：在 Brown Corpus 中 <em>there</em>、<em>now</em> 都被標記為<strong>副詞</strong>（<strong>adverb</strong>，標記為 <code class="language-plaintext highlighter-rouge">RB</code>），但在完全相同的語法結構下 <em>here</em> 與 <em>then</em> 有可能被標記為<strong>副詞</strong>或<strong>名詞性副詞</strong>（<strong>nominal adverb</strong>，標記為 <code class="language-plaintext highlighter-rouge">RN</code>）；而 Penn Treebank 都一致標記為<strong>副詞</strong></li>
+    </ul>
+  </li>
+  <li>Penn Treebank 標記有融入<strong>語法功能</strong>（<strong>syntactic function</strong>）
+    <ul>
+      <li>例如：Brown Corpus 在進行<strong>名詞片語</strong>（<strong>noun phrase）標記</strong>時，<strong>中心語</strong>（<strong>head</strong>）不一定會被標記成<strong>名詞</strong>（<strong>noun</strong>，標記為 <code class="language-plaintext highlighter-rouge">NN</code>）；而 Penn Treebank 會考量中心語的<strong>語法功能</strong>進行標記，因此<strong>中心語</strong>會標記成<strong>名詞</strong></li>
+      <li>例如：Brown Corpus 永遠將 <em>both</em> 標記成 <code class="language-plaintext highlighter-rouge">ABX</code>；而 Penn Treebank 會依照 <em>both</em> 出現的位置給予不同標記
+        <ul>
+          <li><em>both the boys</em> 中的 <em>both</em> 為冠詞 <em>the</em> 的前置詞，標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li><em>the boys both</em> 中的 <em>both</em> 為名詞片語 <em>the boys</em> 的後置修飾詞，標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li><em>both of the boys</em> 中的 <em>both</em> 為名詞片語中心語且為複數，標記為 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+          <li><em>both boys and girls</em> 中的 <em>both</em> 為名詞 <em>boys</em> 與 <em>girls</em> 的連接詞，標記為 <code class="language-plaintext highlighter-rouge">CC</code></li>
+        </ul>
+      </li>
+      <li>唯一的例外是 existential <em>there</em>，Penn Treebank 中維持標記 <code class="language-plaintext highlighter-rouge">EX</code></li>
+    </ul>
+  </li>
+  <li>Penn Treebank 針對<strong>非第三人稱單數型動詞</strong>（<strong>non-3rd person singular present tense</strong>）新增一個標籤 <code class="language-plaintext highlighter-rouge">VBP</code>
+    <ul>
+      <li>Brown Corpus 使用動詞原型（verb，標記為 <code class="language-plaintext highlighter-rouge">VB</code>）標記不定式（infinitive）、命令語句（imperative）與非第三人稱單數型動詞（non-3rd person singular present tense）</li>
+      <li>Penn Treebank 對不定式原型與命令語句都採用 <code class="language-plaintext highlighter-rouge">VB</code></li>
+    </ul>
+  </li>
+  <li>Penn Treebank 能夠容忍<strong>不確定性</strong>（<strong>indeterminacy</strong>）
+    <ul>
+      <li>在沒有足夠資訊的前提下，並不是所有標籤都是唯一的
+        <ul>
+          <li>例如：<em>Grant can be outspoken–but not by anyone I know</em>，一般來說 <em>outspoken</em> 可以標記為形容詞（adjective，<code class="language-plaintext highlighter-rouge">JJ</code>），但後面的 <em>by</em> 告訴我們 <em>outspoken</em> 在這裡其實是過去分詞（past participle）</li>
+        </ul>
+      </li>
+      <li>因此作者認為可以容忍多個標記答案，不同標記間以 <code class="language-plaintext highlighter-rouge">|</code> 進行區隔</li>
+      <li>實際上出現的多標記組合種類並不多
+        <ul>
+          <li>形容詞或名詞，標記為 <code class="language-plaintext highlighter-rouge">JJ|NN</code></li>
+          <li>形容詞或現在分詞（present participle），標記為 <code class="language-plaintext highlighter-rouge">JJ|VBG</code></li>
+          <li>形容詞或過去分詞，標記為 <code class="language-plaintext highlighter-rouge">JJ|VBN</code></li>
+          <li>名詞或現在分詞，標記為 <code class="language-plaintext highlighter-rouge">NN|VBG</code></li>
+          <li>副詞或助詞，標記為 <code class="language-plaintext highlighter-rouge">RB|RP</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-2">標記總表</h3>
+
+<p><a name="paper-fig-2"></a></p>
+
+<p>圖 2：Penn Treebank 詞性標記總表。
+圖片來源：<a href="https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/2Gggpbf.png" alt="圖 2" /></p>
+
+<ul>
+  <li>總共包含了 36 個詞性標籤與 12 個其他標籤（主要是給標點符號與貨幣符號）</li>
+  <li>與 Brown Corpus 相比
+    <ul>
+      <li>少了
+        <ul>
+          <li>限定詞前置程度詞（pre-qualifier），標記為 <code class="language-plaintext highlighter-rouge">ABL</code></li>
+          <li>限定詞前置量詞（pre-quantifier），標記為 <code class="language-plaintext highlighter-rouge">ABN</code></li>
+          <li>單詞 <em>both</em>，標記為 <code class="language-plaintext highlighter-rouge">ABX</code></li>
+          <li>限定詞後置詞（post-determiner），標記為 <code class="language-plaintext highlighter-rouge">AP</code></li>
+          <li>冠詞（article），標記為 <code class="language-plaintext highlighter-rouge">AT</code></li>
+          <li>助動詞 <em>be</em>，標記為 <code class="language-plaintext highlighter-rouge">BE</code></li>
+          <li>助動詞 <em>were</em>，標記為 <code class="language-plaintext highlighter-rouge">BED</code></li>
+          <li>助動詞 <em>was</em>，標記為 <code class="language-plaintext highlighter-rouge">BEDZ</code></li>
+          <li>助動詞 <em>being</em>，標記為 <code class="language-plaintext highlighter-rouge">BEG</code></li>
+          <li>助動詞 <em>am</em>，標記為 <code class="language-plaintext highlighter-rouge">BEM</code></li>
+          <li>助動詞 <em>been</em>，標記為 <code class="language-plaintext highlighter-rouge">BEN</code></li>
+          <li>助動詞 <em>are</em>，標記為 <code class="language-plaintext highlighter-rouge">BER</code></li>
+          <li>助動詞 <em>is</em>，標記為 <code class="language-plaintext highlighter-rouge">BEZ</code></li>
+          <li>關係子句連接詞（subordinating conjunction），標記為 <code class="language-plaintext highlighter-rouge">CS</code></li>
+          <li>助動詞 <em>do</em>，標記為 <code class="language-plaintext highlighter-rouge">DO</code></li>
+          <li>助動詞 <em>did</em>，標記為 <code class="language-plaintext highlighter-rouge">DOD</code></li>
+          <li>助動詞 <em>does</em>，標記為 <code class="language-plaintext highlighter-rouge">DOZ</code></li>
+          <li>單或複數限定詞 / 量詞（singular or plural determiner / quantifier），標記為 <code class="language-plaintext highlighter-rouge">DTI</code></li>
+          <li>複數限定詞（plural determiner），標記為 <code class="language-plaintext highlighter-rouge">DTS</code></li>
+          <li>雙數限定詞（determiner / double conjunction），標記為 <code class="language-plaintext highlighter-rouge">DTX</code></li>
+          <li>標題（word occurring in headline），標記為 <code class="language-plaintext highlighter-rouge">HL</code></li>
+          <li>助動詞 <em>have</em>，標記為 <code class="language-plaintext highlighter-rouge">HV</code></li>
+          <li>助動詞 <em>have</em> 的過去式 <em>had</em>，標記為 <code class="language-plaintext highlighter-rouge">HVD</code></li>
+          <li>助動詞 <em>having</em>，標記為 <code class="language-plaintext highlighter-rouge">HVG</code></li>
+          <li>助動詞 <em>have</em> 的過去分詞 <em>had</em>，標記為 <code class="language-plaintext highlighter-rouge">HVN</code></li>
+          <li>助動詞 <em>has</em>，標記為 <code class="language-plaintext highlighter-rouge">HVZ</code></li>
+          <li>最高級形容詞（morphologically superlative adjective），標記為 <code class="language-plaintext highlighter-rouge">JJT</code></li>
+          <li>語意最高級形容詞（semantically superlative adjective），標記為 <code class="language-plaintext highlighter-rouge">JJS</code></li>
+          <li>單數名詞所有格（possessive singular noun），標記為 <code class="language-plaintext highlighter-rouge">NN$</code></li>
+          <li>複數名詞所有格（possessive plural noun），標記為 <code class="language-plaintext highlighter-rouge">NNS$</code></li>
+          <li>單數專有名詞（proper noun or part of name phrase），標記為 <code class="language-plaintext highlighter-rouge">NP</code></li>
+          <li>單數專有名詞所有格（possessive proper noun），標記為 <code class="language-plaintext highlighter-rouge">NP$</code></li>
+          <li>複數專有名詞（plural proper noun or part of name phrase），標記為 <code class="language-plaintext highlighter-rouge">NPS</code></li>
+          <li>複數專有名詞所有格（possessive plural proper noun），標記為 <code class="language-plaintext highlighter-rouge">NPS$</code></li>
+          <li>單數副詞性名詞（adverbial noun），標記為 <code class="language-plaintext highlighter-rouge">NR</code></li>
+          <li>複數副詞性名詞（plural adverbial noun），標記為 <code class="language-plaintext highlighter-rouge">NRS</code></li>
+          <li>序數（ordinal number），標記為 <code class="language-plaintext highlighter-rouge">OD</code></li>
+          <li>名詞性代詞（nominal pronoun），標記為 <code class="language-plaintext highlighter-rouge">PN</code></li>
+          <li>名詞性代詞 + <em>'s</em>（possessive nominal pronoun），標記為 <code class="language-plaintext highlighter-rouge">PN$</code></li>
+          <li>人稱代名詞受格（possessive personal pronoun），標記為 <code class="language-plaintext highlighter-rouge">PP$$</code></li>
+          <li>單數反身人稱代名詞（singular reflexive/intensive personal pronoun），標記為 <code class="language-plaintext highlighter-rouge">PPL</code></li>
+          <li>複數反身人稱代名詞（plural reflexive/intensive personal pronoun），標記為 <code class="language-plaintext highlighter-rouge">PPLS</code></li>
+          <li>人稱代名詞受格（objective personal pronoun），標記為 <code class="language-plaintext highlighter-rouge">PPO</code></li>
+          <li>第三人稱單數型代名詞主格（3rd. singular nominative pronoun），標記為 <code class="language-plaintext highlighter-rouge">PPS</code></li>
+          <li>非第三人稱代名詞主格（other nominative personal pronoun），標記為 <code class="language-plaintext highlighter-rouge">PPSS</code></li>
+          <li>程度詞（qualifier），標記為 <code class="language-plaintext highlighter-rouge">QL</code></li>
+          <li>形容詞後置程度詞（post-qualifier），標記為 <code class="language-plaintext highlighter-rouge">QLP</code></li>
+          <li>副詞最高級（superlative adverb），標記為 <code class="language-plaintext highlighter-rouge">RBT</code></li>
+          <li>名詞性副詞（nominal adverb），標記為 <code class="language-plaintext highlighter-rouge">RN</code></li>
+          <li>頭銜（word occurring in title），標記為 <code class="language-plaintext highlighter-rouge">TL</code></li>
+          <li><em>wh-</em> 代名詞受格（objective <em>wh-</em> pronoun），標記為 <code class="language-plaintext highlighter-rouge">WPO</code></li>
+          <li><em>wh-</em> 代名詞主格（nominative <em>wh-</em> pronoun），標記為 <code class="language-plaintext highlighter-rouge">WPS</code></li>
+          <li><em>wh-</em> 程度詞（wh- qualifier），標記為 <code class="language-plaintext highlighter-rouge">WQL</code></li>
+          <li><em>not</em>、<em>n't</em>，標記為 <code class="language-plaintext highlighter-rouge">*</code></li>
+          <li>刪節號（dash），標記為 <code class="language-plaintext highlighter-rouge">--</code></li>
+        </ul>
+      </li>
+      <li>多了
+        <ul>
+          <li>形容詞最高級（adjective，superlative），標記為 <code class="language-plaintext highlighter-rouge">JJS</code></li>
+          <li>列表項目符號（list item marker），標記為 <code class="language-plaintext highlighter-rouge">LS</code></li>
+          <li>單數專有名詞（proper noun，singular），標記為 <code class="language-plaintext highlighter-rouge">NNP</code></li>
+          <li>複數專有名詞（proper noun，plural），標記為 <code class="language-plaintext highlighter-rouge">NNPS</code></li>
+          <li>限定詞前置詞（predeterminer），標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>所有格縮寫 <em>'s</em>（possessive ending），標記為 <code class="language-plaintext highlighter-rouge">POS</code></li>
+          <li>人稱代名詞（personal pronoun），標記為 <code class="language-plaintext highlighter-rouge">PRP</code></li>
+          <li>副詞最高級（adverb、superlative），標記為 <code class="language-plaintext highlighter-rouge">RBS</code></li>
+          <li>科學符號（symbol，mathematical or scientific），標記為 <code class="language-plaintext highlighter-rouge">SYM</code></li>
+          <li>非第三人稱、單數動詞現在式（verb，non-3rd person singular present tense），標記為 <code class="language-plaintext highlighter-rouge">VBP</code></li>
+          <li><em>wh-</em> 代名詞（<em>wh-</em> pronoun），標記為 <code class="language-plaintext highlighter-rouge">WP</code></li>
+          <li>英鎊（pound sign），標記為 <code class="language-plaintext highlighter-rouge">#</code></li>
+          <li>美金（dollar sign），標記為 <code class="language-plaintext highlighter-rouge">$</code></li>
+          <li>對稱雙引號（stright double quote），標記為 <code class="language-plaintext highlighter-rouge">"</code></li>
+          <li>左雙引號（left open double quote），標記為 <code class="language-plaintext highlighter-rouge">“</code></li>
+          <li>右雙引號（right closed double quote），標記為 <code class="language-plaintext highlighter-rouge">”</code></li>
+          <li>左單引號（left open single quote），標記為 <code class="language-plaintext highlighter-rouge">'</code></li>
+          <li>右單引號（right closed single quote），標記為 <code class="language-plaintext highlighter-rouge">'</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-3">詞性標記參考手冊</h3>
+
+<p><a href="https://repository.upenn.edu/cgi/viewcontent.cgi?article=1603&amp;context=cis_reports">詞性標記參考手冊</a>中額外描述的細節如下：</p>
+
+<ul>
+  <li>對等連接詞（conjunction，coordinating）標記為 <code class="language-plaintext highlighter-rouge">CC</code>
+    <ul>
+      <li>包含 <em>and</em>、<em>but</em>、<em>nor</em>、<em>or</em>、<em>yet</em></li>
+      <li>包含數學運算 <em>plus</em>、<em>minus</em>、<em>less</em>、<em>times</em>、<em>over</em></li>
+      <li>當 <em>for</em> 作為 <em>because</em> 使用時標記為 <code class="language-plaintext highlighter-rouge">CC</code>
+        <ul>
+          <li>例如 <em>He asked to be transferred, for he was unhappy.</em> 中的 <em>for</em> 標記為 <code class="language-plaintext highlighter-rouge">CC</code></li>
+        </ul>
+      </li>
+      <li>當 <em>both … and</em> 配合出現且作為雙連接詞（double conjunction）的開頭時標記 <em>both</em> 為 <code class="language-plaintext highlighter-rouge">CC</code>
+        <ul>
+          <li>例如：<em>both boys and girls are happy</em> 中的 <em>both</em> 標記為 <code class="language-plaintext highlighter-rouge">CC</code></li>
+        </ul>
+      </li>
+      <li>當 <em>either … or</em> 配合出現且作為雙連接詞（double conjunction）的開頭時標記 <em>either</em> 為 <code class="language-plaintext highlighter-rouge">CC</code>
+        <ul>
+          <li>例如：<em>Either a boy could sing or a girl could dance.</em> 中的 <em>Either</em> 標記為 <code class="language-plaintext highlighter-rouge">CC</code></li>
+          <li>例如：<em>Either a boy or a girl could sing.</em> 中的 <em>Either</em> 標記為 <code class="language-plaintext highlighter-rouge">CC</code></li>
+          <li>例如：<em>Either a boy or girl could sing.</em> 中的 <em>Either</em> 標記為 <code class="language-plaintext highlighter-rouge">CC</code></li>
+          <li>例如：<em>Either child could sing.</em> 中的 <em>Either</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+          <li>例如：<em>Either boy or girl could sing.</em> 中的 <em>Either</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+        </ul>
+      </li>
+      <li>當 <em>neither … nor</em> 配合出現且作為雙連接詞（double conjunction）的開頭時標記 <em>neither</em> 為 <code class="language-plaintext highlighter-rouge">CC</code></li>
+    </ul>
+  </li>
+  <li>基數（cardinal number）標記為 <code class="language-plaintext highlighter-rouge">CD</code>
+    <ul>
+      <li>當數字以 <em>number-number</em> 的方式出現在形容詞的位置時則標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>a 50-3 victory</em> 中的 <em>50-3</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>當數字以 <em>number-number</em> 的方式出現在副詞的位置時則標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>They won 50-3.</em> 中的 <em>50-3</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li>當分數（hyphenated fraction）出現在類名詞之前進行修飾（prenominal modifier）時標記為 <code class="language-plaintext highlighter-rouge">JJ</code>，但如果可以用 <em>double</em> 或 <em>twice</em> 替換時則標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>one-half cup</em> 中的 <em>one-half</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>one-half the amount</em> 中的 <em>one-half</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li>當 <em>one</em> 出現時有可能是基數或名詞，但在不確定是否描述基數的狀態下應標記為 <code class="language-plaintext highlighter-rouge">CD</code>
+        <ul>
+          <li>例如：<em>one of the best reasons</em> 中的 <em>one</em> 標記為 <code class="language-plaintext highlighter-rouge">CD</code></li>
+        </ul>
+      </li>
+      <li>當 <em>one</em> 出現且可以被複數化（pluralized）時標記為 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>the only one of its kind</em> 中的 <em>one</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>the only ones of its kind</em> 中的 <em>ones</em> 標記為 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+        </ul>
+      </li>
+      <li>當 <em>one</em> 出現且可以被形容詞修飾時標記為 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>the good one of its kind</em> 中的 <em>one</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>the good ones of its kind</em> 中的 <em>ones</em> 標記為 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+        </ul>
+      </li>
+      <li>當 <em>another one</em> 一起出現時 <em>one</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+    </ul>
+  </li>
+  <li>限定詞（determiner）標記為 <code class="language-plaintext highlighter-rouge">DT</code>
+    <ul>
+      <li>包含冠詞（article）
+        <ul>
+          <li>例如：<em>a</em>、<em>an</em>、<em>every</em>、<em>no</em>、<em>the</em> 都標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+        </ul>
+      </li>
+      <li>包含不定限定詞（indefinite determiner）
+        <ul>
+          <li>例如：<em>another</em>、<em>any</em>、<em>some</em>、<em>each</em> 都標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+          <li>例如：<em>either way</em> 中的 <em>either</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+          <li>例如：<em>neither decision</em> 中的 <em>neither</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+          <li>例如：<em>that</em>、<em>these</em>、<em>this</em>、<em>those</em> 都標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+        </ul>
+      </li>
+      <li>當 <em>all</em> 與 <em>both</em> 不是出現在其他限定詞之前，也不是出現在代名詞所有格之前時，標記為 <code class="language-plaintext highlighter-rouge">DT</code>，否則標記為 <code class="language-plaintext highlighter-rouge">PDT</code>
+        <ul>
+          <li>例如：<em>all girls</em> 中的 <em>all</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+          <li>例如：<em>all the girls</em> 中的 <em>all</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>例如：<em>both little boys</em> 中的 <em>both</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+          <li>例如：<em>both the little boys</em> 中的 <em>both</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+        </ul>
+      </li>
+      <li>由於一個名詞片語（noun phrase）中只能出現一個限定詞，而 <em>such</em> 可以同時與限定詞一起出現，因此 <em>such</em> 應該要標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>the only such case</em> 中的 <em>such</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>當 <em>such</em> 出現在限定詞之前時標記為 <code class="language-plaintext highlighter-rouge">PDT</code>
+        <ul>
+          <li>例如：<em>such a good time</em> 中的 <em>such</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+        </ul>
+      </li>
+      <li>當限定詞作為代名詞使用時應標記為 <code class="language-plaintext highlighter-rouge">DT</code>
+        <ul>
+          <li>例如：<em>I can't stand this.</em> 中的 <em>this</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+          <li>例如：<em>I'll take both.</em> 中的 <em>both</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+          <li>例如：<em>Either would be fine.</em> 中的 <em>Either</em> 標記為 <code class="language-plaintext highlighter-rouge">DT</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Existential there 標記為 <code class="language-plaintext highlighter-rouge">EX</code>
+    <ul>
+      <li>通常作為句子開頭銜接 be 動詞（be verb）或情態動詞（modal），發音上無重音（unstressed），並造成主詞（subject）與動詞（verb）順序掉換
+        <ul>
+          <li>例如：<em>There was a party in progress.</em> 中的 <em>There</em> 標記為 <code class="language-plaintext highlighter-rouge">EX</code></li>
+          <li>例如：<em>There ensued a melee.</em> 中的 <em>There</em> 標記為 <code class="language-plaintext highlighter-rouge">EX</code></li>
+        </ul>
+      </li>
+      <li>當作為副詞使用時發音會有重音（stress），主詞（subject）與動詞（verb）不會掉換順序
+        <ul>
+          <li>例如：<em>There, a party was in progress.</em> 中的 <em>There</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li>例如：<em>There, a melee ensued.</em> 中的 <em>There</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li>一個句子中可以同時出現 existential <em>there</em> 與 adverbial <em>there</em>
+        <ul>
+          <li>例如：<em>There was a party in progress there.</em> 中的 <em>There</em> 與 <em>there</em> 分別標記為 <code class="language-plaintext highlighter-rouge">EX</code> 與 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>外語（foreign word）標記為 <code class="language-plaintext highlighter-rouge">FW</code>
+    <ul>
+      <li>作者認為外語判別標準較為寬鬆
+        <ul>
+          <li>例如：<em>yoga</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>bête noire</em> 標記為 <code class="language-plaintext highlighter-rouge">FW FW</code></li>
+          <li>例如：<em>persona non grata</em> 標記為 <code class="language-plaintext highlighter-rouge">FW FW FW</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>介系詞（prepositions）標記為 <code class="language-plaintext highlighter-rouge">IN</code>
+    <ul>
+      <li><em>to</em> 擁有專屬的標記 <code class="language-plaintext highlighter-rouge">TO</code></li>
+      <li>包含從屬連接詞（subordinating conjunction）
+        <ul>
+          <li>例如：<em>so that</em> 中的 <em>so</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+      <li>從屬連接詞會放在子句（clause）之前，而介系詞會放在名詞片語（noun phrase）或介系詞片語（prepositional phrase）之前</li>
+      <li>當 <em>that</em> 作為名詞補語（complements of noun）使用時功能為從屬連接詞，標記為 <code class="language-plaintext highlighter-rouge">IN</code>
+        <ul>
+          <li>例如：<em>the fact that you're here</em> 中的 <em>that</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>the claim that angels have wings</em> 中的 <em>that</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+      <li>當 <em>that</em> 作為關係從句（relative clause，子句作為形容詞使用）時標記為 <code class="language-plaintext highlighter-rouge">WDT</code>
+        <ul>
+          <li>例如：<em>a man that I know</em> 中的 <em>that</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+        </ul>
+      </li>
+      <li>大部分的情況下介系詞會放在名詞片語之前，但有時候會因為強調語法導致介系詞與名詞片語位置錯開
+        <ul>
+          <li>例如：<em>the credit card you won't want to do without</em> 中的 <em>without</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>you won't want to do without the credit card</em> 中的 <em>without</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>the picture which we will look at next</em> 中的 <em>at</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>we will look at the picture next</em> 中的 <em>at</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>He doesn't know what he is up against.</em> 中的 <em>against</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>He is up against what he doesn't know.</em> 中的 <em>against</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+      <li>當句子中的介系詞並沒有連接任何用語時標記為 <code class="language-plaintext highlighter-rouge">RB</code> 或 <code class="language-plaintext highlighter-rouge">RP</code>
+        <ul>
+          <li>例如：<em>We'll just have to do without.</em> 中的 <em>without</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li>例如：<em>We'll just have to do without it.</em> 中的 <em>without</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+      <li>介系詞可以放在介系詞片語之前，這表示可以出現連續兩個介系詞
+        <ul>
+          <li>例如：<em>blaze out into space</em> 中 <em>out</em> 與 <em>into</em> 都標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>come out of the woodwork</em> 中 <em>out</em> 與 <em>of</em> 都標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>look up to someone</em> 中 <em>up</em> 與 <em>to</em> 分別標記為 <code class="language-plaintext highlighter-rouge">IN</code> 與 <code class="language-plaintext highlighter-rouge">TO</code></li>
+          <li>例如：<em>because of her late arrival</em> 中 <em>because</em> 與 <em>of</em> 都標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>to plant on into spring</em> 中 <em>on</em> 與 <em>into</em> 都標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+      <li>當介系詞只能出現在名詞片語之前，卻不能出現在之後時標記為 <code class="language-plaintext highlighter-rouge">IN</code>
+        <ul>
+          <li>例如：<em>She stepped off the train.</em> 中的 <em>off</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+      <li>將介系詞後出現的名詞片語替換成代名詞後，代名詞不能出現在介系詞之前，則該介系詞標記為 <code class="language-plaintext highlighter-rouge">IN</code>
+        <ul>
+          <li>例如：<em>She has been into it for a year.</em> 中的 <em>into</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+      <li>當介系詞為單音節（monosyllabic）、出現在句尾且不表重音（stress）則標記為 <code class="language-plaintext highlighter-rouge">IN</code>
+        <ul>
+          <li>例如：<em>Real bargains are hard to come by.</em> 中的 <em>by</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+          <li>例如：<em>Why don't you come by?</em> 中的 <em>by</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ed</em> 或 <em>-ing</em> 的分詞（participles）作為介系詞使用時應該標記為 <code class="language-plaintext highlighter-rouge">VBN</code> 或 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>Granted that he is coming</em> 中的 <em>Granted</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+          <li>例如：<em>Provided that he comes</em> 中的 <em>Provided</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+          <li>例如：<em>According to reliable sources</em> 中的 <em>According</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+          <li>例如：<em>Concerning your request of last week</em> 中的 <em>Concerning</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>形容詞（adjective）標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+    <ul>
+      <li>包含以 hyphen 組成的複合修飾詞（hyphenated compounds used as modifier）
+        <ul>
+          <li>例如：<em>happy-go-lucky</em>、<em>one-of-a-kind</em>、<em>run-of-the-mill</em> 都標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>income-tax return</em> 中的 <em>income-tax</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>income tax return</em> 中的 <em>income tax</em> 標記為 <code class="language-plaintext highlighter-rouge">NN NN</code></li>
+          <li>例如：<em>value-added tax</em> 中的 <em>value-added</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>value added tax</em> 中的 <em>value added</em> 標記為 <code class="language-plaintext highlighter-rouge">NN VBN</code></li>
+        </ul>
+      </li>
+      <li>包含序數（ordinal numbers）
+        <ul>
+          <li>例如：<em>first</em>、<em>2nd</em> 都標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>不論是單一名詞或是多個名詞一起作為修飾詞使用時應標記為 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>wool sweater</em> 中的 <em>wool</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>woollen sweater</em> 中的 <em>woollen</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>terminal type</em> 中的 <em>terminal</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>terminal cancer</em> 中的 <em>terminal</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>life insurance company</em> 標記為 <code class="language-plaintext highlighter-rouge">NN NN NN</code></li>
+        </ul>
+      </li>
+      <li>顏色（color）作為形容詞使用時標記為 <code class="language-plaintext highlighter-rouge">JJ</code>，作為名詞使用時標記為 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>These plants are dark green.</em> 中的 <em>green</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>These plants are a dark green.</em> 中的 <em>green</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+        </ul>
+      </li>
+      <li>當形容詞作為名詞使用，且該形容詞可被副詞修飾時應被標記為 <code class="language-plaintext highlighter-rouge">JJ</code>，不論有無觸發主謂一致（subject-verb agreement）現象
+        <ul>
+          <li>例如：<em>The rich in this country pay far too few tax.</em> 中的 <em>rich</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>The very rich in this country pay far too few tax.</em> 中的 <em>rich</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>The handicapped</em> 中的 <em>handicapped</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>The multiply handicapped</em> 中的 <em>handicapped</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>當形容詞作為名詞使用，但該形容詞不能被副詞修飾時應被標記為 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>Little good will come of it.</em> 中的 <em>good</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+        </ul>
+      </li>
+      <li>方位名詞作為類名詞前置修飾詞（prenominal modifier）時標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>top</em>、<em>side</em>、<em>bottom</em>、<em>front</em>、<em>back</em></li>
+        </ul>
+      </li>
+      <li>開放式複合詞作為名詞使用時應該一起標記 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>mild flavored</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ JJ</code></li>
+        </ul>
+      </li>
+      <li>語言名稱或國家名稱可以作為形容詞使用，標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>English cuisine tends to be uninspired.</em> 中的 <em>English</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>The English tends to be uninspired cooks.</em> 中的 <em>English</em> 標記為 <code class="language-plaintext highlighter-rouge">NPS</code></li>
+        </ul>
+      </li>
+      <li>國家以開放式複合詞（open compound）型態出現時標記一致
+        <ul>
+          <li>例如：<em>the West German mark</em> 標記為 <code class="language-plaintext highlighter-rouge">DT JJ JJ NN</code></li>
+          <li>例如：<em>He's a West German .</em> 標記為 <code class="language-plaintext highlighter-rouge">PRP POS DT NP NP .</code></li>
+        </ul>
+      </li>
+      <li>標記謂詞形容詞（predicate adjective）時應標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>make life simple</em> 中的 <em>simple</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>如果 <em>-ing</em> 結尾的詞能夠區分程度（gradable），則標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>Her talk was interesting.</em> 中的 <em>interesting</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>Her talk was very interesting.</em> 中的 <em>interesting</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>Her talk was more interesting than theirs.</em> 中的 <em>interesting</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ing</em> 結尾的詞如果存在以 <em>un-</em> 開頭的反義詞，則標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>an interesting conversation</em> 中的 <em>interesting</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>an uninteresting conversation</em> 中的 <em>uninteresting</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ing</em> 結尾的詞如果與 <em>be</em> 動詞一起出現，且 <em>be</em> 動詞可以替換成 <em>become</em>、<em>feel</em>、<em>look</em>、<em>remain</em>、<em>seem</em>、<em>sound</em>，則標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>The conversation is depressing.</em> 中的 <em>depressing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>The conversation became depressing.</em> 中的 <em>depressing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>That place feels depressing.</em> 中的 <em>depressing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>That place looks depressing.</em> 中的 <em>depressing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>That place remains depressing.</em> 中的 <em>depressing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>That place seems depressing.</em> 中的 <em>depressing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>That place sounds depressing.</em> 中的 <em>depressing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ing</em> 結尾的詞如果出現在名詞前，且該 <em>-ing</em> 結尾詞的動詞原型是不及物動詞（intransitive），則標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>an appealing face</em> 中的 <em>appealing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>an appetizing dish</em> 中的 <em>appetizing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>a revolving fund</em> 中的 <em>revolving</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>the existing safeguards</em> 中的 <em>existing</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+          <li>例如：<em>a holding company</em> 中的 <em>holding</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+          <li>例如：<em>a managing director</em> 中的 <em>managing</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+          <li>例如：<em>a ruling class</em> 中的 <em>ruling</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ing</em> 結尾的詞如果出現在名詞前，且該 <em>-ing</em> 結尾詞改為動詞原型時表達的意思不同，則標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>a winning smile</em> 中的 <em>winning</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>a striking hat</em> 中的 <em>striking</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>the striking teachers</em> 中的 <em>striking</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ing</em> 結尾的詞如果沒有對應的動詞原型則標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>a thoroughgoing investigation</em> 中的 <em>thoroughgoing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>the outgoing president</em> 中的 <em>outgoing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>a outgoing type of guy</em> 中的 <em>outgoing</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>and outstanding record</em> 中的 <em>outstanding</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>outstanding debts</em> 中的 <em>outstanding</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>如果以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞能夠區分程度（gradable），則標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBN</code>
+        <ul>
+          <li>例如：<em>He was superised.</em> 中的 <em>superised</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>He was very superised.</em> 中的 <em>superised</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>He was more superised than she was.</em> 中的 <em>superised</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞如果存在以 <em>un-</em> 開頭的反義形容詞（不可為動詞），則標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBN</code>
+        <ul>
+          <li>例如：<em>a hurried meeting</em> 中的 <em>hurried</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>an unhurried meeting</em> 中的 <em>unhurried</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>Your shoelace has been untied ever since we started.</em> 中的 <em>untied</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>It got untied by accident.</em> 中的 <em>untied</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+          <li>例如：<em>We need an armed guard.</em> 中的 <em>armed</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>We need an unarmed guard.</em> 中的 <em>unarmed</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>Armed with only a knife.</em> 中的 <em>Armed</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+        </ul>
+      </li>
+      <li>以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞如果與 <em>be</em> 動詞一起出現，且 <em>be</em> 動詞可以替換成 <em>become</em>、<em>feel</em>、<em>look</em>、<em>remain</em>、<em>seem</em>、<em>sound</em>，則標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBN</code>
+        <ul>
+          <li>例如：<em>He is interested.</em> 中的 <em>interested</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>He became interested.</em> 中的 <em>interested</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>He felt interested.</em> 中的 <em>interested</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>He looked surprised.</em> 中的 <em>surprised</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>He remained surprised.</em> 中的 <em>surprised</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>He seemed surprised.</em> 中的 <em>surprised</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>He sounded surprised.</em> 中的 <em>surprised</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞如果與 <em>be</em> 動詞一起出現，且 <em>be</em> 動詞可以替換成 <em>become</em>、<em>feel</em>、<em>look</em>、<em>remain</em>、<em>seem</em>、<em>sound</em>，且後續有 <em>by</em> 的出現則標記為 <code class="language-plaintext highlighter-rouge">VBN</code> 而非 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>He remains guided by these principles.</em> 中的 <em>guided</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+        </ul>
+      </li>
+      <li>以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞與 <em>keep</em> 一起出現時標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBN</code>
+        <ul>
+          <li>例如：<em>They should be kept well watered.</em> 中的 <em>watered</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞表達結果或狀態（state or resultant state）而不是事件（event）時標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBN</code>
+        <ul>
+          <li>例如：<em>At the time, I was married.</em> 中的 <em>married</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>I was mistaken the other day.</em> 中的 <em>mistaken</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>a mistaken decision.</em> 中的 <em>mistaken</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>如果 <em>X-ed N</em> 不能被改寫成 <em>N that has been X-ed</em>，則 <em>X-ed</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code> 而非 <code class="language-plaintext highlighter-rouge">VBN</code>
+        <ul>
+          <li>例如：<em>a decided advantage</em> 中的 <em>decided</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>a grown woman</em> 中的 <em>grown</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>a married life</em> 中的 <em>married</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+          <li>例如：<em>a worried faces</em> 中的 <em>worried</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>形容詞比較級（adjective，comparative）標記為 <code class="language-plaintext highlighter-rouge">JJR</code>
+    <ul>
+      <li>包含以 <em>-er</em> 結尾的形容詞</li>
+      <li>當 <em>more</em>、<em>less</em> 作為形容詞使用時標記為 <code class="language-plaintext highlighter-rouge">JJR</code>
+        <ul>
+          <li>例如：<em>more or less mail</em> 中的 <em>more</em> 與 <em>less</em> 都標記為 <code class="language-plaintext highlighter-rouge">JJR</code></li>
+        </ul>
+      </li>
+      <li>具有比較意義的形容詞但並不是以 <em>-er</em> 結尾被標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>superior</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-er</em> 結尾但嚴格上來說沒有進行比較標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>further details</em> 中的 <em>further</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>形容詞最高級（adjective，superlative）標記為 <code class="language-plaintext highlighter-rouge">JJS</code>
+    <ul>
+      <li>包含以 <em>-est</em> 結尾的形容詞</li>
+      <li>包含 <em>worst</em></li>
+      <li>當 <em>most</em>、<em>least</em> 作為形容詞使用時標記為 <code class="language-plaintext highlighter-rouge">JJS</code></li>
+      <li>具有最高級意義的形容詞但並不是以 <em>-est</em> 結尾則標記為 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>first</em>、<em>last</em>、<em>unsurpassed</em> 都標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>列表項目符號（list item marker）標記為 <code class="language-plaintext highlighter-rouge">LS</code>
+    <ul>
+      <li>包含作為項目符號的字母（letter）</li>
+      <li>包含作為項目符號的數字（numerals）</li>
+    </ul>
+  </li>
+  <li>情態動詞（modal verb）標記為 <code class="language-plaintext highlighter-rouge">MD</code>
+    <ul>
+      <li>包含所有在第三人稱單數型現在式（3rd person singular present）不加上 <em>-s</em> 的動詞
+        <ul>
+          <li>例如：<em>can</em>、<em>could</em>、<em>dare</em>、<em>may</em>、<em>might</em>、<em>must</em>、<em>ought</em>、<em>shall</em>、<em>should</em>、<em>will</em>、<em>would</em> 都標記為 <code class="language-plaintext highlighter-rouge">MD</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>名詞單數型 / 不可數名詞（noun，singular or mass）標記為 <code class="language-plaintext highlighter-rouge">NN</code>
+    <ul>
+      <li>顏色（color）作為名詞使用時標記為 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>That's a nice red.</em> 中的 <em>red</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>Not too many reds go with that purple.</em> 中的 <em>reds</em> 標記為 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+        </ul>
+      </li>
+      <li>若名詞結尾為 <em>-s</em>，但觸發動詞單數型（singular agreement on a verb），則標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">NNS</code>
+        <ul>
+          <li>例如：<em>Linguistics is a difficult field.</em> 中的 <em>Linguistics</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+        </ul>
+      </li>
+      <li>語意上為複數，但觸發動詞單數型，則標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">NNS</code>
+        <ul>
+          <li>例如：<em>The group has disbanded.</em> 中的 <em>group</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>The jury is deliberating.</em> 中的 <em>group</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+        </ul>
+      </li>
+      <li>大寫引用詞應標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">NNP</code>
+        <ul>
+          <li>例如：<em>Chapter</em>、<em>Exhibit</em>、<em>Figure</em>、<em>Table</em> 都標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+        </ul>
+      </li>
+      <li>不定代詞（indefinite pronoun）應該標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">NNP</code>
+        <ul>
+          <li>例如：<em>naught</em>、<em>none</em> 都標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：開頭為 <em>any-</em>、<em>every-</em>、<em>no-</em>、<em>some-</em> 的詞都標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：結尾為 <em>-one</em>、<em>-thing</em> 的詞都標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>no one</em> 標記為 <code class="language-plaintext highlighter-rouge">DT NN</code></li>
+        </ul>
+      </li>
+      <li><em>no-one</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+      <li>作為副詞使用的名詞標記為名詞 而非 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>He comes by Sundays and holidays.</em> 中 <em>Sundays</em> 與 <em>holidays</em> 分別被標記為 <code class="language-plaintext highlighter-rouge">NPS</code> 與 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+        </ul>
+      </li>
+      <li>方位可以被標記為 <code class="language-plaintext highlighter-rouge">NN</code> 或 <code class="language-plaintext highlighter-rouge">RB</code>，判斷方法為前面有沒有冠詞出現
+        <ul>
+          <li>例如：<em>The nearest shopping center is two miles to the north of here.</em> 中 <em>north</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>The nearest shopping center is two miles north of here.</em> 中 <em>north</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li><em>yesterday</em>、<em>today</em>、<em>tomorrow</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">RB</code>，理由是他們都可以補上所有格結尾</li>
+      <li>以 <em>-ing</em> 結尾的詞如果允許複數型則標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>The reading for this class is difficult.</em> 中的 <em>reading</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>The readings for this class is difficult.</em> 中的 <em>readings</em> 標記為 <code class="language-plaintext highlighter-rouge">NNP</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ing</em> 結尾的詞作為名詞使用，且可由形容詞修飾，則標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>Good cooking is something to enjoy.</em> 中的 <em>Good cooking</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ NN</code></li>
+          <li>例如：<em>Cooking well is a useful skill.</em> 中的 <em>Cooking well</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG RB</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ing</em> 結尾的詞作為名詞使用，且由 <em>of</em> 片語進行修飾，則標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>GM's closing of the plant</em> 中的 <em>closing</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>GM's closing the plant</em> 中的 <em>closing</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+        </ul>
+      </li>
+      <li>以 <em>-ing</em> 結尾的詞出現在名詞之後時標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>the plant closing</em> 中的 <em>plant closing</em> 標記為 <code class="language-plaintext highlighter-rouge">NN NN</code></li>
+          <li>例如：<em>unsavory plant closing tactics</em> 中的 <em>plant closing tactics</em> 標記為 <code class="language-plaintext highlighter-rouge">NN NN NNS</code></li>
+        </ul>
+      </li>
+      <li>當 <em>X-ing N</em> 不含有 <em>N X-es</em> 的語意時，<em>X-ing</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code> 而不是 <code class="language-plaintext highlighter-rouge">VBG</code>
+        <ul>
+          <li>例如：<em>spending reductions</em> 中的 <em>spending</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>the mating season</em> 中的 <em>mating</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+          <li>例如：<em>a holding pattern</em> 中的 <em>holding</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>專有名詞單數型（proper noun，singular）標記為 <code class="language-plaintext highlighter-rouge">NNP</code>
+    <ul>
+      <li>原本標記為 <code class="language-plaintext highlighter-rouge">NP</code>，但為了避免與語法標記中的名詞片語（noun phrase）混淆改為 <code class="language-plaintext highlighter-rouge">NNP</code></li>
+      <li>縮寫應該標記成如同沒有縮寫的內容
+        <ul>
+          <li>例如：<em>U.S.</em> 標記為 <code class="language-plaintext highlighter-rouge">NNP</code></li>
+        </ul>
+      </li>
+      <li>當 hyphenated compound proper noun 作為修飾詞時應標記為 <code class="language-plaintext highlighter-rouge">NNP</code> 而非 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>Gramm-Rudman Act</em> 中的 <em>Gramm-Rudman</em> 標記為 <code class="language-plaintext highlighter-rouge">NNP</code></li>
+        </ul>
+      </li>
+      <li>當 hyphenated compound 中第二個位置為專有名詞時應標記為 <code class="language-plaintext highlighter-rouge">NNP</code> 而非 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>mid-March</em> 標記為 <code class="language-plaintext highlighter-rouge">NNP</code></li>
+          <li>例如：<em>non-NATO</em> 標記為 <code class="language-plaintext highlighter-rouge">NNP</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>專有名詞複數型（proper noun，plural）標記為 <code class="language-plaintext highlighter-rouge">NNPS</code>
+    <ul>
+      <li>原本標記為 <code class="language-plaintext highlighter-rouge">NPS</code>，但為了避免與語法標記中的名詞片語（noun phrase）混淆改為 <code class="language-plaintext highlighter-rouge">NNPS</code></li>
+    </ul>
+  </li>
+  <li>名詞複數型（noun，plural）標記為 <code class="language-plaintext highlighter-rouge">NNS</code>
+    <ul>
+      <li>如果名詞結尾不為 <em>-s</em>，但觸發動詞雙數型（plural agreement on a verb），則標記為 <code class="language-plaintext highlighter-rouge">NNS</code> 而不是 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>The faculty are on strike.</em> 中的 <em>faculty</em> 標記為 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+          <li>例如：<em>The police have arrived on the scene.</em> 中的 <em>police</em> 標記為 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+        </ul>
+      </li>
+      <li>當量詞結尾為 <em>-s</em>，但觸發動詞單數型（singular agreement on a verb），則標記為 <code class="language-plaintext highlighter-rouge">NNS</code> 而不是 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>Three years is a long time.</em> 中的 <em>years</em> 標記為 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+          <li>例如：<em>Twelve inches is a foot.</em> 中的 <em>inches</em> 標記為 <code class="language-plaintext highlighter-rouge">NNS</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>限定詞前置詞（predeterminer）標記為 <code class="language-plaintext highlighter-rouge">PDT</code>
+    <ul>
+      <li>包含所有出現在冠詞（article）之前類似於限定詞的詞
+        <ul>
+          <li>例如：<em>both the girls</em> 中的 <em>both</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>例如：<em>all his marbles</em> 中的 <em>all</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>例如：<em>many a moon</em> 中的 <em>many</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>例如：<em>nary a soul</em> 中的 <em>nary</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>例如：<em>quite a mess</em> 中的 <em>quite</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>例如：<em>rather a nuisance</em> 中的 <em>rather</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>例如：<em>such a good time</em> 中的 <em>such</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+        </ul>
+      </li>
+      <li>包含所有出現在代名詞所有格（possessive pronoun）之前類似於限定詞的詞
+        <ul>
+          <li>例如：<em>all his marbles</em> 中的 <em>all</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+          <li>例如：<em>half his time</em> 中的 <em>half</em> 標記為 <code class="language-plaintext highlighter-rouge">PDT</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>所有格結尾（possessive ending）標記為 <code class="language-plaintext highlighter-rouge">POS</code>
+    <ul>
+      <li>包含單數名詞所有格結尾 <em>'s</em>
+        <ul>
+          <li>例如：<em>John 's idea</em> 標記為 <code class="language-plaintext highlighter-rouge">NNP POS NN</code></li>
+        </ul>
+      </li>
+      <li>包含複數名詞所有格結尾 <em>'</em>
+        <ul>
+          <li>例如：<em>the parents ' distress</em> 標記為 <code class="language-plaintext highlighter-rouge">DT NNS POS NN</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>代名詞所有格（possessive pronoun）標記為 <code class="language-plaintext highlighter-rouge">PP$</code>
+    <ul>
+      <li>包含物主形容詞（adjectival possessive pronoun）
+        <ul>
+          <li>例如：<em>my</em>、<em>your</em>、<em>his</em>、<em>her</em>、<em>its</em>、<em>one's</em>、<em>our</em>、<em>their</em> 都標記為 <code class="language-plaintext highlighter-rouge">PP$</code></li>
+        </ul>
+      </li>
+      <li>名詞性物主代詞（nominal possessive pronouns）標記為 <code class="language-plaintext highlighter-rouge">PRP</code></li>
+    </ul>
+  </li>
+  <li>人稱代名詞（personal pronoun）標記為 <code class="language-plaintext highlighter-rouge">PRP</code>
+    <ul>
+      <li>原本標記為 <code class="language-plaintext highlighter-rouge">PP</code>，但為了避免與語法標記中的介系詞片語（prepositional phrase）混淆改為 <code class="language-plaintext highlighter-rouge">PRP</code></li>
+      <li>包含主格（subject）代名詞與受格（object）代名詞
+        <ul>
+          <li>例如：<em>I</em>、<em>me</em>、<em>you</em>、<em>he</em>、<em>him</em> 都標記為 <code class="language-plaintext highlighter-rouge">PRP</code></li>
+        </ul>
+      </li>
+      <li>包含以 <em>-self</em> 或 <em>-selves</em> 結尾的反身代名詞（reflexive pronoun）</li>
+      <li>包含名詞性物主代詞（nominal possessive pronouns）
+        <ul>
+          <li>例如：<em>mine</em>、<em>yours</em>、<em>his</em>、<em>hers</em>、<em>ours</em>、<em>theirs</em> 都標記為 <code class="language-plaintext highlighter-rouge">PRP</code></li>
+        </ul>
+      </li>
+      <li>物主形容詞（adjectival possessive pronoun）標記為 <code class="language-plaintext highlighter-rouge">PP$</code></li>
+    </ul>
+  </li>
+  <li>副詞（adverb）標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+    <ul>
+      <li>包含 <em>-ly</em> 結尾的副詞</li>
+      <li>包含程度詞（degree word）
+        <ul>
+          <li>例如：<em>quite</em>、<em>too</em>、<em>very</em> 都標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li>包含中心詞後置修飾詞（posthead modifiers）
+        <ul>
+          <li>例如：<em>good enough</em> 中的 <em>enough</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li>例如：<em>very well indeed</em> 中的 <em>indeed</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li>包含反義詞（negative markers）
+        <ul>
+          <li>例如：<em>not</em>、<em>n't</em>、<em>never</em> 都標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li>有些形容詞會當成副詞使用且沒有 <em>-ly</em> 結尾，標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>rapid growing plants</em> 標記為 <code class="language-plaintext highlighter-rouge">RB VBG NNS</code></li>
+          <li>例如：<em>rapid growth</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ NN</code></li>
+        </ul>
+      </li>
+      <li>地點單獨出現時應標記為 <code class="language-plaintext highlighter-rouge">RB</code> 而不是 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>Call me when you get home.</em> 中的 <em>home</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li>例如：<em>Call me when you are at home.</em> 中的 <em>home</em> 標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+        </ul>
+      </li>
+      <li>當動詞與介系詞之間能夠插入方式副詞（manner adverb）時，標記為 <code class="language-plaintext highlighter-rouge">RB</code> 而不是 <code class="language-plaintext highlighter-rouge">RP</code>
+        <ul>
+          <li>例如：<em>to sit calmly by</em> 中的 <em>calmly by</em> 標記為 <code class="language-plaintext highlighter-rouge">RB RB</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>副詞比較級（adverb，comparative）標記為 <code class="language-plaintext highlighter-rouge">RBR</code>
+    <ul>
+      <li>副詞但結尾為 <em>-er</em>，且嚴格上來說沒有進行比較則被標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>come by later</em> 中的 <em>later</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>副詞最高級（adverb，superlative）標記為 <code class="language-plaintext highlighter-rouge">RBS</code>
+    <ul>
+      <li><em>most</em> 標記為 <code class="language-plaintext highlighter-rouge">RBS</code></li>
+      <li><em>most every-</em> 中的 <em>most</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code> 而不是 <code class="language-plaintext highlighter-rouge">RBS</code></li>
+    </ul>
+  </li>
+  <li>助詞（particle）標記為 <code class="language-plaintext highlighter-rouge">RP</code>
+    <ul>
+      <li>主要由單音節（monosyllabic）的詞組成，有可能會作為方向副詞（directional adverb）或介系詞（preposition）使用</li>
+      <li>如果一個介系詞能夠任意出現在名詞片語（noun phrase）之前或之後，則標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>She told off her friends.</em> 中的 <em>off</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li>例如：<em>She told her friends off.</em> 中的 <em>off</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+        </ul>
+      </li>
+      <li>將介系詞後出現的名詞片語替換成代名詞後，代名詞必須改為出現在介系詞之前，則該介系詞標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>She told them off.</em> 中的 <em>off</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li>例如：<em>He peeled it off.</em> 中的 <em>off</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li>註：此規則與前一規則衝突時以此規則為主</li>
+        </ul>
+      </li>
+      <li>如果動詞與介系詞合併後能夠成為名詞，則介系詞標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>to break down</em> 中的 <em>down</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code>，因為 <em>breakdown</em> 是名詞</li>
+          <li>例如：<em>to break through</em> 中的 <em>through</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code>，因為 <em>breakthrough</em> 是名詞</li>
+          <li>例如：<em>to be left over</em> 中的 <em>over</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code>，因為 <em>leftover</em> 是名詞</li>
+          <li>例如：<em>to push over</em> 中的 <em>over</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code>，因為 <em>pushover</em> 是名詞</li>
+          <li>例如：<em>to put down</em> 中的 <em>down</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code>，因為 <em>putdown</em> 是名詞</li>
+        </ul>
+      </li>
+      <li>當介系詞為單音節（monosyllabic）、出現在句尾且表重音（stress）則標記為 <code class="language-plaintext highlighter-rouge">RB</code>
+        <ul>
+          <li>例如：<em>Why don't you come by?</em> 中的 <em>by</em> 標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+          <li>例如：<em>Real bargains are hard to come by.</em> 中的 <em>by</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+      <li>雖然助詞與動詞經常一起處現，但也可以與動詞的變形一起出現
+        <ul>
+          <li>例如：<em>the cutting off of the top</em> 中 <em>cutting off</em> 標記為 <code class="language-plaintext highlighter-rouge">NN RB</code></li>
+          <li>例如：<em>the setting up of the problem</em> 中 <em>setting up</em> 標記為 <code class="language-plaintext highlighter-rouge">NN RB</code></li>
+          <li>例如：<em>He looks worn out</em> 中 <em>worn out</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ RP</code></li>
+        </ul>
+      </li>
+      <li>當 <em>about</em> 與 <em>around</em> 表達 <em>approximately</em> 的語意時標記為 <code class="language-plaintext highlighter-rouge">RB</code></li>
+      <li><em>close to</em> 標記為 <code class="language-plaintext highlighter-rouge">RB TO</code></li>
+      <li><em>closer to</em> 標記為 <code class="language-plaintext highlighter-rouge">RB TO</code></li>
+      <li><em>near to</em> 標記為 <code class="language-plaintext highlighter-rouge">RB TO</code></li>
+      <li><em>nearer to</em> 標記為 <code class="language-plaintext highlighter-rouge">RB TO</code></li>
+      <li><em>badly off</em>、<em>better off</em>、<em>well off</em>、<em>worse off</em> 中的 <em>off</em> 都標記為 <code class="language-plaintext highlighter-rouge">RP</code></li>
+    </ul>
+  </li>
+  <li>通用科學符號（symbols）標記為 <code class="language-plaintext highlighter-rouge">SYM</code>
+    <ul>
+      <li>包含數學符號、科學記號、科技符號、非英語公式等</li>
+      <li>化學名稱應該被標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+      <li>測量單位應該被標記為 <code class="language-plaintext highlighter-rouge">NN</code></li>
+    </ul>
+  </li>
+  <li><em>to</em> 標記為 <code class="language-plaintext highlighter-rouge">TO</code>
+    <ul>
+      <li>不論是作為不定式（infinitive）或介系詞（prepositional）都採用相同標記</li>
+    </ul>
+  </li>
+  <li>感嘆詞（interjection）標記為 <code class="language-plaintext highlighter-rouge">UH</code>
+    <ul>
+      <li>包含驚嘆詞（Exclamation）
+        <ul>
+          <li>例如：<em>oh</em>、<em>please</em>、<em>uh</em>、<em>well</em>、<em>yes</em> 都標記為 <code class="language-plaintext highlighter-rouge">UH</code></li>
+        </ul>
+      </li>
+      <li><em>my</em> 作為感嘆詞時標記為 <code class="language-plaintext highlighter-rouge">UH</code>
+        <ul>
+          <li>例如：<em>My, what a gorgeous day</em> 中的 <em>My</em> 標記為 <code class="language-plaintext highlighter-rouge">UH</code></li>
+        </ul>
+      </li>
+      <li><em>see</em> 作為感嘆詞時標記為 <code class="language-plaintext highlighter-rouge">UH</code>
+        <ul>
+          <li>例如：<em>See, it's like this</em> 中的 <em>See</em> 標記為 <code class="language-plaintext highlighter-rouge">UH</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>動詞原型（verb，base form）標記為 <code class="language-plaintext highlighter-rouge">VB</code>
+    <ul>
+      <li>包含命令句（imperative）的動詞
+        <ul>
+          <li>例如：<em>Do it.</em> 中的 <em>Do</em> 標記為 <code class="language-plaintext highlighter-rouge">VB</code></li>
+        </ul>
+      </li>
+      <li>包含接在不定式（infinitive）後的動詞
+        <ul>
+          <li>例如：<em>You should do it.</em> 中的 <em>do</em> 標記為 <code class="language-plaintext highlighter-rouge">VB</code></li>
+          <li>例如：<em>We want them to do it.</em> 中的 <em>do</em> 標記為 <code class="language-plaintext highlighter-rouge">VB</code></li>
+          <li>例如：<em>We made them do it.</em> 中的 <em>do</em> 標記為 <code class="language-plaintext highlighter-rouge">VB</code></li>
+        </ul>
+      </li>
+      <li>包含現在式假設語氣（subjunctive）中的動詞
+        <ul>
+          <li>例如：<em>We suggest that he do it.</em> 中的 <em>do</em> 標記為 <code class="language-plaintext highlighter-rouge">VB</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>動詞過去式（verb，past tense）標記為 <code class="language-plaintext highlighter-rouge">VBD</code>
+    <ul>
+      <li>包含過去式假設語氣（be verb，conditional form）
+        <ul>
+          <li>例如：<em>If I were rich, …</em> 中的 <em>were</em> 標記為 <code class="language-plaintext highlighter-rouge">VBD</code></li>
+          <li>例如：<em>If I were to win the lottery, …</em> 中的 <em>were</em> 標記為 <code class="language-plaintext highlighter-rouge">VBD</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>現在分詞（gerund）標記為 <code class="language-plaintext highlighter-rouge">VBG</code>
+    <ul>
+      <li>當 <em>X-ing N</em> 含有 <em>N X-es</em> 的語意時，<em>X-ing</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code> 而不是 <code class="language-plaintext highlighter-rouge">NN</code>
+        <ul>
+          <li>例如：<em>the declining productivity of U.S. industry</em> 中的 <em>declining</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+          <li>例如：<em>the acting vice president</em> 中的 <em>acting</em> 標記為 <code class="language-plaintext highlighter-rouge">VBG</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>過去分詞（past participle）標記為 <code class="language-plaintext highlighter-rouge">VBN</code>
+    <ul>
+      <li>如果以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞可以接著 <em>by</em>，且不能區分程度（gradable），則標記為 <code class="language-plaintext highlighter-rouge">VBN</code> 而非 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>He was invited by some friends of hers.</em> 中的 <em>invited</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+          <li>例如：<em>He was very surprised by her remarks.</em> 中的 <em>surprised</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+      <li>以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞表達事件（event）而不是結果或狀態（state or resultant state）時標記為 <code class="language-plaintext highlighter-rouge">VBN</code> 而非 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>I was married on a Sunday.</em> 中的 <em>married</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+          <li>例如：<em>I was mistaken for you the other day.</em> 中的 <em>mistaken</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+          <li>例如：<em>a case of mistaken identity.</em> 中的 <em>mistaken</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+        </ul>
+      </li>
+      <li>以 <code class="language-plaintext highlighter-rouge">VBN</code> 形式出現的詞如果與 <em>be</em> 動詞一起出現，且 <em>be</em> 動詞可以替換成 <em>get</em>，但 <em>be</em> 動詞不能替換成 <em>become</em>，則標記為 <code class="language-plaintext highlighter-rouge">VBN</code> 而非 <code class="language-plaintext highlighter-rouge">JJ</code>
+        <ul>
+          <li>例如：<em>I was married on a Sunday.</em> 中的 <em>married</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+          <li>例如：<em>I got married.</em> 中的 <em>married</em> 標記為 <code class="language-plaintext highlighter-rouge">VBN</code></li>
+          <li>例如：<em>I became married.</em> 中的 <em>married</em> 標記為 <code class="language-plaintext highlighter-rouge">JJ</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>動詞非第三人稱單數現在式（verb，present tense，other than 3rd person singular）標記為 <code class="language-plaintext highlighter-rouge">VBP</code></li>
+  <li>動詞第三人稱單數現在式（verb，present tense，3rd person singular）標記為 <code class="language-plaintext highlighter-rouge">VBZ</code></li>
+  <li><em>wh-</em> 限定詞（<em>wh-</em> determiner）標記為 <code class="language-plaintext highlighter-rouge">WDT</code>
+    <ul>
+      <li>出現在名詞中心語（head noun）之前的 <em>wh-</em> 詞標記為 <code class="language-plaintext highlighter-rouge">WDT</code>
+        <ul>
+          <li>例如：<em>What kind do you want?</em> 中的 <em>What</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+          <li>例如：<em>I don't know what kind do you want.</em> 中的 <em>what</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+          <li>例如：<em>Be sure to wash whatever fruit you buy.</em> 中的 <em>whatever</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+          <li>例如：<em>Which book do you like better?</em> 中的 <em>Which</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+          <li>例如：<em>I don't know which book you like better.</em> 中的 <em>which</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+          <li>例如：<em>Which one do you like better?</em> 中的 <em>Which</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+          <li>例如：<em>I don't know which one you like better.</em> 中的 <em>which</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+        </ul>
+      </li>
+      <li>當 <em>which</em> 或 <em>whichever</em> 沒有出現在名詞中心語之前時仍然標記為 <code class="language-plaintext highlighter-rouge">WDT</code>
+        <ul>
+          <li>例如：<em>Which do you like better?</em> 中的 <em>Which</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+          <li>例如：<em>I don't know which you like better.</em> 中的 <em>which</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+          <li>例如：<em>I'll get you whichever you want.</em> 中的 <em>whichever</em> 標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+        </ul>
+      </li>
+      <li>當 <em>that</em> 作為關係從句（relative pronoun）使用時標記為 <code class="language-plaintext highlighter-rouge">WDT</code></li>
+    </ul>
+  </li>
+  <li><em>wh-</em> 代名詞（<em>wh-</em> pronoun）標記為 <code class="language-plaintext highlighter-rouge">WP</code>
+    <ul>
+      <li>當 <em>what</em> 或 <em>whatever</em> 沒有出現在名詞中心語（head noun）之前時標記為 <code class="language-plaintext highlighter-rouge">WP</code>
+        <ul>
+          <li>例如：<em>Tell me what you would like to eat.</em> 中的 <em>what</em> 標記為 <code class="language-plaintext highlighter-rouge">WP</code></li>
+          <li>例如：<em>I'll get you whatever you want.</em> 中的 <em>whatever</em> 標記為 <code class="language-plaintext highlighter-rouge">WP</code></li>
+        </ul>
+      </li>
+      <li>包含 <em>who</em>、<em>whom</em></li>
+    </ul>
+  </li>
+  <li><em>wh-</em> 代名詞所有格（possessive <em>wh-</em> pronoun）標記為 <code class="language-plaintext highlighter-rouge">WP$</code>
+    <ul>
+      <li>包含 <em>whose</em></li>
+    </ul>
+  </li>
+  <li><em>wh-</em> 副詞（<em>wh-</em> adverb）標記為 <code class="language-plaintext highlighter-rouge">WRB</code>
+    <ul>
+      <li>包含 <em>how</em>、<em>where</em>、<em>why</em></li>
+      <li>當 <em>when</em> 描述時間時標記為 <code class="language-plaintext highlighter-rouge">WRB</code>
+        <ul>
+          <li>例如：<em>When he finally arrived, I was on my way out.</em> 中的 <em>When</em> 標記為 <code class="language-plaintext highlighter-rouge">WRB</code></li>
+        </ul>
+      </li>
+      <li>當 <em>when</em> 作為 <em>if</em> 使用時標記為 <code class="language-plaintext highlighter-rouge">IN</code>
+        <ul>
+          <li>例如：<em>I like it when you make dinner for me.</em> 中的 <em>when</em> 標記為 <code class="language-plaintext highlighter-rouge">IN</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-4">標記流程</h3>
+
+<p>標記詞性總共分兩個階段，分別為自動化詞性標記（automatic POS assignment）與人工校正（manual correction）。</p>
+
+<ul>
+  <li>採用 PARTS 進行自動化詞性標記
+    <ul>
+      <li>由 AT &amp; T Bell Labs 開發</li>
+      <li>是一種 stochastic algorithm，error rate 為 $3–5\%$</li>
+      <li>基於 Brown Corpus 的標記做點修改，與 Penn Treebank 的標記風格類似</li>
+      <li>輸出結果進行 tokenization 且轉換成 Penn Treebank 標記，此過程約產生 4% 誤差
+        <ul>
+          <li>誤差來源包含 <code class="language-plaintext highlighter-rouge">VBP</code></li>
+          <li>誤差來源包含 adverb 與 particle</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>撰寫規則進行自動化詞性標記
+    <ul>
+      <li>全靠作者的經驗進行規則編寫（沒錯就是大量的 <code class="language-plaintext highlighter-rouge">if-else</code>）</li>
+      <li>將 PARTS 自動化標記過程產生的 $4\%$ 誤差修正為 $2–6\%$</li>
+    </ul>
+  </li>
+  <li>採用圖形化介面幫助人工校正
+    <ul>
+      <li>圖形化介面是由 GNU Emacs Lisp 撰寫而成，內嵌在 GNU Emacs editor</li>
+      <li>使用者透過滑鼠點擊不正確的標記，並輸入正確版本（一或多個標籤）</li>
+      <li>使用者的更正結果會與<a href="#paper-fig-2">圖 2</a> 中的標籤進行確認，避免使用者輸入錯誤</li>
+      <li>使用者的更正結果會補在原本的註記上，並標記 <code class="language-plaintext highlighter-rouge">*</code> 幫助作者分析 error rate</li>
+      <li>釋出的版本會以 <code class="language-plaintext highlighter-rouge">*</code> 標記答案為主，並移除所有錯誤答案</li>
+      <li>校正人員經過一個月（15 hrs per week）的時間熟悉校正流程，之後每個月的工作效率約為 3000 words per hr</li>
+    </ul>
+  </li>
+  <li>在不使用自動化標記進行輔助時，人工標記時間比校正時間多了 2 倍，標記結果的不一致多了 2 倍，錯誤率多了 50%
+    <ul>
+      <li>此實驗的參與人員共有 4 位語言學研究生，校正受訓 15 hrs，標記受訓 6 hrs</li>
+      <li>所有標記人員皆熟悉 GNU Emacs</li>
+      <li>標記 Brown Corpus 中 8 個 samples，每個 sample 有 2000 words</li>
+      <li>從 4 個 genres（2 fictions、2 nonfictions）中各抽兩個 samples，samples 必須為標記人員沒在受試過程中接觸過</li>
+      <li>標記人員首先標記 4 個 samples（順序隨機），再修正 4 個自動標記的 samples（順序隨機）</li>
+      <li>不同標記人員的速度沒有顯著差異</li>
+      <li>不同 genres 的標記速度沒有顯著差異</li>
+      <li>標記與校正速度上有顯著差異（$\alpha = 0.05$）：校正速度中位數為 22 mins per 1k words、平均為 20 mins per 1k words；標記中位數為 42 mins per 1k words、平均為 44 mins per 1k words</li>
+      <li>分析標記不一致的細節如下
+        <ul>
+          <li>假設有 $k$ 個標記詞，有 $n$ 個標記者，任取 $2$ 個標記者比較所有標記結果，總共有 $\binom{n}{2}$ 種取法</li>
+          <li>將 $k$ 個數取平均得到標記不一致的比例，總共有 $\binom{n}{2}$ 個比例</li>
+          <li>標記任務不一致的比例平均值為 $7.2\%$，中位數為 $7.2\%$；校正任務上不一致的比例平均值為 $4.1\%$，中位數為 $3.6\%$</li>
+          <li>檢視結果發現不一致的主因為化學符號，在缺乏明確的指示下標記人員隨意進行標記</li>
+          <li>將化學符號造成的不一致去除後，校正任務不一致的比例平均值降為 $3.5\%$，中位數仍為 $3.6\%$</li>
+        </ul>
+      </li>
+      <li>分析標記答案與官方答案的差異
+        <ul>
+          <li>套用分析標記不一致的方法，只是比較的對象改為官方答案</li>
+          <li>標記任務不一致的比例平均值為 $5.4\%$，中位數為 $5.7\%$；校正任務上不一致的比例平均值為 $4.0\%$，中位數為 $3.4\%$</li>
+          <li>將化學符號造成的不一致去除後，校正任務不一致的比例平均值降為 $3.4\%$，中位數仍為 $3.4\%$</li>
+        </ul>
+      </li>
+      <li>分析自動化標記與官方答案的差異
+        <ul>
+          <li>套用分析標記答案與官方答案的方法，只是標記答案是自動化產生</li>
+          <li>標記不一致的比例平均值為 $9.6\%$</li>
+          <li>人工校正能夠減少 $4.2\%$ 的標記錯誤，說明人工校正是必要的</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-5">語法成份分析標記</h2>
+
+<p>與詞性標記平行進行的語法成份分析（constituent parse）標記流程為 Fidditch 自動化標記加上人工校正而得。</p>
+
+<h3 id="fidditch">Fidditch</h3>
+
+<p>首先使用 Donald Hindle 在 University of Pennsylvania 與 AT &amp; T Bell Labs 開發的 Fidditch parser 進行自動化標記。
+Fidditch 的特性如下：</p>
+
+<ul>
+  <li>Fidditch 永遠只會給出一種答案
+    <ul>
+      <li>因此校正過程不需要分析多個答案</li>
+    </ul>
+  </li>
+  <li>當 Fidditch 無法在非常確定的前提下，判斷句子中的部份 constituent 在更大的 constituent 中的定位時，不會給出標記
+    <ul>
+      <li>這代表 Fidditch 的輸出可能不是完整 constituent</li>
+      <li>校正人員需要把已經分析完的 constituent 組成更大更完整的 constituent，作者說這就好像在把constituent 「黏」（glue）在一起的感覺</li>
+      <li>Fidditch 的表現不錯，因此只要是在非常確定的前提下產出的 constituent 幾乎都是正確的</li>
+    </ul>
+  </li>
+  <li>無法判斷的結果 Fidditch 會以 <code class="language-plaintext highlighter-rouge">?</code> 標記
+    <ul>
+      <li>Fidditch 為 syntatic parser，沒有考慮 semantic or pragmatic information</li>
+      <li>由於判斷 prepositional phrases、relative clauses、adverbial modifiers 時需要考慮資訊遠超過語法（extrasyntatic information），因此 Fidditch 會將這些 constituent 不連結至任何上層 constituent（leaving such constituents unattached），而校正工作就是正確連結未標記的 constituent</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-6">標記總表</h3>
+
+<p><a name="paper-fig-3"></a></p>
+
+<p>圖 3：Penn Treebank 語法成份分析標記總表。
+圖片來源：<a href="https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/czVasbA.png" alt="圖 3" /></p>
+
+<ul>
+  <li>與 Lancaster Treebank Project 標記種類相似，但 Penn Treebank 允許 null element</li>
+  <li>Null elements 包含了 Fidditch 產出的標記</li>
+  <li>作者認為保留 null element 能夠分析 predicate-argument structure 與 verb transitivity</li>
+  <li>作者認為 Penn Treebank 是以 <strong>context-free grammar</strong> 作為前提進行標記，因此必須保留 null element</li>
+</ul>
+
+<h3 id="section-7">標記流程</h3>
+
+<p>根據觀察發現</p>
+
+<ul>
+  <li>語法成份分析標記所需的時間遠大於詞性標記時間</li>
+  <li>進行 Fidditch 輸出校正所需時間為
+    <ul>
+      <li>每小時約 375 個詞（受訓 3 星期）</li>
+      <li>每小時約 475 個詞（受訓 6 星期）</li>
+    </ul>
+  </li>
+  <li>將 Fidditch 的輸出進一步化簡成類似於 Lancaster UCREL Treebank Project 的風格讓校正速度變快（每小時校正增加約 100-200 個詞）
+    <ul>
+      <li>移除詞性標記</li>
+      <li>移除 nonbranching lexical nodes</li>
+      <li>移除特定 phrase nodes（主要為 <code class="language-plaintext highlighter-rouge">NBAR</code>）</li>
+      <li>當 <code class="language-plaintext highlighter-rouge">ADJP</code> 出現在 <code class="language-plaintext highlighter-rouge">NP</code> 內，且 <code class="language-plaintext highlighter-rouge">ADJP</code> 不是 coordinate structure 的一部份時，移除 <code class="language-plaintext highlighter-rouge">ADJP</code></li>
+    </ul>
+  </li>
+  <li>由於 verb's arguments 與 verb's adjuncts 很難區分，當允許校正人員忽略差異時讓校正速度變快（每小時校正增加約 150-200 個詞）</li>
+</ul>
+
+<p>因此作者決定標記採用<strong>化簡風格</strong>（<strong>skeletal syntactic structure</strong>），且不強制區分 verb's arguments 與 verb's adjuncts。</p>
+
+<ul>
+  <li>共 5 位兼職標記人員，平均每人每小時校正約 750 個詞</li>
+  <li>最有效率的標記人員每小時校正約 1500 個詞，且中間還穿插短暫休息時間</li>
+  <li>每天工作 3 小時，估算一年能標記約 2.5M 個詞</li>
+  <li>有經驗的標記者能夠非常快速的驗證標記結果，每人每小時約可驗證 4000 個詞</li>
+</ul>
+
+<p>為了增加標記效率，Penn Treebank 額外使用了兩種標記：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">X</code> constituent
+    <ul>
+      <li>當標記者認為某個片段為 constituent，但不確定應該標記成什麼，則可以暫時寫為 <code class="language-plaintext highlighter-rouge">X</code> constituent</li>
+    </ul>
+  </li>
+  <li>Pseudo-attachment
+    <ul>
+      <li>在給予前後文的情況下仍然無法確定一個 constituent 應該被連結到哪一個上層的結構時稱為 permanent predictable ambiguities，並標記為 pseudo-attachment</li>
+      <li>有些情況中一個 constituent 修飾的對象不只一個，此情況出現時可以使用 pseudo-attachment 標記，但絕大多數情況標記都是以 context-free grammar 出發，即一個 constituent 只能連接一個上層 constituent</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-8">標記結果</h2>
+
+<p><a name="paper-fig-4"></a></p>
+
+<p>圖 4：Penn Treebank 標記結果。
+圖片來源：<a href="https://alliance.seas.upenn.edu/~nlp/publications/pdf/marcus1993.pdf">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/JVj3svh.png" alt="圖 4" /></p>
+
+<ul>
+  <li>所有資料都可由 <a href="https://catalog.ldc.upenn.edu/LDC93T1">LDC</a> 取得</li>
+  <li>Department of Energy abstracts 是科學研究的摘要</li>
+  <li>The Department of Agriculture materials 包含種花的時機、如何將蔬菜水果做成罐頭等的文章</li>
+  <li>The Library of America texts 的文章段落約為 5000-10000 詞，主要都是書本的章節內容</li>
+  <li>MUC-3 都是 Federal News Service 的新聞內容，主題為南美的恐怖份子行動，包含部份西班牙文新聞翻譯</li>
+  <li>IBM Manual sentences 是 IBM 電腦的參考手冊，字典大小約為 3000</li>
+  <li>ATIS sentences 是由 DARPA Air Travel Information System project 轉錄而得</li>
+  <li>Brown Corpus 完全依照 Penn Treebank 的規則重新進行標記</li>
+  <li>作者估算 POS 標記誤差為 $3\%$</li>
+</ul>
+
+
+
+<!-- Avoid copy by China, method 1. -->
+<script>
+  console.log(`
+台.灣.獨.立.香.港.獨.立.西.藏.獨.立.新.疆.獨.立.內.蒙.古.獨.立.......
+..... ... ................:fffffLt.............一.九.八.九.六.四
+... ,i111i;............. ;L111111LL....習.包.子.近.平.小.熊.維.尼
+...iLfttttff,  ..,::;;;;;Cftt11111C:...........中.國.武.漢.肺.炎
+..;C1111111tf:ittfttttttttttfffft1L,..........................
+. ff11111111fCtt11111111111111ttfC1 ..........................
+. tf11111111ft11111111111111111111tt;. .......................
+..:L11111111t11111111111111111111111fti, .....................
+.. ;Lt11111111111111111111111111111111tCt:, ..................
+... ,tf111111111111111111tLLLt111111111LG00t..................
+.... 1f11111111111111111LGLtt1111111111111tLt.................
+....:f11111111111111111tf1111111111111111111t.................
+... 1f111111111111111111111111111111tt11111t,.................
+... tt111111111111111111111111111111L11LG11f:.................
+... tt111111111111111111111tGC111111Lt108111tti:..............
+... if111111111111111111111f8C111111ttttttfft1ttt,............
+....,f111111111111111111111111111111111fG0088C11tf............
+.....tt111111111111111111111111111111110@888@0111f; ..........
+.....,f111111111111111111111111111111111C000CL111Li ..........
+......;f11111111111111111111tt11111111111111ft111L,...........
+...... tt111111111111111111tfGf111111111111ff111L; ...........
+.....;fCt11111111111111111111f0Cft1111111fLt111Li ............
+.... fCCLftt111111111111111111fGGGCLLfLfff1111t; .............
+.....:CLLCCCCLLftt1111111111111tfLCGGG0L1111fL;...............
+..... LLLLLLLLLCCCLLftt1111111111ttffttt1ttCCLGf..............
+.... iCLLLLLLLLLLLLLCCCLLftt11111111tfffft1fGCC; .............
+... ;CLLLLLLLLLLLLCLLLLLLLCCLLLLLLffft1111tLGLL:,.. ..........
+...:GLLLLLLLLLLLLLCCCCCLLLLLLLLLCCLLLLLLLLCCLGGLLf1i:,. ......
+.. iCLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCLCCLLLCCCti. ....
+...iCLLLLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCCLLLGCCCLi,...
+.. iCLLLLLLLLLLLLLLLLLLLLLLCCGCCCLLLLLLLLLLLLLLLCLLCGLCCCGCti,
+. :LLLLLLLLLLLLLLLLLLLLLLCLt111tffLLCCCCCLLLLLLLGCLGGCLftLCCCL
+.;CLLLLLLLLLLLLLLLLLLLLLCf11111111111tttffLLLLLLLLfLft111CCCCG
+;GLLLLLLLLLLCCLLLLLLLLLCt1111111111111111111111111111111111ttt
+.;CLLLLLLLLLLCCCLLLLLLCf11111111111111111111111111111111111111
+`)
+</script>
+
+<!-- Avoid copy by China, method 2. -->
+<!--
+台獨教父 Xi Jinping
+⣿⣿⣿⣿⣿⠟⠋⠄⠄⠄⠄⠄⠄⠄⢁⠈⢻⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⡀⠭⢿⣿⣿⣿⣿
+⣿⣿⣿⣿⡟⠄⢀⣾⣿⣿⣿⣷⣶⣿⣷⣶⣶⡆⠄⠄⠄⣿⣿⣿⣿
+⣿⣿⣿⣿⡇⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣇⣼⣿⣿⠿⠶⠙⣿⡟⠡⣴⣿⣽⣿⣧⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣾⣿⣿⣟⣭⣾⣿⣷⣶⣶⣴⣶⣿⣿⢄⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⡟⣩⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣹⡋⠘⠷⣦⣀⣠⡶⠁⠈⠁⠄⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⠃⣴⣶⡔⠒⠄⣠⢀⠄⠄⠄⡨⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣦⡘⠿⣷⣿⠿⠟⠃⠄⠄⣠⡇⠈⠻⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠟⠋⢁⣷⣠⠄⠄⠄⠄⣀⣠⣾⡟⠄⠄⠄⠄⠉⠙⠻
+⡿⠟⠋⠁⠄⠄⠄⢸⣿⣿⡯⢓⣴⣾⣿⣿⡟⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⠄⣿⡟⣷⠄⠹⣿⣿⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣸⣿⡷⡇⠄⣴⣾⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣿⣿⠃⣦⣄⣿⣿⣿⠇⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⢸⣿⠗⢈⡶⣷⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet
+六四天安門事件 The Tiananmen Square protests of 1989
+天安門大屠殺 The Tiananmen Square Massacre
+反右派鬥爭 The Anti-Rightist Struggle
+大躍進政策 The Great Leap Forward
+文化大革命 The Great Proletarian Cultural Revolution
+人權 Human Rights
+民運 Democratization
+自由 Freedom
+獨立 Independence
+多黨制 Multi-party system
+台灣 臺灣 Taiwan Formosa
+西藏 土伯特 唐古特 Tibet
+達賴喇嘛 Dalai Lama
+法輪功 Falun Dafa
+新疆維吾爾自治區 The Xinjiang Uyghur Autonomous Region
+諾貝爾和平獎 Nobel Peace Prize
+劉暁波 Liu Xiaobo
+民主 言論 思想 反共 反革命 抗議 運動 騷亂 暴亂 騷擾 擾亂 抗暴 平反 維權 示威游行 李洪志
+法輪大法 大法弟子 強制斷種 強制堕胎 民族淨化 人體實驗 肅清 胡耀邦 趙紫陽 魏京生 王丹
+還政於民 和平演變 激流中國 北京之春 大紀元時報 九評論共産黨 獨裁 專制 壓制 統一 監視 鎮壓
+迫害 侵略 掠奪 破壞 拷問 屠殺 活摘器官 誘拐 買賣人口
+Winnie the Pooh
+-->
+
+    </div>
+
+</article>
+<div class="post-nav"><a class="previous" href="/dataset/2022/08/06/a-standard-corpus-of-edited-present-day-american-english.html" title="A Standard Corpus of Edited Present-Day American English">A Standard Corpus of Edited Present-Day...</a><a class="next" href="/dataset/2022/08/19/the-penn-treebank-annotating-predicate-argument-structure.html" title="The Penn Treebank: Annotating Predicate Argument Structure">The Penn Treebank: Annotating Predicate Argument...</a></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/dataset/2022/08/06/a-standard-corpus-of-edited-present-day-american-english.html" title="The Penn Treebank: Annotating Predicate Argument Structure">A Standard Corpus of Edited Present-Day American English</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/12/29/learning-precise-timing-with-lstm-recurrent-networks.html" title="The Penn Treebank: Annotating Predicate Argument Structure">Learning Precise Timing with LSTM Recurrent Networks</a></li><li><a class="post-link" href="/acoustic%20modeling/2021/12/06/a-time-delay-neural-network-architecture-for-isolated-word-recognition.html" title="The Penn Treebank: Annotating Predicate Argument Structure">A time-delay neural network architecture for isolated word recognition</a></li><li><a class="post-link" href="/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html" title="The Penn Treebank: Annotating Predicate Argument Structure">Building a Large Annotated Corpus of English : The Penn Treebank</a></li></ul>
+    </div><div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>

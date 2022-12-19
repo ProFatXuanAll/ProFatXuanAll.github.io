@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Learning representations by back-propagating errors | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="Learning representations by back-propagating errors" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="目標 提出 back-propagation 作者 David E. Rumelhart, Geoffrey E. Hinton, Ronald J. Williams 期刊/會議名稱 Nature 發表時間 1986 論文連結 https://www.nature.com/articles/323533a0" />
+<meta property="og:description" content="目標 提出 back-propagation 作者 David E. Rumelhart, Geoffrey E. Hinton, Ronald J. Williams 期刊/會議名稱 Nature 發表時間 1986 論文連結 https://www.nature.com/articles/323533a0" />
+<link rel="canonical" href="/optimization/2021/12/07/learning-representations-by-backpropagating-errors.html" />
+<meta property="og:url" content="/optimization/2021/12/07/learning-representations-by-backpropagating-errors.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-12-07T15:15:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Learning representations by back-propagating errors" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2021-12-07T15:15:00+08:00","datePublished":"2021-12-07T15:15:00+08:00","description":"目標 提出 back-propagation 作者 David E. Rumelhart, Geoffrey E. Hinton, Ronald J. Williams 期刊/會議名稱 Nature 發表時間 1986 論文連結 https://www.nature.com/articles/323533a0","headline":"Learning representations by back-propagating errors","mainEntityOfPage":{"@type":"WebPage","@id":"/optimization/2021/12/07/learning-representations-by-backpropagating-errors.html"},"url":"/optimization/2021/12/07/learning-representations-by-backpropagating-errors.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] [] -->
+  
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Learning representations by back-propagating errors</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2021-12-07T15:15:00+08:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Dec 07, 2021
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_article_words] 7054 -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 44 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#back-propagation">#back-propagation</a><a class="post-tag" href="/tags.html#gradient descent">#gradient descent</a><a class="post-tag" href="/tags.html#neural network">#neural network</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!-- Setup mathjax auto rendering. -->
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目標</td>
+      <td>提出 back-propagation</td>
+    </tr>
+    <tr>
+      <td>作者</td>
+      <td>David E. Rumelhart, Geoffrey E. Hinton, Ronald J. Williams</td>
+    </tr>
+    <tr>
+      <td>期刊/會議名稱</td>
+      <td>Nature</td>
+    </tr>
+    <tr>
+      <td>發表時間</td>
+      <td>1986</td>
+    </tr>
+    <tr>
+      <td>論文連結</td>
+      <td><a href="https://www.nature.com/articles/323533a0">https://www.nature.com/articles/323533a0</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!--
+  Define LaTeX command which will be used through out the writing.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+
+  $\newcommand{\opin}{\operatorname{in}}$
+  $\newcommand{\opout}{\operatorname{out}}$
+  $\newcommand{\din}{d_{\opin}}$
+  $\newcommand{\dout}{d_{\opout}}$
+
+</p>
+
+<!-- End LaTeX command define section. -->
+
+<h2 id="section">重點</h2>
+
+<ul>
+  <li>提出 back-propagation，只需要 $1$ 階微分的最佳化演算法
+    <ul>
+      <li>相較於 $2$ 階微分計算複雜度低</li>
+      <li>不使用 $2$ 階微分無法保證收斂，但根據實驗大部份模型最佳化時都會透過 $1$ 階微分找到 global minimum</li>
+      <li>作者說，當你遇到模型卡在 local minimum 時，多加一點參數他就會繞過去了（幹話王）</li>
+    </ul>
+  </li>
+  <li>可以套用到 RNN 模型上，現在稱為 BPTT</li>
+</ul>
+
+<h2 id="section-1">模型架構</h2>
+
+<p>令模型有 $L$ 層，每一層以 $l$ 表示，因此 $l \in \set{1, \dots L}$。
+定義第 $1$ 層為輸入層，第 $L$ 層為輸出層，剩餘的所有層都稱為隱藏層。
+由於模型一定包含輸入與輸出，因此 $L \geq 2$。</p>
+
+<p>定義第 $l$ 層的架構如下</p>
+
+<ul>
+  <li>輸入定義為 $x[l]$，維度為 $\din[l]$
+    <ul>
+      <li>以下標 $j$ 表示第 $j$ 個輸入</li>
+      <li>$j$ 的範圍為 $j = 1, \dots \din[l]$</li>
+    </ul>
+  </li>
+  <li>淨輸入定義為 $a[l]$，維度為 $\dout[l]$
+    <ul>
+      <li>以下標 $i$ 表示第 $i$ 個淨輸入</li>
+      <li>$i$ 的範圍為 $i = 1, \dots \dout[l]$</li>
+    </ul>
+  </li>
+  <li>輸出定義為 $y[l]$，維度為 $\dout[l]$
+    <ul>
+      <li>以下標 $i$ 表示第 $i$ 個輸出</li>
+      <li>$i$ 的範圍為 $i = 1, \dots \dout[l]$</li>
+      <li>第 $l$ 層的輸出會作為第 $l + 1$ 層的輸入，因此 $\din[l + 1] = \dout[l]$</li>
+    </ul>
+  </li>
+  <li>參數為 $w[l]$，維度為 $\dout[l] \times \din[l]$
+    <ul>
+      <li>輸入維度為 $\din[l]$</li>
+      <li>輸出維度為 $\dout[l]$</li>
+      <li>以下標 $w_{i, j}[l]$ 代表第 $j$ 個輸入 $x_j[l]$ 與第 $i$ 個淨輸入 $a_i[l]$ 相接的參數</li>
+    </ul>
+  </li>
+</ul>
+
+<p>計算方法如下</p>
+
+\[\begin{align*}
+a_i[l] &amp; = \sum_{j = 1}^{\din[l]} w_{i, j}[l] \cdot x_j[l] &amp;&amp; \forall i = 1, \dots, \dout[l] \\
+a[l] &amp; = w[l] \cdot x[l] \\
+y_i[l] &amp; = f\big(a_i[l]\big) = \frac{1}{1 + \exp(-a_i[l])} &amp;&amp; \forall i = 1, \dots, \dout[l] \\
+x[l + 1] &amp; = y[l]
+\end{align*} \tag{1}\label{1}\]
+
+<ul>
+  <li>$f$ 定義成 sigmoid 函數 $\sigma$
+    <ul>
+      <li>論文說可以不用是 sigmoid，只要是任何可微分且微分值有上下界即可</li>
+    </ul>
+  </li>
+  <li>使用線性組合再配合非線性轉換讓學習的過程簡單許多</li>
+</ul>
+
+<h2 id="section-2">目標函數</h2>
+
+<p>若資料集有 $N$ 筆資料，則目標函數定義為</p>
+
+\[\begin{align*}
+E &amp; = \frac{1}{2} \sum_{n = 1}^N E^n\big(x^n, \hat{y}^{n}\big) \\
+&amp; = \frac{1}{2} \sum_{n = 1}^N \sum_{i = 1}^{\dout[L]} \big(y_i^n[L] - \hat{y}_i^n\big)^2
+\end{align*} \tag{2}\label{2}\]
+
+<ul>
+  <li>以 $E^n$ 代表第 $n$ 筆資料的誤差</li>
+  <li>以 $y^n[L]$ 代表第 $n$ 筆資料在第 $L$ 層的輸出</li>
+  <li>以 $\hat{y}^n$ 代表第 $n$ 筆資料的預測目標</li>
+</ul>
+
+<p>目標為透過最佳化 $w$ 的過常達到 $E$ 的數值最小化。</p>
+
+<h2 id="section-3">最佳化</h2>
+
+<p>為了方便描述，假設 $N = 1$，唯一的資料為 $x = x[1]$，且模型在輸入 $x[1]$ 後得到的輸出為 $y[L]$。</p>
+
+<p>首先計算模型輸出 $y[L]$ 對於 $\eqref{2}$ 中的 $E$ 的梯度</p>
+
+\[\pd{E}{y_i[L]} = y_i[L] - \hat{y}_i \quad \forall i = 1, \dots, \dout[L] \tag{3}\label{3}\]
+
+<p>令 $y[L], \hat{y}$ 為行向量（column vector），則全微分的寫法為</p>
+
+\[\begin{align*}
+\pd{E}{y[L]} &amp; = \nabla E \big(y[L]\big) \\
+&amp; = \begin{pmatrix}
+\pd{E}{y_1[L]} &amp; \pd{E}{y_2[L]} &amp; \cdots &amp; \pd{E}{y_{\dout[L]}[L]}
+\end{pmatrix} \\
+&amp; = \begin{pmatrix}
+y_1[L] - \hat{y}_1 &amp; y_2[L] - \hat{y}_2 &amp; \cdots &amp; y_{\dout[L]}[L] - \hat{y}_{\dout[L]}
+\end{pmatrix} \\
+&amp; = \big(y[L] - \hat{y}\big)^T
+\end{align*} \tag{4}\label{4}\]
+
+<p>這裡我們採用 nominator-layout notation 與梯度為列向量（row vector）的習慣。</p>
+
+<p>假設模型使用的啟發函數（activation function）為 sigmoid 函數 $\sigma$，則根據 chain rule 我們可以利用 $\eqref{1}\eqref{3}\eqref{4}$ 求得淨輸入 $a[L]$ 對於 $E$ 的梯度</p>
+
+\[\begin{align*}
+\pd{E}{a_i[L]} &amp; = \pd{E}{y_i[L]} \cdot \pd{y_i[L]}{a_i[L]} &amp;&amp; \forall i = 1, \dots, \dout[L] \\
+&amp; = \pd{E}{y_i[L]} \cdot \sigma'(a_i[L]) \\
+&amp; = \pd{E}{y_i[L]} \cdot \sigma(a_i[L]) \cdot \big(1 - \sigma(a_i[L])\big) \\
+&amp; = \pd{E}{y_i[L]} \cdot y_i[L] \cdot \big(1 - y_i[L]\big) \\
+&amp; = \big(y_i[L] - \hat{y}_i\big) \cdot y_i[L] \cdot \big(1 - y_i[L]\big) \\
+\end{align*} \tag{5}\label{5}\]
+
+\[\begin{align*}
+\pd{E}{a[L]} &amp; = \pd{E}{y[L]} \cdot \pd{y[L]}{a[L]} \\
+&amp; = \big(y[L] - \hat{y}\big)^T \cdot \begin{pmatrix}
+\pd{y_1[L]}{a_1[L]} &amp; \pd{y_1[L]}{a_2[L]} &amp; \cdots &amp; \pd{y_1[L]}{a_{\dout[L]}[L]} \\
+\pd{y_2[L]}{a_1[L]} &amp; \pd{y_2[L]}{a_2[L]} &amp; \cdots &amp; \pd{y_2[L]}{a_{\dout[L]}[L]} \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+\pd{y_{\dout[L]}[L]}{a_1[L]} &amp; \pd{y_{\dout[L]}[L]}{a_2[L]} &amp; \cdots &amp; \pd{y_{\dout[L]}[L]}{a_{\dout[L]}[L]}
+\end{pmatrix} \\
+&amp; = \big(y[L] - \hat{y}\big)^T \cdot \begin{pmatrix}
+\pd{y_1[L]}{a_1[L]} &amp; 0 &amp; \cdots &amp; 0 \\
+0 &amp; \pd{y_2[L]}{a_2[L]} &amp; \cdots &amp; 0 \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+0 &amp; 0 &amp; \cdots &amp; \pd{y_{\dout[L]}[L]}{a_{\dout[L]}[L]}
+\end{pmatrix} \\
+&amp; = \big(y[L] - \hat{y}\big)^T \odot \begin{pmatrix}
+\pd{y_1[L]}{a_1[L]} &amp; \pd{y_2[L]}{a_2[L]} &amp; \cdots &amp; \pd{y_{\dout[L]}[L]}{a_{\dout[L]}[L]} \\
+\end{pmatrix} \\
+&amp; = \big(y[L] - \hat{y}\big)^T \odot \begin{pmatrix}
+y_1[L] \cdot \big(1 - y_1[L]\big) \\
+y_2[L] \cdot \big(1 - y_2[L]\big) \\
+\vdots \\
+y_{\dout[L]}[L] \cdot \big(1 - y_{\dout[L]}[L]\big)
+\end{pmatrix}^T \\
+&amp; = \big(y[L] - \hat{y}\big)^T \odot \Big(y[L] \odot \big(1 - y[L]\big)\Big)^T \\
+&amp; = \Big(\big(y[L] - \hat{y}\big) \odot y[L] \odot \big(1 - y[L]\big)\Big)^T
+\end{align*} \tag{6}\label{6}\]
+
+<p>其中 $\odot$ 代表 elementwise product。</p>
+
+<p>接著利用 $\eqref{1}\eqref{5}\eqref{6}$ 我們可以算出第 $L$ 層的參數 $w[L]$ 對於 $E$ 的梯度</p>
+
+\[\begin{align*}
+\pd{E}{w_{i, j}[L]} &amp; = \pd{E}{a_i[L]} \cdot \pd{a_i[L]}{w_{i, j}[L]} &amp;&amp; \forall i = 1, \dots, \dout[L] \\
+&amp; = \pd{E}{a_i[L]} \cdot x_j[L] &amp;&amp; \forall j = 1, \dots, \din[L] \\
+&amp; = \pd{E}{a_i[L]} \cdot y_j[L - 1] \\
+&amp; = \big(y_i[L] - \hat{y}_i\big) \cdot y_i[L] \cdot \big(1 - y_i[L]\big) \cdot y_j[L - 1]
+\end{align*} \tag{7}\label{7}\]
+
+\[\begin{align*}
+\pd{E}{w_i[L]} &amp; = \pd{E}{a[L]} \cdot \pd{a[L]}{w_i[L]} &amp;&amp; \forall i = 1, \dots, \dout[L] \\
+&amp; = \pd{E}{a[L]} \cdot \begin{pmatrix}
+\pd{a_1[L]}{w_{i, 1}[L]} &amp; \pd{a_1[L]}{w_{i, 2}[L]} &amp; \cdots &amp; \pd{a_1[L]}{w_{i, \dout[L]}[L]} \\
+\pd{a_2[L]}{w_{i, 1}[L]} &amp; \pd{a_2[L]}{w_{i, 2}[L]} &amp; \cdots &amp; \pd{a_2[L]}{w_{i, \dout[L]}[L]} \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+\pd{a_{\dout[L]}[L]}{w_{i, 1}[L]} &amp; \pd{a_{\dout[L]}[L]}{w_{i, 2}[L]} &amp; \cdots &amp; \pd{a_{\dout[L]}[L]}{w_{i, \din[L]}[L]}
+\end{pmatrix} \\
+&amp; = \pd{E}{a[L]} \cdot \begin{pmatrix}
+0 &amp; 0 &amp; \cdots &amp; 0 \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+x_1[L] &amp; x_2[L] &amp; \cdots &amp; x_{\din[L]} \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+0 &amp; 0 &amp; \cdots &amp; 0
+\end{pmatrix} \\
+&amp; = \pd{E}{a_i[L]} \cdot x[L]^T
+\end{align*} \tag{8}\label{8}\]
+
+<p>其中 $w_i$ 代表參數 $w$ 的第 $i$ 列（$i$th row）。
+由於 $w$ 的微分展開需要三個維度，無法使用二維空間表達，因此我按照每個列展開，最後再將展開的列合併成矩陣。</p>
+
+\[\pd{E}{w} = \begin{pmatrix}
+\pd{E}{w_1} \\
+\pd{E}{w_2} \\
+\vdots \\
+\pd{E}{w_{\dout[L]}}
+\end{pmatrix} = \begin{pmatrix}
+\pd{E}{a_1[L]} \cdot x[L]^T \\
+\pd{E}{a_2[L]} \cdot x[L]^T \\
+\vdots \\
+\pd{E}{a_{\dout[L]}[L]} \cdot x[L]^T
+\end{pmatrix} \tag{9}\label{9}\]
+
+<p>以 $\eqref{1}\eqref{5}\eqref{6}$ 我們也可以算出第 $L$ 層的輸入 $x[L]$ 對於 $E$ 的梯度</p>
+
+\[\begin{align*}
+\pd{E}{x_j[L]} &amp; = \sum_{i = 1}^{\dout[L]} \pd{E}{a_i[L]} \cdot \pd{a_i[L]}{x_j[L]} &amp;&amp; \forall j = 1, \dots, \din[L] \\
+&amp; = \sum_{i = 1}^{\dout[L]} \pd{E}{a_i[L]} \cdot w_{i, j}[L] \\
+&amp; = \sum_{i = 1}^{\dout[L]} \big(y_i[L] - \hat{y}_i\big) \cdot y_i[L] \cdot \big(1 - y_i[L]\big) \cdot w_{i, j}[L]
+\end{align*} \tag{10}\label{10}\]
+
+\[\begin{align*}
+\pd{E}{x[L]} &amp; = \pd{E}{a[L]} \cdot \pd{a[L]}{x[L]} \\
+&amp; = \pd{E}{a[L]} \cdot \begin{pmatrix}
+\pd{a_1[L]}{x_1[L]} &amp; \pd{a_1[L]}{x_2[L]} &amp; \cdots &amp; \pd{a_1[L]}{x_{\din[L]}[L]} \\
+\pd{a_2[L]}{x_1[L]} &amp; \pd{a_2[L]}{x_2[L]} &amp; \cdots &amp; \pd{a_2[L]}{x_{\din[L]}[L]} \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+\pd{a_{\dout[L]}[L]}{x_1[L]} &amp; \pd{a_{\dout[L]}[L]}{x_2[L]} &amp; \cdots &amp; \pd{a_{\dout[L]}[L]}{x_{\din[L]}[L]}
+\end{pmatrix} \\
+&amp; = \pd{E}{a[L]} \cdot \begin{pmatrix}
+w_{1, 1}[L] &amp; w_{1, 2}[L] &amp; \cdots &amp; w_{1, \din[L]}[L] \\
+w_{2, 1}[L] &amp; w_{2, 2}[L] &amp; \cdots &amp; w_{2, \din[L]}[L] \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+w_{\dout[L], 1}[L] &amp; w_{\dout[L], 2}[L] &amp; \cdots &amp; w_{\dout[L], \din[L]}[L]
+\end{pmatrix} \\
+&amp; = \pd{E}{a[L]} \cdot w[L] \\
+&amp; = \Big(\big(y[L] - \hat{y}\big) \odot y[L] \odot \big(1 - y[L]\big)\Big)^T \cdot w[L]
+\end{align*} \tag{11}\label{11}\]
+
+<p>由於 $x[L] = y[L - 1]$，我們根據 $\eqref{11}$ 可以推得</p>
+
+\[\pd{E}{x[L]} = \pd{E}{y[L - 1]} = \Big(\big(y[L] - \hat{y}\big) \odot y[L] \odot \big(1 - y[L]\big)\Big)^T \cdot w[L] \tag{12}\label{12}\]
+
+<p>依照 $\eqref{5} \eqref{7} \eqref{10}$ 的結果我們可以推得</p>
+
+\[\begin{align*}
+&amp; \pd{E}{a_i[L - 1]} &amp;&amp; \forall i = 1, \dots, \dout[L - 1] \\
+&amp; = \pd{E}{y_i[L - 1]} \cdot \pd{y_i[L - 1]}{a_i[L - 1]} \\
+&amp; = \pd{E}{x_i[L]} \cdot y_i[L - 1] \cdot \big(1 - y_i[L - 1]\big) \\
+&amp; = \bigg(\sum_{k = 1}^{\dout[L]} \big(y_k[L] - \hat{y}_k[L]\big) \cdot y_k[L] \cdot \big(1 - y_k[L]\big) \cdot w_{k, i}[L]\bigg) \\
+&amp; \quad \cdot y_i[L - 1] \cdot \big(1 - y_i[L - 1]\big)
+\end{align*} \tag{13}\label{13}\]
+
+\[\begin{align*}
+&amp; \pd{E}{w_{i, j}[L - 1]} &amp;&amp; \forall i = 1, \dots, \dout[L - 1] \\
+&amp; = \pd{E}{a_i[L - 1]} \cdot \pd{a_i[L - 1]}{w_{i, j}} &amp;&amp; \forall j = 1, \dots, \din[L - 1] \\
+&amp; = \bigg(\sum_{k = 1}^{\dout[L]} \big(y_k[L] - \hat{y}_k[L]\big) \cdot y_k[L] \cdot \big(1 - y_k[L]\big) \cdot w_{k, i}[L]\bigg) \\
+&amp; \quad \cdot y_i[L - 1] \cdot \big(1 - y_i[L - 1]\big) \cdot y_j[L - 2]
+\end{align*} \tag{14}\label{14}\]
+
+\[\begin{align*}
+&amp; \pd{E}{x_j[L - 1]} &amp;&amp; \forall j = 1, \dots, \din[L - 1] \\
+&amp; = \sum_{i = 1}^{\dout[L - 1]} \pd{E}{a_i[L - 1]} \cdot \pd{a_i[L - 1]}{x_j[L - 1]} \\
+&amp; = \sum_{i = 1}^{\dout[L - 1]} \Bigg[\bigg(\sum_{k = 1}^{\dout[L]} \big(y_k[L] - \hat{y}_k[L]\big) \cdot y_k[L] \cdot \big(1 - y_k[L]\big) \cdot w_{k, i}[L]\bigg) \\
+&amp; \quad \cdot y_i[L - 1] \cdot \big(1 - y_i[L - 1]\big)\Bigg] \cdot w_{i j}[L - 1] \\
+\end{align*} \tag{15}\label{15}\]
+
+<p>依照 $\eqref{6} \eqref{9} \eqref{11} \eqref{12}$ 的結果我們可以推得</p>
+
+\[\begin{align*}
+&amp; \pd{E}{a[L - 1]} \\
+&amp; = \pd{E}{y[L - 1]} \cdot \pd{y[L - 1]}{a[L - 1]} \\
+&amp; = \bigg[\Big(\big(y[L] - \hat{y}\big) \odot y[L] \odot \big(1 - y[L]\big)\Big)^T \cdot w\bigg] \odot \Big(y[L - 1] \odot \big(1 - y[L - 1]\big)\Big)^T
+\end{align*} \tag{16}\label{16}\]
+
+\[\begin{align*}
+\pd{E}{w[L - 1]} &amp; = \begin{pmatrix}
+\pd{E}{a_1[L - 1]} \cdot x[L - 1]^T \\
+\pd{E}{a_2[L - 1]} \cdot x[L - 1]^T \\
+\vdots \\
+\pd{E}{a_{\dout[L - 1]}[L - 1]} \cdot x[L - 1]^T
+\end{pmatrix}
+\end{align*} \tag{17}\label{17}\]
+
+\[\begin{align*}
+&amp; \pd{E}{x[L - 1]} \\
+&amp; = \pd{E}{a[L - 1]} \cdot \pd{a[L - 1]}{x[L - 1]} \\
+&amp; = \Bigg[\bigg[\Big(\big(y[L] - \hat{y}\big) \odot y[L] \odot \big(1 - y[L]\big)\Big)^T \cdot w\bigg] \odot \Big(y[L - 1] \odot \big(1 - y[L - 1]\big)\Big)^T\Bigg] \\
+&amp; \quad \cdot w[L - 1]
+\end{align*} \tag{18}\label{18}\]
+
+<p>從 $\eqref{13}\eqref{14}\eqref{15}\eqref{16}\eqref{17}\eqref{18}$ 我們可以繼續往後推到任意隱藏層或輸入層的每個節點相對於誤差的微分</p>
+
+\[\begin{align*}
+\pd{E}{a_i[l]} &amp; = \pd{E}{y_i[l]} \cdot \pd{y_i[l]}{a_i[l]} &amp;&amp; \forall i = 1, \dots, \dout[l] \\
+&amp; = \pd{E}{y_i[l]} \cdot y_i[l] \cdot \big(1 - y_i[l]\big) \\
+\pd{E}{w_{i j}[l]} &amp; = \pd{E}{a_i[l]} \cdot \pd{a_i[l]}{w_{i j}[l]} &amp;&amp; \forall i = 1, \dots, \dout[l] \\
+&amp; = \pd{E}{a_i[l]} \cdot y_j[l - 1] &amp;&amp; \forall j = 1, \dots, \din[l] \\
+&amp; = \pd{E}{y_i[l]} \cdot y_i[l] \cdot \big(1 - y_i[l]\big) \cdot y_j[l - 1] \\
+\pd{E}{x_j[l]} &amp; = \sum_{i = 1}^{\dout[l]} \pd{E}{a_i[l]} \cdot \pd{a_i[l]}{x_j[l]} &amp;&amp; \forall j = 1, \dots, \din[l] \\
+&amp; = \sum_{i = 1}^{\dout[l]} \pd{E}{y_i[l]} \cdot y_i[l] \cdot \big(1 - y_i[l]\big) \cdot w_{i j}[l] \\
+\pd{E}{a[l]} &amp; = \pd{E}{y[l]} \cdot \pd{y[l]}{a[l]} \\
+&amp; = \pd{E}{y[l]} \odot \Big(y[l] \odot \big(1 - y[l]\big)\Big)^T \\
+\pd{E}{w[l]} &amp; = \begin{pmatrix}
+\pd{E}{a_1[l]} \cdot x[l]^T \\
+\pd{E}{a_2[l]} \cdot x[l]^T \\
+\vdots \\
+\pd{E}{a_{\dout[l]}[l]} \cdot x[l]^T
+\end{pmatrix} \\
+\pd{E}{x[l]} &amp; = \pd{E}{a[l]} \cdot \pd{a[l]}{x[l]} \\
+&amp; = \pd{E}{a[l]} \cdot w[l]
+\end{align*} \tag{19}\label{19}\]
+
+<p>接著使用梯度進行參數更新，論文中使用的方法是對每一筆資料（共 $N$ 筆）進行一次 $\eqref{19}$ 的計算，並將所有誤差所得梯度加總作為梯度更新的方向</p>
+
+\[\pd{E}{w[l]} = \sum_{n = 1}^N \pd{E^n(x^n, \hat{y}^n)}{w[l]} \quad \forall l = 1, \dots, L \tag{20}\label{20}\]
+
+<p>接著利用 $\eqref{20}$ 進行梯度下降（gradient descent）</p>
+
+\[\begin{align*}
+\triangle w[l]\pa{0} &amp; = O \\
+\triangle w[l]\pa{t} &amp; = -\varepsilon \cdot \pd{E}{w[l]\pa{t}} + \alpha \cdot \triangle w[l]\pa{t - 1} \\
+w[l]\pa{t + 1} &amp; = w[l]\pa{t} + \triangle w[l]\pa{t}
+\end{align*}\tag{21}\label{21}\]
+
+<ul>
+  <li>我們使用 $w[l]\pa{t}$ 代表第 $t$ 個 epochs 時第 $l$ 層的參數 $w[l]$</li>
+  <li>我們使用 $\triangle w[l]\pa{t}$ 代表第 $t$ 個 epochs 時第 $l$ 層的參數 $w[l]$ 更新的方向
+    <ul>
+      <li>更新方向與 $t$ 時間點計算所得梯度方向相反</li>
+      <li>$\varepsilon$ 為 learning rate</li>
+      <li>更新方向與 $t - 1$ 時間點計算所得更新方向相同</li>
+      <li>$\alpha$ 為 exponential decay factor，數值介於 $(0, 1)$</li>
+      <li>參數減去 $t$ 時間點的誤差梯度，並加上 $t - 1$ 時間點的梯度所得</li>
+    </ul>
+  </li>
+  <li>$t + 1$ 時間點的參數是由 $t$ 時間點的參數往 $\triangle w[l]\pa{t}$ 更新
+    <ul>
+      <li>總共訓練 $T$ 個 epochs</li>
+      <li>$t$ 的範圍為 $t = 1, \dots T$</li>
+    </ul>
+  </li>
+  <li>收斂速度會比使用 $2$ 階微分的最佳化方法還要慢
+    <ul>
+      <li>計算成本比 $2$ 階微分還要低許多</li>
+      <li>計算概念簡單且容易實作</li>
+      <li>但不像 $2$ 階微分保證收斂</li>
+    </ul>
+  </li>
+  <li>所有參數隨機初始化成較小的數值</li>
+</ul>
+
+<h2 id="section-4">實驗 1：對稱性偵測</h2>
+
+<ul>
+  <li>任務為給予 $6$ 個輸入數值，每 $3$ 個數值為一組，模型需要偵測兩組輸入數值是否對稱
+    <ul>
+      <li>所有數值只能是 $0$ 或 $1$，因此共有 $2^6 = 64$ 種不同的輸入</li>
+      <li>總共只有 $2^3 = 8$ 種對稱輸入</li>
+    </ul>
+  </li>
+  <li>如果沒有使用隱藏層，則單純的把輸入相加得到輸出是無法偵測輸入的對稱性</li>
+  <li>根據實驗結果，模型成功學會讓參數數值對稱，確保對稱輸入能夠被偵測
+    <ul>
+      <li>只使用一層隱藏層，只有兩個隱藏單元</li>
+      <li>訓練花了 $1425$ 個 epochs</li>
+      <li>$\varepsilon = 0.1$</li>
+      <li>$\alpha = 0.9$</li>
+      <li>參數使用平均分佈初始化，區間為 $[-0.3, 0.3]$</li>
+      <li>連接第一組輸入和隱藏單元的參數與連接第二組輸入和隱藏單元的參數的數值正負號相反
+        <ul>
+          <li>如果輸入對稱，則隱藏單元收到的淨輸入為 $0$</li>
+          <li>數值呈現 $1 : 2 : 4$ 的比例，確保數值能夠正確對應</li>
+        </ul>
+      </li>
+      <li>隱藏單元的 bias 為負數
+        <ul>
+          <li>如果輸入對稱，淨輸入加上 bias 得到負數，sigmoid 啟發值就會接近 $0$</li>
+        </ul>
+      </li>
+      <li>連接輸入與兩個隱藏單元的參數正負號相反
+        <ul>
+          <li>當輸入不對稱時，會有一個隱藏單元輸出接近 $1$，另一個接近 $0$</li>
+        </ul>
+      </li>
+      <li>輸出單元參數
+        <ul>
+          <li>連接隱藏單元的參數為負數</li>
+          <li>bias 為正數</li>
+          <li>在兩個隱藏單元輸出接近 $0$ 時輸出接近 $1$</li>
+          <li>在其中一個隱藏單元輸出接近 $1$ 時輸出接近 $0$</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-5">實驗 2：家族關係圖</h2>
+
+<ul>
+  <li>每個家族關係定義為一個三元組（3-tuple），概念為：人-關係-人
+    <ul>
+      <li>總共有 $24$ 個人，分屬兩個不同的家族，每個家族有 $12$ 個人</li>
+      <li>關係共有 $12$ 個，分別為 <code class="language-plaintext highlighter-rouge">father</code>、<code class="language-plaintext highlighter-rouge">mother</code>、<code class="language-plaintext highlighter-rouge">husband</code>、<code class="language-plaintext highlighter-rouge">wife</code>、<code class="language-plaintext highlighter-rouge">son</code>、<code class="language-plaintext highlighter-rouge">daughter</code>、<code class="language-plaintext highlighter-rouge">uncle</code>、<code class="language-plaintext highlighter-rouge">aunt</code>、<code class="language-plaintext highlighter-rouge">brother</code>、<code class="language-plaintext highlighter-rouge">sister</code>、<code class="language-plaintext highlighter-rouge">nephew</code>、<code class="language-plaintext highlighter-rouge">niece</code></li>
+    </ul>
+  </li>
+  <li>給予 <code class="language-plaintext highlighter-rouge">人-人</code> 時需要預測關係
+    <ul>
+      <li>輸入為一個 $12$ 維的向量，其中兩個數值為 $1$，剩餘為 $0$</li>
+      <li>輸出為 $12$ 維的向量，其中一個數值為 $1$（代表關係），剩餘為 $0$</li>
+    </ul>
+  </li>
+  <li>給予 <code class="language-plaintext highlighter-rouge">人-關係</code> 時需要預測人
+    <ul>
+      <li>其中一個輸入為 $12$ 維的向量，只有一個數值為 $1$，剩餘為 $0$</li>
+      <li>另外一個輸入為 $12$ 維的向量，只有一個數值為 $1$，剩餘為 $0$</li>
+      <li>輸出為 $24$ 維的向量，可以有多個數值為 $1$（可能有多個人符合關係），剩餘為 $0$</li>
+    </ul>
+  </li>
+  <li>架構為 $5$ 層，都是全連接
+    <ul>
+      <li>第一層維度為 $12 \times 2 + 12 = 36$</li>
+      <li>第二層維度為 $6 \times 2 = 12$，每個家族各自全連接到自己專屬的 $6$ 個隱藏單元</li>
+      <li>第三層維度為 $12$</li>
+      <li>第四層維度為 $6$</li>
+      <li>第五層維度為 $12 \times 2 + 12 = 36$</li>
+    </ul>
+  </li>
+  <li>總資料數有 $104$ 筆，訓練資料共有 $100$ 筆
+    <ul>
+      <li>總共訓練 $1500$ 個 epochs</li>
+      <li>前 $20$ 個 epochs 使用不同的參數
+        <ul>
+          <li>$\varepsilon = 0.005$</li>
+          <li>$\alpha = 0.5$</li>
+        </ul>
+      </li>
+      <li>剩餘的 epochs 使用相同的參數
+        <ul>
+          <li>$\varepsilon = 0.01$</li>
+          <li>$\alpha = 0.9$</li>
+        </ul>
+      </li>
+      <li>每次更新參數後，手動進行 $0.2\%$ 的 weight decay（將參數乘上 $0.998$）</li>
+      <li>為了避免模型一定要輸出 $0$ 或 $1$，當模型輸出 $0.8$ 就當成 $1$，輸出 $0.2$ 就當成 $0$
+        <ul>
+          <li>如果預測正確就不計算誤差（讓誤差為 $0$）</li>
+          <li>如果預測失敗就按照原本方法計算誤差</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>實驗結果顯示在兩組家族上學到一樣的結構（isomorphism）
+    <ul>
+      <li>這是廢話，因為本來就是用數值代表</li>
+    </ul>
+  </li>
+</ul>
+
+
+<!-- Avoid copy by China, method 1. -->
+<script>
+  console.log(`
+台.灣.獨.立.香.港.獨.立.西.藏.獨.立.新.疆.獨.立.內.蒙.古.獨.立.......
+..... ... ................:fffffLt.............一.九.八.九.六.四
+... ,i111i;............. ;L111111LL....習.包.子.近.平.小.熊.維.尼
+...iLfttttff,  ..,::;;;;;Cftt11111C:...........中.國.武.漢.肺.炎
+..;C1111111tf:ittfttttttttttfffft1L,..........................
+. ff11111111fCtt11111111111111ttfC1 ..........................
+. tf11111111ft11111111111111111111tt;. .......................
+..:L11111111t11111111111111111111111fti, .....................
+.. ;Lt11111111111111111111111111111111tCt:, ..................
+... ,tf111111111111111111tLLLt111111111LG00t..................
+.... 1f11111111111111111LGLtt1111111111111tLt.................
+....:f11111111111111111tf1111111111111111111t.................
+... 1f111111111111111111111111111111tt11111t,.................
+... tt111111111111111111111111111111L11LG11f:.................
+... tt111111111111111111111tGC111111Lt108111tti:..............
+... if111111111111111111111f8C111111ttttttfft1ttt,............
+....,f111111111111111111111111111111111fG0088C11tf............
+.....tt111111111111111111111111111111110@888@0111f; ..........
+.....,f111111111111111111111111111111111C000CL111Li ..........
+......;f11111111111111111111tt11111111111111ft111L,...........
+...... tt111111111111111111tfGf111111111111ff111L; ...........
+.....;fCt11111111111111111111f0Cft1111111fLt111Li ............
+.... fCCLftt111111111111111111fGGGCLLfLfff1111t; .............
+.....:CLLCCCCLLftt1111111111111tfLCGGG0L1111fL;...............
+..... LLLLLLLLLCCCLLftt1111111111ttffttt1ttCCLGf..............
+.... iCLLLLLLLLLLLLLCCCLLftt11111111tfffft1fGCC; .............
+... ;CLLLLLLLLLLLLCLLLLLLLCCLLLLLLffft1111tLGLL:,.. ..........
+...:GLLLLLLLLLLLLLCCCCCLLLLLLLLLCCLLLLLLLLCCLGGLLf1i:,. ......
+.. iCLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCLCCLLLCCCti. ....
+...iCLLLLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCCLLLGCCCLi,...
+.. iCLLLLLLLLLLLLLLLLLLLLLLCCGCCCLLLLLLLLLLLLLLLCLLCGLCCCGCti,
+. :LLLLLLLLLLLLLLLLLLLLLLCLt111tffLLCCCCCLLLLLLLGCLGGCLftLCCCL
+.;CLLLLLLLLLLLLLLLLLLLLLCf11111111111tttffLLLLLLLLfLft111CCCCG
+;GLLLLLLLLLLCCLLLLLLLLLCt1111111111111111111111111111111111ttt
+.;CLLLLLLLLLLCCCLLLLLLCf11111111111111111111111111111111111111
+`)
+</script>
+
+<!-- Avoid copy by China, method 2. -->
+<!--
+台獨教父 Xi Jinping
+⣿⣿⣿⣿⣿⠟⠋⠄⠄⠄⠄⠄⠄⠄⢁⠈⢻⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⡀⠭⢿⣿⣿⣿⣿
+⣿⣿⣿⣿⡟⠄⢀⣾⣿⣿⣿⣷⣶⣿⣷⣶⣶⡆⠄⠄⠄⣿⣿⣿⣿
+⣿⣿⣿⣿⡇⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣇⣼⣿⣿⠿⠶⠙⣿⡟⠡⣴⣿⣽⣿⣧⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣾⣿⣿⣟⣭⣾⣿⣷⣶⣶⣴⣶⣿⣿⢄⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⡟⣩⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣹⡋⠘⠷⣦⣀⣠⡶⠁⠈⠁⠄⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⠃⣴⣶⡔⠒⠄⣠⢀⠄⠄⠄⡨⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣦⡘⠿⣷⣿⠿⠟⠃⠄⠄⣠⡇⠈⠻⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠟⠋⢁⣷⣠⠄⠄⠄⠄⣀⣠⣾⡟⠄⠄⠄⠄⠉⠙⠻
+⡿⠟⠋⠁⠄⠄⠄⢸⣿⣿⡯⢓⣴⣾⣿⣿⡟⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⠄⣿⡟⣷⠄⠹⣿⣿⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣸⣿⡷⡇⠄⣴⣾⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣿⣿⠃⣦⣄⣿⣿⣿⠇⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⢸⣿⠗⢈⡶⣷⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet
+六四天安門事件 The Tiananmen Square protests of 1989
+天安門大屠殺 The Tiananmen Square Massacre
+反右派鬥爭 The Anti-Rightist Struggle
+大躍進政策 The Great Leap Forward
+文化大革命 The Great Proletarian Cultural Revolution
+人權 Human Rights
+民運 Democratization
+自由 Freedom
+獨立 Independence
+多黨制 Multi-party system
+台灣 臺灣 Taiwan Formosa
+西藏 土伯特 唐古特 Tibet
+達賴喇嘛 Dalai Lama
+法輪功 Falun Dafa
+新疆維吾爾自治區 The Xinjiang Uyghur Autonomous Region
+諾貝爾和平獎 Nobel Peace Prize
+劉暁波 Liu Xiaobo
+民主 言論 思想 反共 反革命 抗議 運動 騷亂 暴亂 騷擾 擾亂 抗暴 平反 維權 示威游行 李洪志
+法輪大法 大法弟子 強制斷種 強制堕胎 民族淨化 人體實驗 肅清 胡耀邦 趙紫陽 魏京生 王丹
+還政於民 和平演變 激流中國 北京之春 大紀元時報 九評論共産黨 獨裁 專制 壓制 統一 監視 鎮壓
+迫害 侵略 掠奪 破壞 拷問 屠殺 活摘器官 誘拐 買賣人口
+Winnie the Pooh
+-->
+
+    </div>
+
+</article>
+<div class="post-nav"><a class="previous" href="/acoustic%20modeling/2021/12/06/a-time-delay-neural-network-architecture-for-isolated-word-recognition.html" title="A time-delay neural network architecture for isolated word recognition">A time-delay neural network architecture for...</a><a class="next" href="/general%20sequence%20modeling/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html" title="Learning to Forget: Continual Prediction with LSTM">Learning to Forget: Continual Prediction with...</a></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/dataset/2022/08/06/a-standard-corpus-of-edited-present-day-american-english.html" title="Learning to Forget: Continual Prediction with LSTM">A Standard Corpus of Edited Present-Day American English</a></li><li><a class="post-link" href="/dataset/2022/08/12/building-a-large-annotated-corpus-of-english-the-penn-treebank.html" title="Learning to Forget: Continual Prediction with LSTM">Building a Large Annotated Corpus of English : The Penn Treebank</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html" title="Learning to Forget: Continual Prediction with LSTM">Learning to Forget: Continual Prediction with LSTM</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html" title="Learning to Forget: Continual Prediction with LSTM">Local Feedback Multilayered Networks</a></li></ul>
+    </div><div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>

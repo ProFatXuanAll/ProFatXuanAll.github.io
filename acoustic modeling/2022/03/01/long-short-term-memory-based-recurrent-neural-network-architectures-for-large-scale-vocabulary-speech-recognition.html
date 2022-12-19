@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary Speech Recognition | ML Notes</title>
+<meta name="generator" content="Jekyll v3.9.2" />
+<meta property="og:title" content="Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary Speech Recognition" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="description" content="目標 嘗試以 LSTM 進行字典範圍較大的語音辨識 作者 Hasim Sak, Andrew W. Senior, Françoise Beaufays 隸屬單位 Google 期刊/會議名稱 arXiv 發表時間 2014 論文連結 https://research.google/pubs/pub43895/" />
+<meta property="og:description" content="目標 嘗試以 LSTM 進行字典範圍較大的語音辨識 作者 Hasim Sak, Andrew W. Senior, Françoise Beaufays 隸屬單位 Google 期刊/會議名稱 arXiv 發表時間 2014 論文連結 https://research.google/pubs/pub43895/" />
+<link rel="canonical" href="/acoustic%20modeling/2022/03/01/long-short-term-memory-based-recurrent-neural-network-architectures-for-large-scale-vocabulary-speech-recognition.html" />
+<meta property="og:url" content="/acoustic%20modeling/2022/03/01/long-short-term-memory-based-recurrent-neural-network-architectures-for-large-scale-vocabulary-speech-recognition.html" />
+<meta property="og:site_name" content="ML Notes" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-03-01T16:01:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary Speech Recognition" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-03-01T16:01:00+08:00","datePublished":"2022-03-01T16:01:00+08:00","description":"目標 嘗試以 LSTM 進行字典範圍較大的語音辨識 作者 Hasim Sak, Andrew W. Senior, Françoise Beaufays 隸屬單位 Google 期刊/會議名稱 arXiv 發表時間 2014 論文連結 https://research.google/pubs/pub43895/","headline":"Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary Speech Recognition","mainEntityOfPage":{"@type":"WebPage","@id":"/acoustic%20modeling/2022/03/01/long-short-term-memory-based-recurrent-neural-network-architectures-for-large-scale-vocabulary-speech-recognition.html"},"url":"/acoustic%20modeling/2022/03/01/long-short-term-memory-based-recurrent-neural-network-architectures-for-large-scale-vocabulary-speech-recognition.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="ML Notes" /><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #fff -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] #ff4e00 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<!-- favicon. -->
+<link rel='icon' type='image/png' sizes='16x16' href='/assets/images/favicon.png' />
+
+<!-- Noto sans CJK source code: https://dotblogs.com.tw/shadow/2019/10/27/153832 -->
+<style>
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 100;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+  }
+
+  /*預設font-weight*/
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 400;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 700;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+  }
+
+  @font-face {
+    font-family: 'Noto Sans TC';
+    font-style: normal;
+    font-weight: 900;
+    src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+      url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+  }
+
+  html,
+  body {
+    font-family: 'Noto Sans TC';
+  }
+</style></head>
+<body>
+
+
+
+
+  
+      <!-- [function][get_value] uppercase -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="ML Notes" src="" onerror="this.style.display='none'">
+  ML Notes
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">關於</a><a class="page-link" href="/archives.html">時間表</a><a class="page-link" href="/categories.html">筆記類別</a><a class="page-link" href="/tags.html">標籤</a>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] post-header.html -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] true -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] 0 -->
+  
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+  
+      <!-- [function][get_value] off -->
+  
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('off' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+  
+      <!-- [function][get_value]  -->
+  
+
+
+
+
+
+
+  
+      <!-- [function][get_value] [] -->
+  
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Long Short-Term Memory Based Recurrent Neural Network Architectures for Large Scale Vocabulary Speech Recognition</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2022-03-01T16:01:00+08:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Mar 01, 2022
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+      <!-- [function][get_article_words] 4697 -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 29 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#LSTM">#LSTM</a><a class="post-tag" href="/tags.html#LSTMP">#LSTMP</a><a class="post-tag" href="/tags.html#model architecture">#model architecture</a><a class="post-tag" href="/tags.html#neural network">#neural network</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <!-- Setup mathjax auto rendering. -->
+<!--
+  Load MathJax v3.
+  See
+  https://docs.mathjax.org/en/latest/index.html
+  and
+  https://docs.mathjax.org/en/latest/web/configuration.html
+  for more information.
+-->
+<script>
+  MathJax = {
+    loader: {
+      load: [
+        '[tex]/ams',       // Equivalent to `\usepackage{amsmath}`.
+        '[tex]/cancel',    // Equivalent to `\usepackage{cancel}`.
+        '[tex]/mathtools', // Equivalent to `\usepackage{mathtools}`.
+        '[tex]/unicode',   // Equivalent to `\usepackage{unicode}`.
+      ]
+    },
+    tex: {
+      // Extensions to use.
+      packages: { '[+]': ['ams', 'cancel', 'mathtools', 'unicode'] },
+      // Start/end delimiter pairs for in-line math.
+      inlineMath: [
+        ['$', '$'],
+        ['\\(', '\\)'],
+      ],
+      // Start/end delimiter pairs for display math.
+      displayMath: [
+        ['$$', '$$'],
+        ['\\[', '\\]']
+      ],
+      // Use \$ to produce a literal dollar sign.
+      processEscapes: true,
+      // Process \begin{xxx}...\end{xxx} outside math mode.
+      processEnvironments: true,
+      // Process \ref{...} outside of math mode.
+      processRefs: true,
+      // Pattern for recognizing numbers.
+      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+      tags: 'ams',         // Or 'ams' or 'all'.
+      useLabelIds: false,  // Use label name rather than tag for ids.
+      maxMacros: 1000,     // Maximum number of macro substitutions per expression.
+      maxBuffer: 5 * 1024, // Maximum size for the internal TeX string (5K).
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<!--
+  Define common LaTeX commands.
+
+  Each command must be wrapped with $ signs.
+  We use "display: none;" to avoid redudant whitespaces.
+ -->
+
+<p style="display: none;">
+  <!-- Fields. -->
+  $\newcommand{\field}[1]{\mathbb{#1}}$
+  <!-- Natural number set. -->
+  $\providecommand{\N}{}$
+  $\renewcommand{\N}{\field{N}}$
+  <!-- Rational field. -->
+  $\providecommand{\Q}{}$
+  $\renewcommand{\Q}{\field{Q}}$
+  <!-- Real field. -->
+  $\providecommand{\R}{}$
+  $\renewcommand{\R}{\field{R}}$
+  <!-- Integer set. -->
+  $\providecommand{\Z}{}$
+  $\renewcommand{\Z}{\field{Z}}$
+  <!-- Parenthese. -->
+  $\providecommand{\pa}{}$
+  $\renewcommand{\pa}[1]{\left\lparen #1 \right\rparen}$
+  <!-- Bracket. -->
+  $\providecommand{\br}{}$
+  $\renewcommand{\br}[1]{\left\lbrack #1 \right\rbrack}$
+  <!-- Set. -->
+  $\providecommand{\set}{}$
+  $\renewcommand{\set}[1]{\left\lbrace #1 \right\rbrace}$
+  <!-- Absolute value. -->
+  $\providecommand{\abs}{}$
+  $\renewcommand{\abs}[1]{\left\lvert #1 \right\rvert}$
+  <!-- Norm. -->
+  $\providecommand{\norm}{}$
+  $\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}$
+  <!-- Floor. -->
+  $\providecommand{\floor}{}$
+  $\renewcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}$
+  <!-- Ceiling. -->
+  $\providecommand{\ceil}{}$
+  $\renewcommand{\ceil}[1]{\left\lceil #1 \right\rceil}$
+  <!-- Evaluate. -->
+  $\providecommand{\eval}{}$
+  $\renewcommand{\eval}[1]{\left. #1 \right\rvert}$
+  <!-- Partial derivative. -->
+  $\providecommand{\pd}{}$
+  $\renewcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}$
+  <!-- Sign function. -->
+  $\DeclareMathOperator{\sign}{sign}$
+  <!-- Diagonal function. -->
+  $\DeclareMathOperator{\diag}{diag}$
+  <!-- Argmax. -->
+  $\DeclareMathOperator*{\argmax}{argmax}$
+  <!-- Argmin. -->
+  $\DeclareMathOperator*{\argmin}{argmin}$
+  <!-- Limit in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Lim}{}$
+  $\renewcommand{\Lim}{\lim\limits}$
+  <!-- Product in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Prod}{}$
+  $\renewcommand{\Prod}{\prod\limits}$
+  <!-- Sum in display mode.  This should only be used in inline mode. -->
+  $\providecommand{\Sum}{}$
+  $\renewcommand{\Sum}{\sum\limits}$
+
+  <!-- NN related operations. -->
+  <!-- Softmax. -->
+  $\DeclareMathOperator{\softmax}{softmax}$
+  <!-- Concatenate. -->
+  $\DeclareMathOperator{\cat}{concatenate}$
+
+  <!-- Algorithm related tools. -->
+  <!-- Procedure statement. -->
+  $\providecommand{\algoProc}{}$
+  $\renewcommand{\algoProc}[1]{\textbf{procedure}\text{ #1}}$
+  $\providecommand{\algoEndProc}{}$
+  $\renewcommand{\algoEndProc}{\textbf{end procedure}}$
+  <!-- If statement. -->
+  $\providecommand{\algoIf}{}$
+  $\renewcommand{\algoIf}[1]{\textbf{if } #1 \textbf{ do}}$
+  $\providecommand{\algoEndIf}{}$
+  $\renewcommand{\algoEndIf}{\textbf{end if}}$
+  <!-- Assignment -->
+  $\providecommand{\algoEq}{}$
+  $\renewcommand{\algoEq}{\leftarrow}$
+  <!-- For statement. -->
+  $\providecommand{\algoFor}{}$
+  $\renewcommand{\algoFor}[1]{\textbf{for } #1 \textbf{ do}}$
+  $\providecommand{\algoEndFor}{}$
+  $\renewcommand{\algoEndFor}{\textbf{end for}}$
+  <!-- While statement. -->
+  $\providecommand{\algoWhile}{}$
+  $\renewcommand{\algoWhile}[1]{\textbf{while } #1 \textbf{ do}}$
+  $\providecommand{\algoEndWhile}{}$
+  $\renewcommand{\algoEndWhile}{\textbf{end while}}$
+  <!-- Return statement. -->
+  $\providecommand{\algoReturn}{}$
+  $\renewcommand{\algoReturn}{\textbf{return }}$
+
+  <!-- Some wierd symbols cannot be showed correctly. -->
+  $\providecommand{\hash}{}$
+  $\renewcommand{\hash}{\unicode{35}}$
+
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目標</td>
+      <td>嘗試以 LSTM 進行字典範圍較大的語音辨識</td>
+    </tr>
+    <tr>
+      <td>作者</td>
+      <td>Hasim Sak, Andrew W. Senior, Françoise Beaufays</td>
+    </tr>
+    <tr>
+      <td>隸屬單位</td>
+      <td>Google</td>
+    </tr>
+    <tr>
+      <td>期刊/會議名稱</td>
+      <td>arXiv</td>
+    </tr>
+    <tr>
+      <td>發表時間</td>
+      <td>2014</td>
+    </tr>
+    <tr>
+      <td>論文連結</td>
+      <td><a href="https://research.google/pubs/pub43895/">https://research.google/pubs/pub43895/</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="section">重點</h2>
+
+<ul>
+  <li>此篇論文被 ICASSP reject，因為頁數太少（含 reference 只有 5 頁）
+    <ul>
+      <li>這篇論文真的就只跑兩個實驗</li>
+      <li>後續作品為<a href="https://research.google/pubs/pub43905/">這篇</a></li>
+    </ul>
+  </li>
+  <li>此論文實驗結果說明 LSTM 可以套用到字典量大的語音辨識
+    <ul>
+      <li>字典量大代表對應的 phoneme states 變多，真正的難題是如何將輸入特徵對應到 phoneme states</li>
+      <li>過去使用傳統 RNN 模型的論文只能在字典量小的語音辨識資料集上表現不錯</li>
+      <li>使用作者提出的 LSTM 架構可以達到語音辨識的 SOTA，原本的 LSTM 架構（這裡指的是 <a href="https://www.jmlr.org/papers/v3/gers02a.html">LSTM-2002</a>）則無法超越單純使用 DNN 的表現</li>
+      <li>作者提出的 LSTM 架構主要在減少參數數量，參數數量比單純使用 feed-forward 架構的模型少 $2$ 到 $3$ 倍</li>
+    </ul>
+  </li>
+  <li>為了使用 LSTM 進行大規模的平行化訓練，修改了 LSTM 架構讓訓練更有效率
+    <ul>
+      <li>不需要使用 Connectionist Temporal Classifier （CTC） 或 RNN transducer 等架構</li>
+      <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html">PyTorch 實作的 LSTM</a> 宣稱是參考此篇論文，但實際上實作的卻是 <a href="https://direct.mit.edu/neco/article-abstract/12/10/2451/6415/Learning-to-Forget-Continual-Prediction-with-LSTM">LSTM-2000</a> 的架構</li>
+      <li>此篇論文是基於 <a href="https://www.jmlr.org/papers/v3/gers02a.html">LSTM-2002</a> 的架構進行改良</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-1">模型架構</h2>
+
+<h3 id="lstm">原版 LSTM</h3>
+
+<p>假設 LSTM 的記憶單元（memory block）維度為 $1$（one cell in each memory block），共有 $n_c$ 個記憶單元，$n_i$ 個輸入單元，$n_o$ 個輸出單元，則 LSTM 總參數量（不含 bias）為（細節可見<a href="https://www.jmlr.org/papers/v3/gers02a.html">我的筆記</a>）</p>
+
+\[W = n_c \times n_c \times 4 + n_i \times n_c \times 4 + n_c \times n_o + n_c \times 3 \tag{1}\label{1}\]
+
+<ul>
+  <li>$n_c \times n_c \times 4$：記憶單元輸出以全連接的形式連接到記憶單元輸入、遺忘閘門、輸入閘門與輸出閘門</li>
+  <li>$n_i \times n_c \times 4$：外部輸入以全連接的形式連接到記憶單元輸入、遺忘閘門、輸入閘門與輸出閘門</li>
+  <li>$n_c \times n_o$：記憶單元輸出以全連接的形式連接到總輸出</li>
+  <li>$n_c \times 3$：peephole connections</li>
+</ul>
+
+<p>由於 LSTM 使用 truncated RTRL，因此每個時間點以隨機梯度下降法（stochastic gradient descent，SGD）進行參數最佳化的時間複雜度為 $O(W)$。</p>
+
+<p>當輸入維度 $n_i$ 較小時，時間複雜度的主要貢獻來自於 $n_c \times (n_c + n_o)$。
+在輸出預測範圍較大（字典範圍較大）或需要大量記憶容量（$n_c$ 較大時）的狀況下，模型的最佳化時間複雜度變高，計算成本大幅提升。
+因此此論文提出想要將 LSTM 的複雜度降低成 $n_r \times (n_c + n_o)$，其中 $n_r \ll n_c$，$n_r$ 的定義在後面的文章段落中進行描述。</p>
+
+<p>首先我們定義這篇論文使用的符號</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>符號</th>
+      <th>意義</th>
+      <th>維度</th>
+      <th>備註</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$T$</td>
+      <td>輸入序列的總長度</td>
+      <td> </td>
+      <td>$T \in \N$</td>
+    </tr>
+    <tr>
+      <td>$t$</td>
+      <td>輸入序列的時間點</td>
+      <td> </td>
+      <td>$t = 1, \dots, T$</td>
+    </tr>
+    <tr>
+      <td>$x_t$</td>
+      <td>第 $t$ 個時間點的<strong>輸入</strong></td>
+      <td>$n_i$</td>
+      <td>$x = (x_1, \dots, x_T)$</td>
+    </tr>
+    <tr>
+      <td>$f_t$</td>
+      <td>第 $t$ 個時間點的<strong>遺忘閘門</strong></td>
+      <td>$n_c$</td>
+      <td>$f_0 = 0$</td>
+    </tr>
+    <tr>
+      <td>$i_t$</td>
+      <td>第 $t$ 個時間點的<strong>輸入閘門</strong></td>
+      <td>$n_c$</td>
+      <td>$i_0 = 0$</td>
+    </tr>
+    <tr>
+      <td>$o_t$</td>
+      <td>第 $t$ 個時間點的<strong>輸出閘門</strong></td>
+      <td>$n_c$</td>
+      <td>$o_0 = 0$</td>
+    </tr>
+    <tr>
+      <td>$c_t$</td>
+      <td>第 $t$ 個時間點<strong>記憶單元內部狀態</strong></td>
+      <td>$n_c$</td>
+      <td>$c_0 = 0$</td>
+    </tr>
+    <tr>
+      <td>$m_t$</td>
+      <td>第 $t$ 個時間點<strong>記憶單元輸出</strong></td>
+      <td>$n_c$</td>
+      <td>$m_0 = 0$</td>
+    </tr>
+    <tr>
+      <td>$y_t$</td>
+      <td>第 $t$ 個時間點的<strong>輸出</strong></td>
+      <td>$n_o$</td>
+      <td>$y = (y_1, \dots, y_T)$</td>
+    </tr>
+    <tr>
+      <td>$W_{i x}$</td>
+      <td>連接外部輸入與輸入閘門的參數</td>
+      <td>$n_c \times n_i$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$W_{i m}$</td>
+      <td>連接記憶單元輸出與輸入閘門的參數</td>
+      <td>$n_c \times n_c$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$W_{i c}$</td>
+      <td>連接記憶單元內部狀態與輸入閘門的參數</td>
+      <td>$n_c$</td>
+      <td>peephole connections</td>
+    </tr>
+    <tr>
+      <td>$b_i$</td>
+      <td>輸入閘門的偏差項</td>
+      <td>$n_c$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$W_{f x}$</td>
+      <td>連接外部輸入與遺忘閘門的參數</td>
+      <td>$n_c \times n_i$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$W_{f m}$</td>
+      <td>連接記憶單元輸出與遺忘閘門的參數</td>
+      <td>$n_c \times n_c$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$W_{f c}$</td>
+      <td>連接記憶單元內部狀態與遺忘閘門的參數</td>
+      <td>$n_c$</td>
+      <td>peephole connections</td>
+    </tr>
+    <tr>
+      <td>$b_f$</td>
+      <td>遺忘閘門的偏差項</td>
+      <td>$n_c$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$W_{o x}$</td>
+      <td>連接外部輸入與輸出閘門的參數</td>
+      <td>$n_c \times n_i$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$W_{o m}$</td>
+      <td>連接記憶單元輸出與輸出閘門的參數</td>
+      <td>$n_c \times n_c$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$W_{o c}$</td>
+      <td>連接記憶單元內部狀態與輸出閘門的參數</td>
+      <td>$n_c$</td>
+      <td>peephole connections</td>
+    </tr>
+    <tr>
+      <td>$b_o$</td>
+      <td>輸出閘門的偏差項</td>
+      <td>$n_c$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$W_{c x}$</td>
+      <td>連接外部輸入與記憶單元輸入的參數</td>
+      <td>$n_c \times n_i$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$W_{c m}$</td>
+      <td>連接記憶單元輸出與記憶單元輸入的參數</td>
+      <td>$n_c \times n_c$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$b_c$</td>
+      <td>記憶單元輸入的偏差項</td>
+      <td>$n_c$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$W_{y m}$</td>
+      <td>連接記憶單元輸出與總輸出的參數</td>
+      <td>$n_o \times n_c$</td>
+      <td>全連接</td>
+    </tr>
+    <tr>
+      <td>$b_y$</td>
+      <td>總輸出的偏差項</td>
+      <td>$n_o$</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>$\sigma$</td>
+      <td>sigmoid 函數</td>
+      <td>$\sigma(x) = \frac{1}{1 + e^{-x}}$</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>得到 $t$ 時間點的外部輸入時可以計算 $t$ 時間點的遺忘閘門 $f_t$ 與輸入閘門 $i_t$</p>
+
+\[\begin{align*}
+i_t &amp; = \sigma(W_{i x} \cdot x_t + W_{i m} \cdot m_{t - 1} + W_{i c} \odot c_{t - 1} + b_i) \\
+f_t &amp; = \sigma(W_{f x} \cdot x_t + W_{f m} \cdot m_{t - 1} + W_{f c} \odot c_{t - 1} + b_f)
+\end{align*} \tag{2}\label{2}\]
+
+<p>注意：論文不小心把 peephole connections 寫成全連接，因此 $W_{i c} \cdot c_{t - 1}$ 要改成 $W_{i c} \odot c_{t - 1}$，同理 $W_{f c} \cdot c_{t - 1}$ 要改成 $W_{f c} \odot c_{t - 1}$。</p>
+
+<p>接著產生 $t$ 時間點的記憶單元內部狀態 $c_t$</p>
+
+\[c_t = f_t \odot c_{t - 1} + i_t \odot \tanh(W_{c x} \cdot x_t + W_{c m} \cdot m_{t - 1} + b_c) \tag{3}\label{3}\]
+
+<p>利用 $t - 1$ 時間點的記憶單元輸出 $m_{t - 1}$ 加上 $t$ 時間點的外部輸入 $x_t$ 與記憶單元內部狀態 $c_t$ 更新 $t$ 時間點的輸出閘門</p>
+
+\[o_t = \sigma(W_{o x} \cdot x_t + W_{o m} \cdot m_{t - 1} + W_{o c} \odot c_t + b_o) \tag{4}\label{4}\]
+
+<p>注意：論文不小心把 peephole connections 寫成全連接，因此 $W_{o c} \cdot c_t$ 要改成 $W_{o c} \odot c_t$。</p>
+
+<p>接著可以計算 $t$ 時間點的記憶單元輸出 $m_t$</p>
+
+\[m_t = o_t \odot \tanh(c_t) \tag{5}\label{5}\]
+
+<p>最後利用 $t$ 時間點的記憶單元輸出 $m_t$ 計算 $t$ 時間點的總輸出 $y_t$</p>
+
+\[y_t = W_{y m} \cdot m_t + b_y \tag{6}\label{6}\]
+
+<p>注意 LSTM 的總輸出沒有使用啟發函數。</p>
+
+<h3 id="lstm-1">改版 LSTM</h3>
+
+<p><a name="paper-fig-1"></a></p>
+
+<p>圖 1：改版 LSTM 架構。
+圖片來源：<a href="https://research.google/pubs/pub43895/">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/Oz7AHYQ.png" alt="圖 1" /></p>
+
+<p>為了降低計算的時間複雜度，作者提出了對 $m_t$ 進行降低維度的概念。</p>
+
+<p>以 $r_t$ 代表降維後的 $m_t$，$r_t$ 的維度為 $n_r$，協助降維的參數為 $W_{r m}$，將 $\eqref{2} \eqref{3} \eqref{4}$ 中的 $m_t$ 改為 $r_t$</p>
+
+\[\begin{align*}
+i_t &amp; = \sigma(W_{i x} \cdot x_t + W_{i r} \cdot r_{t - 1} + W_{i c} \odot c_{t - 1} + b_i) \\
+f_t &amp; = \sigma(W_{f x} \cdot x_t + W_{f r} \cdot r_{t - 1} + W_{f c} \odot c_{t - 1} + b_f) \\
+c_t &amp; = f_t \odot c_{t - 1} + i_t \odot \tanh(W_{c x} \cdot x_t + W_{c r} \cdot r_{t - 1} + b_c) \\
+o_t &amp; = \sigma(W_{o x} \cdot x_t + W_{o r} \cdot r_{t - 1} + W_{o c} \odot c_t + b_o)
+\end{align*} \tag{7}\label{7}\]
+
+<p>而 $\eqref{5}$ 的計算方法不變，得到 $\eqref{5}$ 我們使用 $W_{r m}$ 進行降維的動作</p>
+
+\[r_t = W_{r m} \cdot m_t \tag{8}\label{8}\]
+
+<p>最後計算總輸出的式子 $\eqref{6}$ 改為</p>
+
+\[y_t = W_{y r} \cdot r_t + b_y \tag{9}\label{9}\]
+
+<p>由於 $n_r &lt; n_c$，將 $W_{\star m}$ 改成 $W_{\star r}$ 之後維度從 $n_c \times n_c$ 降維 $n_c \times n_r$，模型的總參數量（不含 bias）變成</p>
+
+\[W = n_c \times n_i \times 4 + n_c \times n_r \times 4 + n_c \times 3 + n_r \times n_c + n_o \times n_r \tag{10}\label{10}\]
+
+<p>當輸入維度 $n_i$ 較小時，時間複雜度的主要貢獻來自於 $n_r \times (n_c + n_o)$。</p>
+
+<p>作者認為可以額外加上一些非遞迴單元 $p_t$，在不增加遞迴計算的維度下讓與輸出層相接的隱藏層維度稍微增加一些。</p>
+
+<p>令 $p_t$ 的維度為 $n_p$，我們額外定義新的參數 $W_{p m}$，並使用記憶單元輸出 $m_t$ 計算 $p_t$</p>
+
+\[p_t = W_{p m} \cdot m_t \tag{11}\label{11}\]
+
+<p>最後將 $\eqref{9}$ 修改為</p>
+
+\[y_t = W_{y r} \cdot r_t + W_{y p} \cdot p_t + b_y \tag{12}\label{12}\]
+
+<p>注意 $r_t$ 與 $p_t$ 不同，$r_t$ 有參與遞迴的過程，$p_t$ 並沒有參與遞迴的過程。</p>
+
+<p>在加入 $p_t$ 後參數的數量變成</p>
+
+\[W = n_c \times n_i \times 4 + n_c \times n_r \times 4 + n_c \times 3 + (n_r + n_p) \times n_c + n_o \times (n_r + n_p) \tag{13}\label{13}\]
+
+<h3 id="section-2">實作</h3>
+
+<ul>
+  <li>使用 CPU 而不是 GPU
+    <ul>
+      <li>使用 CPU 方便 debug</li>
+      <li>當時的環境是 Google 有大量 CPU 叢集節點（clustering node），但沒有 GPU 叢集節點</li>
+      <li>這是 2014 年的論文，還沒有 tensorflow 可以用，所以這個選擇可以理解</li>
+    </ul>
+  </li>
+  <li>使用 <a href="http://eigen.tuxfamily.org">Eigen</a> 函式庫進行矩陣計算
+    <ul>
+      <li>版本為 <code class="language-plaintext highlighter-rouge">v3</code></li>
+      <li>支援 C++</li>
+      <li>支援 SIMD 平行化指令</li>
+    </ul>
+  </li>
+  <li>使用非同步梯度下降（Asynchronous Stochastic Gradient Descent，ASGD）演算法進行最佳化</li>
+  <li>因為有多層 LSTM，使用 truncated BPTT 進行最佳化
+    <ul>
+      <li>注意不是採用<a href="https://ieeexplore.ieee.org/abstract/document/6795963">原始 LSTM</a> 論文中的 truncated RTRL</li>
+      <li>每 $20$ 個時間點進行一次 BPTT</li>
+      <li>每 $20$ 個時間點的計算狀態會保留給下一次 $20$ 個時間點當成計算初始狀態</li>
+      <li>一個 batch 會由長度為 $20$ 個時間點的序列組成</li>
+      <li>一個 batch 中比較短的序列會以 padding 補齊，並且在下一個 batch 中替換成其他輸入序列，對應的計算狀態都會初始化</li>
+    </ul>
+  </li>
+  <li>最佳化目標為 cross entropy</li>
+</ul>
+
+<h2 id="section-3">實驗設計</h2>
+
+<ul>
+  <li>實驗資料集為 Google English Voice Search task，非公開資料集</li>
+  <li>實驗的比較對象為 DNN 與 RNN
+    <ul>
+      <li>所有模型都訓練在 $3$ 百萬筆的語音資料集上，長度共 $1900$ 小時</li>
+      <li>所有資料都有去識別化</li>
+    </ul>
+  </li>
+  <li>資料前處理
+    <ul>
+      <li>每筆資料共有 $25$ 毫秒</li>
+      <li>每筆資料一幀為 $10$ 毫秒</li>
+      <li>每幀都使用 log-filterbank 將頻率進行特徵提取（phonemes），取 40 個維度當作特徵</li>
+      <li>額外訓練了一個共有 $90$ M 參數的 feed-forward neural network（FFNN）進行輸入特徵與狀態對齊（states alignment），總共定義了 $14247$ 個前後文相依狀態（context dependent states，CD）</li>
+    </ul>
+  </li>
+  <li>將總共 $14247$ 個狀態減少成三種不同數量的狀態進行實驗
+    <ul>
+      <li>前後文無關狀態（context independent states，CI）：共有 $126$ 個狀態，每 $3$ 個 phonemes 組成一個狀態，共有 $42$ 種不同的 phonemes</li>
+      <li>使用事先定義好的 phonemes 等價關係將狀態分別減少至 $8000$ 與 $2000$，仍為 CD 狀態</li>
+    </ul>
+  </li>
+  <li>標記資料為每個 $40$ 維的 feature 對應到的 phoneme state
+    <ul>
+      <li>模型每個時間點的輸入至少為 $40$ 維（對應到 $n_i$）</li>
+      <li>模型每個時間點的輸出為對應到的狀態（對應到 $n_o$）</li>
+    </ul>
+  </li>
+  <li>每個實驗設置都採用各自最適合的 learning rate（hyperparameter tuning），並對 learning rate 使用 expenentially decay</li>
+  <li>評估方法
+    <ul>
+      <li>驗證資料（development set）有 $200000$ 幀，針對每一幀中所有的 state 進行準確率（accuracy）的計算，稱為 frame accuracy</li>
+      <li>測試資料（test set）有 $23000$ 幀，計算文字辨識錯誤率（word error rates）
+        <ul>
+          <li>需要額外擁有一個 language model 進行狀態到文字的轉換</li>
+          <li>所有實驗共用相同的 language model，字典大小為 $2.6$ M</li>
+          <li>這裡的假設為：當模型能夠將輸入特徵與狀態對齊成功時，後續的 language model 就會自然產出正確的辨識文字結果</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="dnn-">DNN 實驗設計</h3>
+
+<ul>
+  <li>batch size = $200$ 幀</li>
+  <li>使用 GPU 進行訓練</li>
+  <li>模型採用全連接架構，隱藏層都使用 sigmoid 作為 activation function，輸出使用 softmax 進行 normalization</li>
+  <li>輸入共包含 $3$ 個部份
+    <ul>
+      <li>當前幀數：$1$</li>
+      <li>未來幀數：$5$</li>
+      <li>過去幀數：$10$ 或 $16$，分別標記為 <code class="language-plaintext highlighter-rouge">10w5</code> 與 <code class="language-plaintext highlighter-rouge">16w5</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="rnn-">RNN 實驗設計</h3>
+
+<ul>
+  <li>使用 ASGD 進行最佳化</li>
+  <li>使用 CPU 進行訓練，一個 CPU 使用 $24$ 的 threads，只使用一個 CPU
+    <ul>
+      <li>使用 data parallel 的概念，每個 thread 計算 $4$ 到 $8$ 筆序列資料</li>
+      <li>使用 truncated BPTT，一次只計算 $20$ 個 time steps</li>
+    </ul>
+  </li>
+  <li>RNN 的非遞迴隱藏層使用 sigmoid activation，遞迴的隱藏層不使用 activation function</li>
+  <li>LSTM 架構請參考 $\eqref{7} \eqref{8} \eqref{11} \eqref{12}$</li>
+  <li>由於未來時間的資訊有助於提升預測的準確度，因此模型預測會在延遲 $5$ 幀後開始輸出
+    <ul>
+      <li>ex: 第 $0$ 幀到第 $4$ 幀輸入完後預測第 $0$ 幀的 $40$ 維特徵所對應到的狀態</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-4">實驗 1：驗證資料的表現結果</h2>
+
+<p><a name="paper-fig-2"></a></p>
+
+<p>圖 2：在 $n_o = 126$ 時的驗證資料的表現結果。
+圖片來源：<a href="https://research.google/pubs/pub43895/">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/qjEOPv9.png" alt="圖 2" /></p>
+
+<p><a name="paper-fig-3"></a></p>
+
+<p>圖 3：在 $n_o = 2000$ 時的驗證資料的表現結果。
+圖片來源：<a href="https://research.google/pubs/pub43895/">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/II30qkv.png" alt="圖 3" /></p>
+
+<p><a name="paper-fig-4"></a></p>
+
+<p>圖 4：在 $n_o = 8000$ 時的驗證資料的表現結果。
+圖片來源：<a href="https://research.google/pubs/pub43895/">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/Fq8vYNQ.png" alt="圖 4" /></p>
+
+<ul>
+  <li>圖中的實驗名稱包含架構資訊
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">c2048</code> 代表 $n_c = 2048$</li>
+      <li><code class="language-plaintext highlighter-rouge">r512</code> 代表 $n_r = 512$</li>
+      <li><code class="language-plaintext highlighter-rouge">p256</code> 代表 $n_p = 256$</li>
+      <li><code class="language-plaintext highlighter-rouge">10w5_6_704</code> 代表輸入包含過去 $10$ 幀與未來 $5$ 幀，隱藏層有 $6$ 層，每個隱藏層維度為 $704$</li>
+      <li><code class="language-plaintext highlighter-rouge">lr_256</code> 代表故意降維成 $256$ 維的全連接層，目的是為了和 LSTM 公平的比較</li>
+      <li>括號中的數字代表總參數量</li>
+    </ul>
+  </li>
+  <li>RNN 在 $n_o = 126$ 時表現已經比 DNN 與 LSTM 差，因此後續實驗不討論 RNN
+    <ul>
+      <li>在訓練過程作者發現 RNN 非常不穩定，必須要額外進行 gradients clipping 確保不會產生 gradient explosion</li>
+    </ul>
+  </li>
+  <li>LSTM 表現最好而且收斂速度最快
+    <ul>
+      <li>在採用作者提出的架構下，使用 projection 的 LSTM 比原本 LSTM 表現還要好，使用的參數也比較少</li>
+      <li>在採用 $n_p &gt; 0$ 的架構下，大部份實驗都比 $n_p = 0$ 的架構表現還要好，唯一的例外是<a href="#paper-fig-2">圖 3</a> 的實驗，作者認為是 learning rate 不小心調的太小</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-5">實驗 2：測試資料的表現結果</h2>
+
+<p><a name="paper-fig-5"></a></p>
+
+<p>圖 5：在 $n_o = 126$ 時的測試資料的表現結果。
+圖片來源：<a href="https://research.google/pubs/pub43895/">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/H4omLt0.png" alt="圖 5" /></p>
+
+<p><a name="paper-fig-6"></a></p>
+
+<p>圖 6：在 $n_o = 2000$ 時的測試資料的表現結果。
+圖片來源：<a href="https://research.google/pubs/pub43895/">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/xJpYoZY.png" alt="圖 6" /></p>
+
+<p><a name="paper-fig-7"></a></p>
+
+<p>圖 7：在 $n_o = 8000$ 時的測試資料的表現結果。
+圖片來源：<a href="https://research.google/pubs/pub43895/">論文</a>。</p>
+
+<p><img src="https://i.imgur.com/3rG7mzq.png" alt="圖 7" /></p>
+
+<ul>
+  <li>作者說有些模型還沒完全收斂，他會更新實驗結果，很顯然他忘記了</li>
+  <li>簡單來說作者提出的 LSTM 架構就是表現比較好
+    <ul>
+      <li>如果使用 <a href="https://www.jmlr.org/papers/v3/gers02a.html">LSTM-2002</a> 而不是作者的架構，則表現會比 DNN 還差</li>
+      <li>單純的增加 DNN 的層數也可以讓表現變好</li>
+    </ul>
+  </li>
+</ul>
+
+
+
+<!-- Avoid copy by China, method 1. -->
+<script>
+  console.log(`
+台.灣.獨.立.香.港.獨.立.西.藏.獨.立.新.疆.獨.立.內.蒙.古.獨.立.......
+..... ... ................:fffffLt.............一.九.八.九.六.四
+... ,i111i;............. ;L111111LL....習.包.子.近.平.小.熊.維.尼
+...iLfttttff,  ..,::;;;;;Cftt11111C:...........中.國.武.漢.肺.炎
+..;C1111111tf:ittfttttttttttfffft1L,..........................
+. ff11111111fCtt11111111111111ttfC1 ..........................
+. tf11111111ft11111111111111111111tt;. .......................
+..:L11111111t11111111111111111111111fti, .....................
+.. ;Lt11111111111111111111111111111111tCt:, ..................
+... ,tf111111111111111111tLLLt111111111LG00t..................
+.... 1f11111111111111111LGLtt1111111111111tLt.................
+....:f11111111111111111tf1111111111111111111t.................
+... 1f111111111111111111111111111111tt11111t,.................
+... tt111111111111111111111111111111L11LG11f:.................
+... tt111111111111111111111tGC111111Lt108111tti:..............
+... if111111111111111111111f8C111111ttttttfft1ttt,............
+....,f111111111111111111111111111111111fG0088C11tf............
+.....tt111111111111111111111111111111110@888@0111f; ..........
+.....,f111111111111111111111111111111111C000CL111Li ..........
+......;f11111111111111111111tt11111111111111ft111L,...........
+...... tt111111111111111111tfGf111111111111ff111L; ...........
+.....;fCt11111111111111111111f0Cft1111111fLt111Li ............
+.... fCCLftt111111111111111111fGGGCLLfLfff1111t; .............
+.....:CLLCCCCLLftt1111111111111tfLCGGG0L1111fL;...............
+..... LLLLLLLLLCCCLLftt1111111111ttffttt1ttCCLGf..............
+.... iCLLLLLLLLLLLLLCCCLLftt11111111tfffft1fGCC; .............
+... ;CLLLLLLLLLLLLCLLLLLLLCCLLLLLLffft1111tLGLL:,.. ..........
+...:GLLLLLLLLLLLLLCCCCCLLLLLLLLLCCLLLLLLLLCCLGGLLf1i:,. ......
+.. iCLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCLCCLLLCCCti. ....
+...iCLLLLLLLLLLLLLLLLLLLLCCCCLLLLLLLLLLLLLLLLLLCCLLLGCCCLi,...
+.. iCLLLLLLLLLLLLLLLLLLLLLLCCGCCCLLLLLLLLLLLLLLLCLLCGLCCCGCti,
+. :LLLLLLLLLLLLLLLLLLLLLLCLt111tffLLCCCCCLLLLLLLGCLGGCLftLCCCL
+.;CLLLLLLLLLLLLLLLLLLLLLCf11111111111tttffLLLLLLLLfLft111CCCCG
+;GLLLLLLLLLLCCLLLLLLLLLCt1111111111111111111111111111111111ttt
+.;CLLLLLLLLLLCCCLLLLLLCf11111111111111111111111111111111111111
+`)
+</script>
+
+<!-- Avoid copy by China, method 2. -->
+<!--
+台獨教父 Xi Jinping
+⣿⣿⣿⣿⣿⠟⠋⠄⠄⠄⠄⠄⠄⠄⢁⠈⢻⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⡀⠭⢿⣿⣿⣿⣿
+⣿⣿⣿⣿⡟⠄⢀⣾⣿⣿⣿⣷⣶⣿⣷⣶⣶⡆⠄⠄⠄⣿⣿⣿⣿
+⣿⣿⣿⣿⡇⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣇⣼⣿⣿⠿⠶⠙⣿⡟⠡⣴⣿⣽⣿⣧⠄⢸⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣾⣿⣿⣟⣭⣾⣿⣷⣶⣶⣴⣶⣿⣿⢄⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⡟⣩⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣹⡋⠘⠷⣦⣀⣠⡶⠁⠈⠁⠄⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⠃⣴⣶⡔⠒⠄⣠⢀⠄⠄⠄⡨⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣦⡘⠿⣷⣿⠿⠟⠃⠄⠄⣠⡇⠈⠻⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠟⠋⢁⣷⣠⠄⠄⠄⠄⣀⣠⣾⡟⠄⠄⠄⠄⠉⠙⠻
+⡿⠟⠋⠁⠄⠄⠄⢸⣿⣿⡯⢓⣴⣾⣿⣿⡟⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⠄⣿⡟⣷⠄⠹⣿⣿⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣸⣿⡷⡇⠄⣴⣾⣿⣿⠃⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⠄⣿⣿⠃⣦⣄⣿⣿⣿⠇⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+⠄⠄⠄⠄⠄⢸⣿⠗⢈⡶⣷⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄
+动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet
+六四天安門事件 The Tiananmen Square protests of 1989
+天安門大屠殺 The Tiananmen Square Massacre
+反右派鬥爭 The Anti-Rightist Struggle
+大躍進政策 The Great Leap Forward
+文化大革命 The Great Proletarian Cultural Revolution
+人權 Human Rights
+民運 Democratization
+自由 Freedom
+獨立 Independence
+多黨制 Multi-party system
+台灣 臺灣 Taiwan Formosa
+西藏 土伯特 唐古特 Tibet
+達賴喇嘛 Dalai Lama
+法輪功 Falun Dafa
+新疆維吾爾自治區 The Xinjiang Uyghur Autonomous Region
+諾貝爾和平獎 Nobel Peace Prize
+劉暁波 Liu Xiaobo
+民主 言論 思想 反共 反革命 抗議 運動 騷亂 暴亂 騷擾 擾亂 抗暴 平反 維權 示威游行 李洪志
+法輪大法 大法弟子 強制斷種 強制堕胎 民族淨化 人體實驗 肅清 胡耀邦 趙紫陽 魏京生 王丹
+還政於民 和平演變 激流中國 北京之春 大紀元時報 九評論共産黨 獨裁 專制 壓制 統一 監視 鎮壓
+迫害 侵略 掠奪 破壞 拷問 屠殺 活摘器官 誘拐 買賣人口
+Winnie the Pooh
+-->
+
+    </div>
+
+</article>
+<div class="post-nav"><a class="previous" href="/general%20sequence%20modeling/2021/12/29/learning-precise-timing-with-lstm-recurrent-networks.html" title="Learning Precise Timing with LSTM Recurrent Networks">Learning Precise Timing with LSTM Recurrent...</a><a class="next" href="/acoustic%20modeling/2022/03/01/long-short-term-memory-recurrent-neural-network-architectures-for-large-scale-acoustic-modeling.html" title="Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling">Long Short-Term Memory Recurrent Neural Network...</a></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/general%20sequence%20modeling/2021/11/30/local-feedback-multilayered-networks.html" title="Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling">Local Feedback Multilayered Networks</a></li><li><a class="post-link" href="/general%20sequence%20modeling/2021/12/13/learning-to-forget-continual-prediction-with-lstm.html" title="Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling">Learning to Forget: Continual Prediction with LSTM</a></li><li><a class="post-link" href="/optimization/2021/12/07/learning-representations-by-backpropagating-errors.html" title="Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling">Learning representations by back-propagating errors</a></li><li><a class="post-link" href="/acoustic%20modeling/2022/03/01/long-short-term-memory-recurrent-neural-network-architectures-for-large-scale-acoustic-modeling.html" title="Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling">Long Short-Term Memory Recurrent Neural Network Architectures for Large Scale Acoustic Modeling...</a></li></ul>
+    </div><div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><!-- Copy right part has some bugs, so I replace it with my own footer.
+  Code source: https://github.com/jeffreytse/jekyll-theme-yat/blob/0fea688977e16c1f1f42c23b36b14ed325ee606b/_includes/views/footer.html
+-->
+<footer class="site-footer h-card">
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div>Copyright (c) 2021-<span id='current-year'>2021</span>
+        <a href='https://github.com/ProFatXuanAll'>ProFatXuanAll</a>
+      </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div>Opinions expressed are solely my own and do not express the views or opinions of my university or my lab.
+      </div>
+    </div>
+  </div>
+  <!-- Calculate full year at runtime. -->
+  <script>
+    document.getElementById('current-year').innerHTML = (new Date(Date.now())).getFullYear()
+  </script>
+</footer></body>
+</html>
