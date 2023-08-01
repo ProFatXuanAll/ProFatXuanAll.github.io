@@ -6,10 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'ProFatXuanAll.github.io'
+project = "ProFatXuanAll's blog"
 copyright = '2023, ProFatXuanAll'
 author = 'ProFatXuanAll'
-release = '0.0.1'
+release = ''
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

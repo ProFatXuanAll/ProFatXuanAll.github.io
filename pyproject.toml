@@ -1,6 +1,6 @@
 [project]
-name = "ProFatXuanAll.github.io"
-version = "0.0.1"
+name = ""
+version = ""
 description = ""
 authors = [{ name = "ProFatXuanAll", email = "ProFatXuanAll@gmail.com" }]
 dependencies = [
@@ -34,9 +34,9 @@ lint = { composite = ["py.lint", "ipynb.lint"] }
 "ipynb.lint" = { composite = ["ipynb.lint.ruff", "ipynb.lint.yapf"] }
 "ipynb.lint.ruff" = "nbqa ruff --fix . --ignore T201"
 "ipynb.lint.yapf" = "nbqa yapf -i -r ."
-doc = "sphinx-build -b html source build"
-doc-server = "sphinx-autobuild --watch . --open-browser source build"
-doc-coverage = "sphinx-build -b coverage source build"
+build = "sphinx-build -b html source build"
+build-coverage = "sphinx-build -b coverage source build"
+dev = "sphinx-autobuild --watch . --open-browser source build"
 
 [tool.ruff]
 allowed-confusables = []
