@@ -1,11 +1,12 @@
 =====
-About
+關於
 =====
 
-關於我
+我
 =======
 
-我曾經在國立成功大學 `智慧型知識管理實驗室 <IKMLab_>`_ 攻讀博士班，主要研究自然語言處理（Natural Language Processing）與深度學習（Deep Learning）演算法。
+台灣人。
+曾經在國立成功大學 `智慧型知識管理實驗室 <IKMLab_>`_ 攻讀博士班，主要研究自然語言處理（Natural Language Processing）與深度學習（Deep Learning）演算法。
 後來因為一些個人因素決定不繼續唸博士班，現在是個全職軟體工程師，職稱是 AI Engineer。
 
 基於研究需求與個人興趣，我花了不少時間研讀數學，甚至我的博士班後期都在學習數學 XD。
@@ -14,7 +15,7 @@ About
 - 實變數分析（Real Analysis），參考書籍為 Terence Tao 撰寫的 Analysis I and II，筆記連結見 `實變證明與筆記 <Tao-Analysis_>`_。
 - 線性代數（Linear Algebra），參考書籍為 Lawrence E. Spence and Stephen H. Friedberg 撰寫的 Linear Algebra，筆記連結見 `線代證明與筆記 <Spence-LA_>`_。
 
-關於這個網站
+這個網站
 ===============
 
 這個網站是用來搬移過去 `我在 HackMD <my-HackMD_>`_ 中所有的閱讀筆記。
