@@ -6,19 +6,19 @@
 =======
 
 台灣人。
-曾經在國立成功大學 `智慧型知識管理實驗室`_ 攻讀博士班，主要研究自然語言處理（Natural Language Processing）與深度學習（Deep Learning）演算法。
+曾經在國立成功大學\ `智慧型知識管理實驗室`_\ 攻讀博士班，主要研究自然語言處理（Natural Language Processing）與深度學習（Deep Learning）演算法。
 後來因為一些個人因素決定不繼續唸博士班，現在是個全職軟體工程師，職稱是 AI Engineer。
 
 基於研究需求與個人興趣，我花了不少時間研讀數學，甚至我的博士班後期都在學習數學 XD。
-你可以在 `我的 GitHub`_ 上找到我的閱讀筆記，內容包含：
+你可以在\ `我的 GitHub`_\ 上找到我的閱讀筆記，內容包含：
 
-- 實變數分析（Real Analysis），參考書籍為 Terence Tao 撰寫的 Analysis I and II，筆記連結見 `實變證明與筆記`_。
-- 線性代數（Linear Algebra），參考書籍為 Lawrence E. Spence and Stephen H. Friedberg 撰寫的 Linear Algebra，筆記連結見 `線代證明與筆記`_。
+- 實變數分析（Real Analysis），參考書籍為 Terence Tao 撰寫的 Analysis I and II，筆記連結見\ `實變證明與筆記`_\。
+- 線性代數（Linear Algebra），參考書籍為 Lawrence E. Spence and Stephen H. Friedberg 撰寫的 Linear Algebra，筆記連結見\ `線代證明與筆記`_\。
 
 這個網站
 ===============
 
-這個網站是用來搬移過去 `我的 HackMD`_ 中所有的閱讀筆記。
+這個網站是用來搬移過去\ `我的 HackMD`_ 中所有的閱讀筆記。
 由於 `HackMD`_ 在紀錄大量數學式時 `MathJax v2 <MathJax_>`_ 反應速度較慢（甚至會導致網頁直接無法反應），加上我撰寫筆記的數學內容含量較大，因此我無法繼續在 `HackMD`_ 上面繼續撰寫筆記，才決定自己建立個人筆記網站。
 
 考量到 `HackMD`_ 能夠達成以下功能：
