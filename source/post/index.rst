@@ -3,6 +3,6 @@
 ==============
 
 .. toctree::
+  :glob:
 
-  test1.rst
-  test2.rst
+  *

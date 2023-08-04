@@ -13,15 +13,9 @@ Hope these notes can help me and you one day and another!
 希望這些筆記能在某天幫上我的忙，還有你的忙！
 
 .. toctree::
+  :hidden:
+  :includehidden:
   :maxdepth: 1
-  :caption: Contents:
 
-  post/index.rst
-  about.rst
-
-Indices and tables
-==================
-
-- :ref:`genindex`
-- :ref:`modindex`
-- :ref:`search`
+  post/index
+  about
