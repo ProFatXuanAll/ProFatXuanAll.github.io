@@ -6,7 +6,7 @@ groups = ["default", "lint"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:6e20ef67bed60743e6307887d87391a2d3bd2ebacbb37340ee8fd668207d4b16"
+content_hash = "sha256:c6164e515dcf20ee6b4e688a96627939fa1ea8caec3910dad248fd16721b6d61"
 
 [[package]]
 name = "alabaster"
@@ -747,6 +747,19 @@ dependencies = [
 files = [
     {file = "sphinx-copybutton-0.5.2.tar.gz", hash = "sha256:4cf17c82fb9646d1bc9ca92ac280813a3b605d8c421225fd9913154103ee1fbd"},
     {file = "sphinx_copybutton-0.5.2-py3-none-any.whl", hash = "sha256:fb543fd386d917746c9a2c50360c7905b605726b9355cd26e9974857afeae06e"},
+]
+
+[[package]]
+name = "sphinx-inline-tabs"
+version = "2023.4.21"
+requires_python = ">=3.8"
+summary = "Add inline tabbed content to your Sphinx documentation."
+dependencies = [
+    "sphinx>=3",
+]
+files = [
+    {file = "sphinx_inline_tabs-2023.4.21-py3-none-any.whl", hash = "sha256:06809ac613f7c48ddd6e2fa588413e3fe92cff2397b56e2ccf0b0218f9ef6a78"},
+    {file = "sphinx_inline_tabs-2023.4.21.tar.gz", hash = "sha256:5df2f13f602c158f3f5f6c509e008aeada199a8c76d97ba3aa2822206683bebc"},
 ]
 
 [[package]]
