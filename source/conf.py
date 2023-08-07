@@ -35,7 +35,7 @@ extensions = [
   'sphinx.ext.todo',
   # 3rd party extensions.
   'sphinx_copybutton',
-  'sphinx_inline_tabs',
+  'sphinx_design',
   'sphinxcontrib.bibtex',
 ]
 keep_warnings = True
