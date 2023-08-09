@@ -106,12 +106,28 @@ intersphinx_mapping = {
 #######################################################################################################################
 # Configuration for `sphinx.ext.mathjax`.
 # See https://www.sphinx-doc.org/en/master/usage/extensions/math.html#sphinx-ext-mathjax-render-math-via-javascript
-# for details.
+# and https://docs.mathjax.org/en/latest/index.html for details.
 #######################################################################################################################
-# Customize latex commands.
 mathjax3_config = {
+  # Explicitly loads components.
+  # See https://docs.mathjax.org/en/latest/input/tex/extensions.html#configuring-tex-extensions for details.
+  # Note that we use `tex-mml-chtml` component script, which means we do not need to load the following extensions:
+  # `ams`, `autoload`, `configmacros`, `newcommand`, `require`, `noundefined`.
+  # See https://docs.mathjax.org/en/latest/web/components/combined.html#tex-mml-chtml-component for details.
+  'loader':
+    {
+      'load': [
+        '[tex]/braket',
+        '[tex]/cancel',
+        '[tex]/centernot',
+        '[tex]/color',
+        '[tex]/mathtools',
+        '[tex]/physics',
+      ],
+    },
   'tex':
     {
+      # Customize mathjax macros.
       'macros':
         {
           'ElmanNet': r'\operatorname{ElmanNet}',
@@ -168,7 +184,25 @@ mathjax3_config = {
           'pos': r'\operatorname{pos}',
           'sof': [r'\operatorname{softmax}\pa{#1}', 1],
           'sz': [r'\operatorname{size}\pa{#1}', 1],
-        }
+        },
+      # Explicitly includes extensions.
+      # See https://docs.mathjax.org/en/latest/input/tex/extensions.html#configuring-tex-extensions for details.
+      # Note that we use `tex-mml-chtml` component script, which means we do not need to load the following extensions:
+      # `ams`, `autoload`, `configmacros`, `newcommand`, `require`, `noundefined`.
+      # See https://docs.mathjax.org/en/latest/web/components/combined.html#tex-mml-chtml-component for details.
+      'packages': {
+        '[+]': [
+          'braket',
+          'cancel',
+          'centernot',
+          'color',
+          'mathtools',
+          'physics',
+        ],
+      },
+      # Use AMS numbering rule.
+      # See https://docs.mathjax.org/en/latest/input/tex/eqnumbers.html for details.
+      'tags': 'ams',
     }
 }
 # Don't change this line unless you want to upgrade `mathjax` dependency.
