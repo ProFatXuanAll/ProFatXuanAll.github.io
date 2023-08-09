@@ -22,7 +22,7 @@ lint = [
   "flake8>=6.1.0",
   "isort>=5.12.0",
   "nbqa>=1.7.0",
-  "ruff>=0.0.280",
+  "ruff>=0.0.283",
   "yapf>=0.40.1",
 ]
 
@@ -30,8 +30,8 @@ lint = [
 [tool.pdm.scripts]
 lint = { composite = ["py.lint", "ipynb.lint"] }
 "py.lint" = { composite = ["py.lint.ruff", "py.lint.yapf"] }
-"py.lint.ruff" = "ruff check --fix eda"
-"py.lint.yapf" = "yapf -i -r eda"
+"py.lint.ruff" = "ruff check --fix source"
+"py.lint.yapf" = "yapf -i -r source"
 "ipynb.lint" = { composite = ["ipynb.lint.ruff", "ipynb.lint.yapf"] }
 "ipynb.lint.ruff" = "nbqa ruff --fix . --ignore T201"
 "ipynb.lint.yapf" = "nbqa yapf -i -r ."
@@ -79,7 +79,7 @@ ignore-init-module-imports = false
 include = ["*.py", "*.pyi"]
 line-length = 120
 namespace-packages = []
-required-version = "0.0.263"
+required-version = "0.0.283"
 respect-gitignore = true
 select = [
   "A",

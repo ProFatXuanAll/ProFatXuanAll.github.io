@@ -203,7 +203,7 @@ mathjax3_config = {
       # Use AMS numbering rule.
       # See https://docs.mathjax.org/en/latest/input/tex/eqnumbers.html for details.
       'tags': 'ams',
-    }
+    },
 }
 # Don't change this line unless you want to upgrade `mathjax` dependency.
 mathjax_path = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
