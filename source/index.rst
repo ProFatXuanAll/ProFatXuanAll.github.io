@@ -19,3 +19,4 @@ Hope these notes can help me and you one day and another!
 
   post/index
   about
+  glossary
