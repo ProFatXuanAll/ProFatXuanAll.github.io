@@ -2,6 +2,90 @@
 Long Short-Term Memory
 ======================
 
+.. ====================================================================================================================
+.. Set index for authors.
+.. ====================================================================================================================
+
+.. index::
+  single: Sepp Hochreiter
+  single: Jürgen Schmidhuber
+
+.. ====================================================================================================================
+.. Set index for conference/journal.
+.. ====================================================================================================================
+
+.. index::
+  single: Neural Computation
+
+.. ====================================================================================================================
+.. Set index for publishing time.
+.. ====================================================================================================================
+
+.. index::
+  single: 1997
+
+.. ====================================================================================================================
+.. Setup SEO.
+.. ====================================================================================================================
+
+.. meta::
+  :description:
+    提出 RNN 模型進行最佳化時遇到的問題，並提出新的模型架構「LSTM」與最佳化演算法「truncated RTRL」嘗試解決
+  :keywords:
+    BPTT,
+    Sequence Model,
+    Gradient Descent,
+    Gradient Explosion,
+    Gradient Vanishing,
+    LSTM,
+    Model Architecture,
+    Optimization,
+    RNN,
+    RTRL
+
+.. ====================================================================================================================
+.. Setup front matter.
+.. ====================================================================================================================
+
+.. article-info::
+  :author: Sepp Hochreiter, Jürgen Schmidhuber
+  :date: Neural Computation, 1997
+  :class-container: sd-p-2 sd-outline-muted sd-rounded-1
+
+.. ====================================================================================================================
+.. Create visible tags from SEO keywords.
+.. ====================================================================================================================
+
+:bdg-secondary:`BPTT`
+:bdg-secondary:`Sequence Model`
+:bdg-secondary:`Gradient Descent`
+:bdg-secondary:`Gradient Explosion`
+:bdg-secondary:`Gradient Vanishing`
+:bdg-secondary:`LSTM`
+:bdg-secondary:`Optimization`
+:bdg-secondary:`Model Architecture`
+:bdg-secondary:`RNN`
+:bdg-secondary:`RTRL`
+
+.. ====================================================================================================================
+.. Define math macros.
+.. ====================================================================================================================
+
+.. math::
+  :nowrap:
+
+  \[
+    % Operator names.
+    \newcommand{\opnet}{\operatorname{net}}
+    \newcommand{\opin}{\operatorname{in}}
+    \newcommand{\opout}{\operatorname{out}}
+    % Dimensions.
+    \newcommand{\din}{{d_{\opin}}}
+    \newcommand{\dout}{{d_{\opout}}}
+    % Neural network units.
+    \newcommand{\net}[2]{{\opnet_{#1}(#2)}}
+  \]
+
 ..
   <!-- Operator in. -->
   $\providecommand{\opnet}{}$
@@ -135,91 +219,25 @@ Long Short-Term Memory
   $\providecommand{\aptr}{}$
   $\renewcommand{\aptr}{\approx_{\operatorname{tr}}}$
 
-.. ====================================================================================================================
-.. Index for authors.
-.. ====================================================================================================================
-
-.. index::
-  single: Sepp Hochreiter
-  single: Jürgen Schmidhuber
-
-.. ====================================================================================================================
-.. Index for conference/journal.
-.. ====================================================================================================================
-
-.. index::
-  single: Neural Computation
-
-.. ====================================================================================================================
-.. Index for publishing time.
-.. ====================================================================================================================
-
-.. index::
-  single: 1997
-
-.. ====================================================================================================================
-.. SEO setup.
-.. ====================================================================================================================
-
-.. meta::
-  :description:
-    提出 RNN 模型使用 BPTT 進行最佳化時遇到的問題，並提出新的模型架構「LSTM」嘗試解決 BPTT 最佳化問題
-  :keywords:
-    BPTT,
-    Sequence Model,
-    Gradient Descent,
-    Gradient Explosion,
-    Gradient Vanishing,
-    LSTM,
-    Model Architecture,
-    Optimization,
-    RNN,
-    RTRL
-
-.. ====================================================================================================================
-.. Front Matter.
-.. ====================================================================================================================
-
-.. article-info::
-  :author: Sepp Hochreiter, Jürgen Schmidhuber
-  :date: Neural Computation, 1997
-  :class-container: sd-p-2 sd-outline-muted sd-rounded-1
-
-.. ====================================================================================================================
-.. Visible tags from SEO keywords.
-.. ====================================================================================================================
-
-:bdg-secondary:`BPTT`
-:bdg-secondary:`Sequence Model`
-:bdg-secondary:`Gradient Descent`
-:bdg-secondary:`Gradient Explosion`
-:bdg-secondary:`Gradient Vanishing`
-:bdg-secondary:`LSTM`
-:bdg-secondary:`Optimization`
-:bdg-secondary:`Model Architecture`
-:bdg-secondary:`RNN`
-:bdg-secondary:`RTRL`
 
 重點
 ====
 
-- 提出 :term:`RNN` 模型使用 :term:`BPTT` 進行最佳化時遇到的問題，並提出新的模型架構「:term:`LSTM`」嘗試解決 BPTT 最佳化問題
-- 不論使用 BPTT 或 :term:`RTRL`，RNN 都會面臨\ **梯度爆炸**\（:term:`gradient explosion`）或\ **梯度消失**\（:term:`gradient vanishing`）的問題
+- 提出 :term:`RNN` 模型進行最佳化時遇到的問題，並提出新的模型架構「:term:`LSTM`」與最佳化演算法「truncated RTRL」嘗試解決
 
-  - 梯度\ **爆炸**\造成神經網路的\ **參數數值劇烈振盪**
-  - 梯度\ **消失**\造成\ **訓練時間慢長**
-  - 無法解決關鍵輸入資訊\ **時間差較長**\的問題
-  - 此論文提出 **LSTM + truncated RTRL** 能夠解決上述問題
+  - **梯度爆炸**\（:term:`gradient explosion`）\造成神經網路的\ **參數數值劇烈振盪**\（**oscillating weights**）
+  - **梯度消失**\（:term:`gradient vanishing`）\造成\ **訓練時間慢長**
+  - 關鍵輸入資訊\ **時間差較長**\（**long time lags**）導致模型無法處理資訊
 
 - LSTM 架構設計
 
-  - 加入\ **記憶細胞區域**\（**memory cell blocks**）
+  - \ **記憶細胞區域**\（**memory cell blocks**）
 
     - 目標為解決關鍵輸入資訊時間差較長的問題
     - 必須配合閘門單元一起運作
     - 學習\ **協助**\閘門單元完成\ **寫入**/\ **讀取**\記憶細胞區域
 
-  - 加入基於\ **乘法**\計算機制的\ **閘門單元**\（**multiplicative gate**）
+  - 基於\ **乘法**\計算機制的\ **閘門單元**\（**multiplicative gate**）
 
     - 目標為解決關鍵輸入資訊時間差較長的問題
     - 提出兩種閘門單元：\ **輸入**\閘門單元（**input gate**）與\ **輸出**\閘門單元（**output gate**）
@@ -269,48 +287,109 @@ Long Short-Term Memory
 
   - 作者認為是常見字詞的出現導致參數開始振盪
 
-- 此篇論文 :footcite:`10.1162/neco.1997.9.8.1735` 與 2000 年 :footcite:`10.1162/089976600300015015` 的後續延伸論文（以下稱為 LSTM-2000）都寫錯自己的數學公式，我的筆記內容將會嘗試進行勘誤
+- 此篇論文 :footcite:`hochreiter-etal-1997-long` 與 2000 年 :footcite:`gers-etal-2000-learning` 的後續延伸論文（以下稱為 LSTM-2000）都寫錯自己的數學公式，我的筆記內容將會嘗試進行勘誤
 - 此篇論文與 `PyTorch <Pytorch-LSTM_>`_ 實作的 LSTM 完全不同
 
   - 本篇論文的架構定義更為\ **廣義**
-  - 本篇論文只有輸入閘門跟輸出閘門，並沒有使用\ **失憶閘門**\（**Forget Gate**）\ :footcite:`10.1162/089976600300015015`
+  - 本篇論文只有輸入閘門跟輸出閘門，並沒有使用\ **失憶閘門**\（**Forget Gate**）\ :footcite:`gers-etal-2000-learning`
 
 - Alex Graves 的 LSTM 教學：https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4
 
+此篇論文討論的 RNN
+===================
+
+類型定義
+--------
+
+:term:`RNN` 分成兩種：
+
+- 隨著時間改變輸入（time-varying inputs）
+- 不隨時間改變輸入（stationary inputs）
+
+此論文討論的主要對象為隨著時間改變輸入的 RNN。
+
+過往 RNN 模型的問題
+-------------------
+
+- 常用於 RNN 模型的最佳化演算法 :term:`BPTT` 與 :term:`RTRL` 都會遇到\ **梯度爆炸**\（:term:`gradient explosion`）或\ **梯度消失**\（:term:`gradient vanishing`）的問題
+
+  - 梯度爆炸造成神經網路的\ **參數數值劇烈振盪**\（**oscillating weights**）
+  - 梯度消失造成\ **訓練時間慢長**
+
+- 關鍵輸入資訊\ **時間差較短**\（**short time lags**）的任務可以使用 time-delay neural network :footcite:`lang-etal-1990-a` 解決，但關鍵輸入資訊\ **時間差較長**\（**long time lags**）的任務並沒有好的解決方案
+
+  - 已知的模型解決方案會隨著時間差越長導致模型所需參數越多
+  - 已知的最佳化解決方案時間複雜度過高
+  - 部份已知的測試任務可能過於簡單，甚至可依靠隨機參數猜測（random weight guessing）解決
+
+計算定義
+--------
+
+給定一資料集，資料集中的每個資料點都由兩個序列組成，分別稱為輸入序列 :math:`x` 與答案序列 :math:`\hat{y}` 。
+當一個 RNN 模型被用於訓練在該資料集上，我們會希望給予任意資料點中的輸入序列 :math:`x` 所得到的 RNN 輸出序列 :math:`y` 會近似於對應資料點的答案序列 :math:`\hat{y}`。
+
+假定一個資料點中的輸入序列長度為 :math:`T`，則我們可定義以下符號：
+
+- 定義 :math:`x(t)` 為資料點輸入序列 :math:`x` 中，序列位置 :math:`t` 所對應到的資料
+
+  - 令 :math:`t \in \Set{0, 1, \dots, T-1}`
+  - 定義 :math:`x(t)` 為一向量，由 :math:`\din` 個實數組成，即 :math:`x(t) \in \R^\din`
+  - 定義 :math:`x_j(t)` 為向量 :math:`x(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \din}`
+
+- 定義 :math:`\hat{y}(t)` 為資料點答案序列 :math:`\hat{y}` 中，序列位置 :math:`t` 所對應到的資料
+
+  - 令 :math:`t \in \Set{1, 2, \dots, T}`，注意此處定義與 :math:`x(t)` 的 index 範圍不同
+  - 定義 :math:`\hat{y}(t)` 為一向量，由 :math:`\dout` 個實數組成，即 :math:`\hat{y}(t) \in \R^\dout`
+  - 定義 :math:`\hat{y}_j(t)` 為向量 :math:`\hat{y}(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \dout}`
+
+- 定義 :math:`y(t)` 為 RNN 輸出序列 :math:`y` 中，序列位置 :math:`t` 所對應到的資料
+
+  - 由於目標是讓 :math:`y \approx \hat{y}`，因此定義 :math:`y(t) \in \R^\dout`
+  - 定義 :math:`t \in \Set{1, 2, \dots, T}`
+  - 定義 :math:`y_j(t)` 為向量 :math:`y(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \dout}`
+
+- 定義常數 :math:`y(0) = \zv`
+
+  - :math:`\zv` 是由 :math:`\dout` 個零組成的零向量
+  - 注意此定義並無與 :math:`y(1), \dots, y(T)` 衝突
+
+- 定義 :math:`w` 為 RNN 模型的參數
+
+  - RNN 在時間點 :math:`t` 取得的輸入為資料點輸入 :math:`x(t)` 與前一次的模型輸出 :math:`y(t)`
+  - RNN 在取得時間點 :math:`t` 的輸入後產出 :math:`y(t+1)`
+  - 因此模型參數由 :math:`\dout \times (\din + \dout)` 個實數組成，即 :math:`w \in \R^{\dout \times (\din + \dout)}`
+
+- 定義 RNN 模型的 net input 為 :math:`\opnet`
+- 定義 :math:`f` 為 RNN 模型的 :term:`activation function`
+
+透過以上符號我們可以描述 RNN 模型的 :term:`forward pass`：
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+    \end{align*}
+  \]
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \net{i}{t + 1} & = \sum_{j = 1}^{\dout} w_{i, j} \cdot y_j(t) + \sum_{j = 1}^{\din} w_{i, \dout + j} \cdot x_j(t) \\
+      & = \sum_{j = 1}^{\dout + \din} w_{i, j} \cdot \begin{pmatrix}
+      y(t) \\
+      x(t)
+      \end{pmatrix}_j \\
+      \opnet(t + 1) & = w \cdot \begin{pmatrix}
+      y(t) \\
+      x(t)
+      \end{pmatrix}
+    \end{align*} \tag{1}\label{1}
+  \]
+
 ..
-  ## 傳統的 RNN
-
-  ### 計算定義
-
-  一個 RNN 模型在 $t$ 時間點的**輸入**來源共有兩種：
-
-  - **外部輸入**（**External Input**） $x(t)$
-    - 輸入維度為 $\din$
-    - 使用下標 $x_j(t)$ 代表不同的輸入訊號，$j \in \set{1, \dots, \din}$
-  - **總輸出**（**Total Output**） $y(t)$
-    - 輸出維度為 $\dout$
-    - 使用下標 $y_j(t)$ 代表不同的輸入訊號，$j \in \set{1, \dots, \dout}$
-    - 注意這裡是使用 $t$ 不是 $t - 1$
-  - 總共計算 $T$ 個時間點
-    - 時間為離散狀態，$t$ 的起始值為 $0$，結束值為 $T - 1$，每次遞增 $1$
-    - 初始化 $y(0) = 0$，輸入為 $x(0), \dots, x(T - 1)$，輸出為 $y(1), \dots, y(T)$
-
-  令 RNN 模型的**參數**為 $w \in \R^{\dout \times (\din + \dout)}$，如果我們已經取得 $t$ 時間點的**外部輸入** $x(t)$ 與**總輸出** $y(t)$，則我們可以定義 $t + 1$ 時間點的計算狀態
-
-  $$
-  \begin{align*}
-    \net{i}{t + 1} & = \sum_{j = 1}^{\dout} w_{i, j} \cdot y_j(t) + \sum_{j = 1}^{\din} w_{i, \dout + j} \cdot x_j(t) \\
-    & = \sum_{j = 1}^{\dout + \din} w_{i, j} \cdot \begin{pmatrix}
-    y(t) \\
-    x(t)
-    \end{pmatrix}_j \\
-    \opnet(t + 1) & = w \cdot \begin{pmatrix}
-    y(t) \\
-    x(t)
-    \end{pmatrix}
-  \end{align*} \tag{1}\label{1}
-  $$
-
   - $\net{i}{t + 1}$ 代表第 $t + 1$ 時間的**模型內部節點** $i$ 所收到的**淨輸入（total input）**
     - 由 $t$ 時間點的輸入訊號計算 $t + 1$ 時間點的輸出結果
     - 這是早年常見的 RNN 公式表達法

@@ -4,9 +4,27 @@
 
 .. glossary::
 
+  Activation Function
+  activation function
+  啟發函數
+    A function takes a vector as input, performs elementwise operation on the input vector, and output the resulting vector.
+
+  Backward Pass
+  backward pass
+    Backward pass is used to refer to the process of :term:`back-propagation`.
+
+  Back-Propagation
+  back-propagation
+    Back-propagation is an algorithm used to efficiently calculate gradients of the loss function with respect to the parameters of a neural network.
+
   BPTT
   Back-Propagation Throught Time
+  back-propagation throught time
     BPTT is an :term:`optimization` algorithm based on :term:`gradient descent` often used to optimize :term:`RNN` models.
+
+  Forward Pass
+  forward pass
+    Forward pass is used to refer to the process of transforming inputs of a neural network to outputs.
 
   Gradient Descent
   gradient descent
@@ -32,6 +50,7 @@
 
   NN
   Neural Network
+  neural network
   神經網路
     NN is a machine learning model.
 
@@ -43,10 +62,12 @@
 
   RNN
   Recurrent Neural Network
+  recurrent neural network
   遞歸神經網路
     RNN is a :term:`NN` variant often used to solve problems on sequential data.
 
   RTRL
   Real Time Recurrent Learning
+  real time recurrent learning
     RTRL is an :term:`optimization` algorithm based on :term:`gradient descent` often used to optimize :term:`RNN` models.
 
