@@ -140,6 +140,7 @@ mathjax3_config = {
           'zv': r'{\mathbf{0}}',  # Zero vector.
           # Operators.
           'Sim': r'\operatorname{sim}',
+          # Algorithm.
           'algoCmt': [r'\text{// #1}', 1],
           'algoElse': r'\textbf{else do}',
           'algoElseIf': [r'\textbf{else if } #1 \textbf{ do}', 1],
@@ -154,9 +155,9 @@ mathjax3_config = {
           'algoProc': [r'\textbf{procedure} #1', 1],
           'algoReturn': r'\textbf{return }',
           'algoTrue': r'\textbf{ True }',
+          'indent': [r'\hspace{#1em}', 1],
           'cat': [r'\operatorname{concate}\pa{#1}', 1],
           'drop': [r'\operatorname{dropout}\pa{#1, #2}', 2],
-          'indent': [r'\hspace{#1em}', 1],
           'loss': r'\operatorname{Loss}',
           'msk': r'\operatorname{mask}',
           'pos': r'\operatorname{pos}',

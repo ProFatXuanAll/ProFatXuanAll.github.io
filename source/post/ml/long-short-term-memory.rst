@@ -79,23 +79,20 @@ Long Short-Term Memory
     \newcommand{\opnet}{\operatorname{net}}
     \newcommand{\opin}{\operatorname{in}}
     \newcommand{\opout}{\operatorname{out}}
+
     % Dimensions.
     \newcommand{\din}{{d_{\opin}}}
     \newcommand{\dout}{{d_{\opout}}}
+
     % Neural network units.
-    \newcommand{\net}[2]{{\opnet_{#1}(#2)}}
+    \newcommand{\net}[2]{{\opnet_{#1}\qty(#2)}}
+    \newcommand{\fnet}[2]{f_{#1}\qty(\net{#1}{#2})}
+
+    % Total loss.
+    \newcommand{\tloss}{\operatorname{TotalLoss}}
   \]
 
 ..
-  <!-- Operator in. -->
-  $\providecommand{\opnet}{}$
-  $\renewcommand{\opnet}{\operatorname{net}}$
-  <!-- Operator in. -->
-  $\providecommand{\opin}{}$
-  $\renewcommand{\opin}{\operatorname{in}}$
-  <!-- Operator out. -->
-  $\providecommand{\opout}{}$
-  $\renewcommand{\opout}{\operatorname{out}}$
   <!-- Operator hid. -->
   $\providecommand{\ophid}{}$
   $\renewcommand{\ophid}{\operatorname{hid}}$
@@ -112,19 +109,6 @@ Long Short-Term Memory
   $\providecommand{\opseq}{}$
   $\renewcommand{\opseq}{\operatorname{seq}}$
 
-  <!-- Total loss. -->
-  $\providecommand{\Loss}{}$
-  $\renewcommand{\Loss}[1]{\operatorname{loss}(#1)}$
-  <!-- Partial loss. -->
-  $\providecommand{\loss}{}$
-  $\renewcommand{\loss}[2]{\operatorname{loss}_{#1}(#2)}$
-
-  <!-- Net input. -->
-  $\providecommand{\net}{}$
-  $\renewcommand{\net}[2]{\opnet_{#1}(#2)}$
-  <!-- Net input with activatiton f. -->
-  $\providecommand{\fnet}{}$
-  $\renewcommand{\fnet}[2]{f_{#1}\big(\net{#1}{#2}\big)}$
   <!-- Derivative of f with respect to net input. -->
   $\providecommand{\dfnet}{}$
   $\renewcommand{\dfnet}[2]{f_{#1}'\big(\net{#1}{#2}\big)}$
@@ -330,19 +314,19 @@ Long Short-Term Memory
 
 假定一個資料點中的輸入序列長度為 :math:`T`，則我們可定義以下符號：
 
-- 定義 :math:`x(t)` 為資料點輸入序列 :math:`x` 中，序列位置 :math:`t` 所對應到的資料
+- 定義 :math:`x(t)` 為資料點輸入序列 :math:`x` 中，時間點 :math:`t` 所對應到的資料
 
   - 令 :math:`t \in \Set{0, 1, \dots, T-1}`
   - 定義 :math:`x(t)` 為一向量，由 :math:`\din` 個實數組成，即 :math:`x(t) \in \R^\din`
   - 定義 :math:`x_j(t)` 為向量 :math:`x(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \din}`
 
-- 定義 :math:`\hat{y}(t)` 為資料點答案序列 :math:`\hat{y}` 中，序列位置 :math:`t` 所對應到的資料
+- 定義 :math:`\hat{y}(t)` 為資料點答案序列 :math:`\hat{y}` 中，時間點 :math:`t` 所對應到的資料
 
   - 令 :math:`t \in \Set{1, 2, \dots, T}`，注意此處定義與 :math:`x(t)` 的 index 範圍不同
   - 定義 :math:`\hat{y}(t)` 為一向量，由 :math:`\dout` 個實數組成，即 :math:`\hat{y}(t) \in \R^\dout`
   - 定義 :math:`\hat{y}_j(t)` 為向量 :math:`\hat{y}(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \dout}`
 
-- 定義 :math:`y(t)` 為 RNN 輸出序列 :math:`y` 中，序列位置 :math:`t` 所對應到的資料
+- 定義 :math:`y(t)` 為 RNN 輸出序列 :math:`y` 中，時間點 :math:`t` 所對應到的資料
 
   - 由於目標是讓 :math:`y \approx \hat{y}`，因此定義 :math:`y(t) \in \R^\dout`
   - 定義 :math:`t \in \Set{1, 2, \dots, T}`
@@ -356,11 +340,23 @@ Long Short-Term Memory
 - 定義 :math:`w` 為 RNN 模型的參數
 
   - RNN 在時間點 :math:`t` 取得的輸入為資料點輸入 :math:`x(t)` 與前一次的模型輸出 :math:`y(t)`
-  - RNN 在取得時間點 :math:`t` 的輸入後產出 :math:`y(t+1)`
-  - 因此模型參數由 :math:`\dout \times (\din + \dout)` 個實數組成，即 :math:`w \in \R^{\dout \times (\din + \dout)}`
+  - RNN 在取得時間點 :math:`t` 的輸入後，乘上參數 :math:`w`，必須得到由 :math:`\dout` 個實數組成的淨輸入向量 :math:`\opnet(t+1)`
+  - 因此模型參數 :math:`w` 為一矩陣，由 :math:`\dout \times (\din + \dout)` 個實數組成，即 :math:`w \in \R^{\dout \times (\din + \dout)}`
 
-- 定義 RNN 模型的 net input 為 :math:`\opnet`
+- 定義 :math:`\opnet(t)` 為 RNN 模型在時間點 :math:`t` 得到的淨輸入（net input）
+
+  - 定義 :math:`t \in \Set{1, 2, \dots, T}`
+  - 淨輸入的定義為參數矩陣 :math:`w` 乘上所有輸入
+  - RNN 所有的輸入來源為資料點輸入 :math:`x(t)` 與前一次的模型輸出 :math:`y(t)`
+
 - 定義 :math:`f` 為 RNN 模型的 :term:`activation function`
+
+  - :math:`f` 的輸入是 :math:`\opnet(t)`
+  - 定義 :math:`y(t) = f(\opnet(t))`
+  - 定義 :math:`f_i` 為 :math:`f` 的第 :math:`i` 個 real valued function，:math:`i \in \Set{1, \dots, \dout}`
+  - 使用下標 :math:`f_i` 是因為每個維度所使用的啟發函數可以\ **不同**
+  - :math:`f` 必須要可以\ **微分**，當時與 RNN 有關的論文幾乎都是令 :math:`f_i` 為 sigmoid 函數 :math:`\sigma(z) = \frac{1}{1 + e^{-z}}`
+  - 後續論文分析都是採用 sigmoid 函數，因此我們直接以 :math:`\sigma` 表達 :math:`f_i`
 
 透過以上符號我們可以描述 RNN 模型的 :term:`forward pass`：
 
@@ -369,127 +365,137 @@ Long Short-Term Memory
 
   \[
     \begin{align*}
+      & \algoProc{\operatorname{RNN}}(x, T) \\
+      & \indent{1} y(0) \algoEq \zv \\
+      & \indent{1} \algoFor{t \in \Set{0, \dots, T-1}} \\
+      & \indent{2} \algoFor{i \in \Set{1, \dots, \dout}} \\
+      & \indent{3} \net{i}{t+1} \algoEq \sum_{j = 1}^\din w_{i, j} \cdot x_j(t) + \sum_{j = \din + 1}^{\din + \dout} w_{i, j} \cdot y_j(t) \\
+      & \indent{3} y_i(t+1) \algoEq \fnet{i}{t+1} \\
+      & \indent{2} \algoEndFor \\
+      & \indent{1} \algoEndFor \\
+      & \indent{1} \algoReturn y(1), \dots, y(T) \\
+      & \algoEndProc
     \end{align*}
   \]
+
+之後若非必要，我們將不再展開矩陣乘法的計算內容，因此上述演算法可以改寫為
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \net{i}{t + 1} & = \sum_{j = 1}^{\dout} w_{i, j} \cdot y_j(t) + \sum_{j = 1}^{\din} w_{i, \dout + j} \cdot x_j(t) \\
-      & = \sum_{j = 1}^{\dout + \din} w_{i, j} \cdot \begin{pmatrix}
-      y(t) \\
-      x(t)
-      \end{pmatrix}_j \\
-      \opnet(t + 1) & = w \cdot \begin{pmatrix}
-      y(t) \\
-      x(t)
-      \end{pmatrix}
-    \end{align*} \tag{1}\label{1}
+      & \algoProc{\operatorname{RNN}}(x, T) \\
+      & \indent{1} y(0) \algoEq \zv \\
+      & \indent{1} \algoFor{t \in \Set{0, \dots, T-1}} \\
+      & \indent{2} \opnet(t+1) \algoEq w \cdot \begin{pmatrix}
+          x(t) \\
+          y(t)
+        \end{pmatrix} \\
+      & \indent{2} y(t+1) \algoEq f\qty(\opnet(t+1)) \\
+      & \indent{1} \algoEndFor \\
+      & \indent{1} \algoReturn y(1), \dots, y(T) \\
+      & \algoEndProc
+    \end{align*}
   \]
 
+目標函數
+---------
+
+此論文設定 RNN 模型的目標函數為\ **最小平方差**\（**Mean Square Error**）：
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      & \algoProc{\operatorname{MSE}}(x, \hat{y}, T) \\
+      & \indent{1} y \algoEq \operatorname{RNN}(x, T) \\
+      & \indent{1} \algoFor{t \in \Set{1, \dots, T}} \\
+      & \indent{2} \algoFor{i \in \Set{1, \dots, \dout}} \\
+      & \indent{3} \loss_i(t) \algoEq \frac{1}{2} \qty(y_i(t) - \hat{y}_{i}(t))^2 \\
+      & \indent{2} \algoEndFor \\
+      & \indent{2} \tloss(t) \algoEq \sum_{i = 1}^{\dout} \loss_i(t) \\
+      & \indent{1} \algoEndFor \\
+      & \algoEndProc
+    \end{align*}
+  \]
+
+計算目標函數的梯度
+------------------
+
+根據目標函數的定義，我們知道 :math:`y_i(t+1)` 對 :math:`\tloss(t+1)` 所得梯度為
+
+.. math::
+  :nowrap:
+
+  \begin{align*}
+    \dv{\tloss(t+1)}{y_i(t+1)} &= \dv{\tloss(t+1)}{\loss_i(t+1)} \cdot \dv{\loss_i(t+1)}{y_i(t+1)} \\
+    &= 1 \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)) \\
+    &= y_i(t+1) - \hat{y}_{i}(t+1). \tag{1}\label{1}
+  \end{align*}
+
+根據 :math:`\eqref{1}` 我們可以推得 :math:`\net{i}{t+1}` 對 :math:`\tloss(t+1)` 所得梯度為
+
+.. math::
+  :nowrap:
+
+  \begin{align*}
+    \dv{\tloss(t+1)}{\net{i}{t+1}} &= \dv{\tloss(t+1)}{y_i(t+1)} \cdot \dv{y_i(t+1)}{\net{i}{t+1}} \\
+    &= \sigma'\qty(\net{i}{t+1}) \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)). \tag{2}\label{2}
+  \end{align*}
+
+.. note::
+
+  式子 :math:`\eqref{2}` 就是論文 3.1.1 節的第一條公式。
+
+根據 :math:`\eqref{2}` 我們可以推得 :math:`y_j(t)` 對 :math:`\tloss(t+1)` 所得梯度為（注意時間差）
+
+.. math::
+  :nowrap:
+
+  \begin{align*}
+    \dv{\tloss(t+1)}{y_j(t)} & = \sum_{i = 1}^{\dout} \qty[\dv{\tloss(t+1)}{\net{i}{t+1}} \cdot \dv{\net{i}{t+1}}{y_j(t)}] \\
+    & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(\net{i}{t+1}) \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)) \cdot w_{i, j}] \tag{3}\label{3}
+  \end{align*}
+
 ..
-  - $\net{i}{t + 1}$ 代表第 $t + 1$ 時間的**模型內部節點** $i$ 所收到的**淨輸入（total input）**
-    - 由 $t$ 時間點的輸入訊號計算 $t + 1$ 時間點的輸出結果
-    - 這是早年常見的 RNN 公式表達法
-  - $w_{i, j}$ 代表**輸入節點** $j$ 與**模型內部節點** $i$ 所連接的權重
-    - 輸入節點可以是**外部輸入** $x_j(t)$ 或是**總輸出** $y_j(t)$
-    - 總共有 $\din + \dout$ 個輸入節點，因此 $1 \leq j \leq \din + \dout$
-    - 總共有 $\dout$ 個內部節點，因此 $1 \leq i \leq \dout$
-
-  令模型使用的**啟發函數**（**Activation Function**）為 $f : \R^{\dout} \to \R^{\dout}$，並且內部節點之間無相互連接（**Element-wise** Activation Function），則我們可以得到 $t + 1$ 時間的輸出
+  由於第 $t$ 時間點的輸出 $y(t)$ 的計算是由 $\opnet(t)$ 而來（請見 $\eqref{2}$），所以我們也利用 $\eqref{6}$ 計算 $\net{j}{t}$ 對 $\tloss(t+1)$ 所得梯度（注意是 $t$ 不是 $t+1$）
 
   $$
   \begin{align*}
-  y_{i}(t + 1) & = \fnet{i}{t + 1} \\
-  y(t + 1) & = f(\opnet(t + 1))
-  \end{align*} \tag{2}\label{2}
-  $$
-
-  - 使用下標 $f_{i}$ 是因為每個維度所使用的啟發函數可以**不同**
-  - $f$ 必須要可以**微分**，當時與 RNN 有關的論文幾乎都是令 $f_i$ 為 sigmoid 函數 $\sigma(x) = 1 / (1 + e^{-x})$
-  - 後續論文分析都是採用 sigmoid 函數，因此我們直接以 $\sigma$ 表達 $f_i$
-
-  ### 計算誤差
-
-  如果 $t + 1$ 時間點的**輸出目標**為 $\hat{y}(t + 1) \in \R^{\dout}$，則**目標函數**為**最小平方差**（Mean Square Error）：
-
-  $$
-  \begin{align*}
-  \loss{i}{t + 1} & = \frac{1}{2} \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)^2 \\
-  \Loss{t + 1} & = \sum_{i = 1}^{\dout} \loss{i}{t + 1}
-  \end{align*} \tag{3}\label{3}
-  $$
-
-  ### 梯度計算
-
-  根據 $\eqref{3}$ 我們知道 $y_{i}(t + 1)$ 對 $\Loss{t + 1}$ 所得梯度為
-
-  $$
-  \begin{align*}
-  \pd{\Loss{t + 1}}{y_{i}(t + 1)} & = \pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_{i}(t + 1)} \\
-  & = 1 \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \\
-  & = y_{i}(t + 1) - \hat{y}_{i}(t + 1)
-  \end{align*} \tag{4}\label{4}
-  $$
-
-  根據 $\eqref{4}$ 我們可以推得 $\net{i}{t + 1}$ 對 $\Loss{t + 1}$ 所得梯度
-
-  $$
-  \begin{align*}
-  \pd{\Loss{t + 1}}{\net{i}{t + 1}} & = \pd{\Loss{t + 1}}{y_{i}(t + 1)} \cdot \pd{y_{i}(t + 1)}{\net{i}{t + 1}} \\
-  & = \sigma'\pa{\net{i}{t + 1}} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big)
-  \end{align*} \tag{5}\label{5}
-  $$
-
-  式子 $\eqref{5}$ 就是論文 3.1.1 節的第一條公式。
-
-  根據 $\eqref{5}$ 我們可以推得 $y_j(t)$ 對 $\Loss{t + 1}$ 所得梯度為
-
-  $$
-  \begin{align*}
-  \pd{\Loss{t + 1}}{y_j(t)} & = \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot \pd{\net{i}{t + 1}}{y_j(t)}\bigg] \\
-  & = \sum_{i = 1}^{\dout} \bigg[\sigma'\pa{\net{i}{t + 1}} \cdot \big(y_{i}(t + 1) - \hat{y}_{i}(t + 1)\big) \cdot w_{i, j}\bigg]
-  \end{align*} \tag{6}\label{6}
-  $$
-
-  由於第 $t$ 時間點的輸出 $y(t)$ 的計算是由 $\opnet(t)$ 而來（請見 $\eqref{2}$），所以我們也利用 $\eqref{6}$ 計算 $\net{j}{t}$ 對 $\Loss{t + 1}$ 所得梯度（注意是 $t$ 不是 $t + 1$）
-
-  $$
-  \begin{align*}
-  \pd{\Loss{t + 1}}{\net{j}{t}} & = \pd{\Loss{t + 1}}{y_j(t)} \cdot \pd{y_j(t)}{\net{j}{t}} \\
-  & = \sum_{i = 1}^{\dout} \bigg[\pd{\Loss{t + 1}}{\net{i}{t + 1}} \cdot w_{i, j} \cdot \sigma'\pa{\net{j}{t + 1}}\bigg] \\
-  & = \sigma'\pa{\net{j}{t + 1}} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i, j} \cdot \pd{\Loss{t + 1}}{\net{i}{t + 1}}\bigg]
+  \pd{\tloss(t+1)}{\net{j}{t}} & = \pd{\tloss(t+1)}{y_j(t)} \cdot \pd{y_j(t)}{\net{j}{t}} \\
+  & = \sum_{i = 1}^{\dout} \bigg[\pd{\tloss(t+1)}{\net{i}{t+1}} \cdot w_{i, j} \cdot \sigma'\pa{\net{j}{t+1}}\bigg] \\
+  & = \sigma'\pa{\net{j}{t+1}} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i, j} \cdot \pd{\tloss(t+1)}{\net{i}{t+1}}\bigg]
   \end{align*} \tag{7}\label{7}
   $$
 
   式子 $\eqref{7}$ 就是論文 3.1.1 節的最後一條公式。
 
-  模型參數 $w_{i, j}$ 對於 $\Loss{t + 1}$ 所得梯度為
+  模型參數 $w_{i, j}$ 對於 $\tloss(t+1)$ 所得梯度為
 
   $$
   \begin{align*}
-  & \pd{\Loss{t + 1}}{w_{i, j}} \\
-  & = \sum_{k = 1}^{\dout} \pd{\Loss{t + 1}}{\net{k}{t + 1}} \cdot \pd{\net{k}{t + 1}}{w_{i, j}} \\
-  & = \sum_{k = 1}^{\dout} \pd{\Loss{t + 1}}{\net{k}{t + 1}} \cdot \br{\sum_{j^{\star} = 1}^{\dout + \din} \pa{\pd{w_{k, j^{\star}}}{w_{i, j}} \cdot \begin{pmatrix}
+  & \pd{\tloss(t+1)}{w_{i, j}} \\
+  & = \sum_{k = 1}^{\dout} \pd{\tloss(t+1)}{\net{k}{t+1}} \cdot \pd{\net{k}{t+1}}{w_{i, j}} \\
+  & = \sum_{k = 1}^{\dout} \pd{\tloss(t+1)}{\net{k}{t+1}} \cdot \br{\sum_{j^{\star} = 1}^{\dout + \din} \pa{\pd{w_{k, j^{\star}}}{w_{i, j}} \cdot \begin{pmatrix}
   y(t) \\
   x(t)
   \end{pmatrix}_{j^{\star}} + w_{k, j^{\star}} \cdot \pd{\begin{pmatrix}
   y(t) \\
   x(t)
   \end{pmatrix}_{j^{\star}}}{w_{i, j}}}} \\
-  & = \sum_{k = 1}^{\dout} \pd{\Loss{t + 1}}{\net{k}{t + 1}} \cdot \br{\begin{pmatrix}
+  & = \sum_{k = 1}^{\dout} \pd{\tloss(t+1)}{\net{k}{t+1}} \cdot \br{\begin{pmatrix}
   y(t) \\
   x(t)
   \end{pmatrix}_j + \sum_{j^{\star} = 1}^{\dout} w_{k, j^{\star}} \cdot \sigma'\pa{\net{j^{\star}}{t}} \cdot \pd{\net{j^{\star}}{t}}{w_{i, j}}}
   \end{align*} \tag{8}\label{8}
   $$
 
-  而在時間點 $t + 1$ 進行參數更新的方法為
+  而在時間點 $t+1$ 進行參數更新的方法為
 
   $$
-  w_{i, j} \leftarrow w_{i, j} - \alpha \pd{\Loss{t + 1}}{w_{i, j}} \tag{9}\label{9}
+  w_{i, j} \leftarrow w_{i, j} - \alpha \pd{\tloss(t+1)}{w_{i, j}} \tag{9}\label{9}
   $$
 
   $\eqref{9}$ 就是最常用來最佳化神經網路的**梯度下降演算法**（Gradient Descent），$\alpha$ 代表**學習率**（Learning Rate）。
@@ -765,10 +771,10 @@ Long Short-Term Memory
   將 $\eqref{21} \eqref{26}$ 的假設改回正常的模型架構
 
   $$
-  \net{j}{t} = \sum_{i = 1}^{\dout} w_{j, i} \cdot y_{i}(t - 1) + \sum_{i = 1}^{\din} w_{j, \dout + i} \cdot x_{i}(t - 1) \tag{27}\label{27}
+  \net{j}{t} = \sum_{i = 1}^{\dout} w_{j, i} \cdot y_i(t - 1) + \sum_{i = 1}^{\din} w_{j, \dout + i} \cdot x_{i}(t - 1) \tag{27}\label{27}
   $$
 
-  由於 $y_j(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{27}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $y_{i}(t - 1)$ 配合 $w_{j, \din + i}$ 將新資訊合併進入 $\net{j}{t}$。
+  由於 $y_j(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{27}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $y_i(t - 1)$ 配合 $w_{j, \din + i}$ 將新資訊合併進入 $\net{j}{t}$。
 
   但作者認為，在計算的過程中，部份時間點的**輸出**資訊 $y_i(*)$ 可能對預測沒有幫助，因此可以(甚至必須)被**忽略**。
   但這代表與輸出相接的參數 $w_{j, \din + i}$ 需要**同時**達成**兩種**任務：
@@ -841,7 +847,7 @@ Long Short-Term Memory
 
   ### 計算定義
 
-  當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時，我們可以進行以下計算得到 $t + 1$ 時間點的總輸出 $y(t + 1)$
+  當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時，我們可以進行以下計算得到 $t+1$ 時間點的總輸出 $y(t+1)$
 
   $$
   \begin{align*}
@@ -856,18 +862,18 @@ Long Short-Term Memory
   y^{\blk{\nblk}}(t)
   \end{pmatrix} \in \R^D \tag{29}\label{29} \\
   k & \in \set{1, \dots, \nblk} \tag{30}\label{30} \\
-  y^{\ophid}(t + 1) & = f^{\ophid}\pa{\opnet^{\ophid}(t + 1)} = f^{\ophid}\pa{\whid \cdot \tilde{x}(t)} \tag{31}\label{31} \\
-  y^{\opig}(t + 1) & = f^{\opig}\pa{\opnet^{\opig}(t + 1)} = f^{\opig}\pa{\wig \cdot \tilde{x}(t)} \tag{32}\label{32} \\
-  y^{\opog}(t + 1) & = f^{\opog}\pa{\opnet^{\opog}(t + 1)} = f^{\opog}\pa{\wog \cdot \tilde{x}(t)} \tag{33}\label{33} \\
-  s^{\blk{k}}(t + 1) & = s^{\blk{k}}(t) + y_k^{\opig}(t + 1) \cdot g\pa{\opnet^{\blk{k}}(t + 1)} \tag{34}\label{34} \\
-  & = s^{\blk{k}}(t) + y_k^{\opig}(t + 1) \cdot g\pa{\wblk{k} \cdot \tilde{x}(t)} \\
-  y^{\blk{k}}(t + 1) & = y_k^{\opog}(t + 1) \cdot h\pa{s^{\blk{k}}(t + 1)} \tag{35}\label{35} \\
-  y(t + 1) & = f^{\opout}(\opnet^{\opout}(t + 1)) = f^{\opout}\pa{\wout \cdot \begin{pmatrix}
+  y^{\ophid}(t+1) & = f^{\ophid}\pa{\opnet^{\ophid}(t+1)} = f^{\ophid}\pa{\whid \cdot \tilde{x}(t)} \tag{31}\label{31} \\
+  y^{\opig}(t+1) & = f^{\opig}\pa{\opnet^{\opig}(t+1)} = f^{\opig}\pa{\wig \cdot \tilde{x}(t)} \tag{32}\label{32} \\
+  y^{\opog}(t+1) & = f^{\opog}\pa{\opnet^{\opog}(t+1)} = f^{\opog}\pa{\wog \cdot \tilde{x}(t)} \tag{33}\label{33} \\
+  s^{\blk{k}}(t+1) & = s^{\blk{k}}(t) + y_k^{\opig}(t+1) \cdot g\pa{\opnet^{\blk{k}}(t+1)} \tag{34}\label{34} \\
+  & = s^{\blk{k}}(t) + y_k^{\opig}(t+1) \cdot g\pa{\wblk{k} \cdot \tilde{x}(t)} \\
+  y^{\blk{k}}(t+1) & = y_k^{\opog}(t+1) \cdot h\pa{s^{\blk{k}}(t+1)} \tag{35}\label{35} \\
+  y(t+1) & = f^{\opout}(\opnet^{\opout}(t+1)) = f^{\opout}\pa{\wout \cdot \begin{pmatrix}
   x(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
+  y^{\ophid}(t+1) \\
+  y^{\blk{1}}(t+1) \\
   \vdots \\
-  y^{\blk{\nblk}}(t + 1)
+  y^{\blk{\nblk}}(t+1)
   \end{pmatrix}} \tag{36}\label{36}
   \end{align*}
   $$
@@ -882,41 +888,41 @@ Long Short-Term Memory
   論文 4.3 節有提到可以完全沒有**隱藏單元**，而後續的研究（例如 [LSTM-2000][LSTM2000]、[LSTM-2002][LSTM2002]）也完全沒有使用隱藏單元，因此 $\eqref{31}$ 可以完全不存在。
 
   - $\eqref{29}$ 中的 $y^{\ophid}(t)$ 必須去除
-  - $\eqref{36}$ 中的 $y^{\ophid}(t + 1)$ 必須去除
+  - $\eqref{36}$ 中的 $y^{\ophid}(t+1)$ 必須去除
   - 隱藏單元的設計等同於**保留** $\eqref{1} \eqref{2}$ 的架構，是個不好的設計，因此論文後續在**最佳化**的過程中動了手腳
 
-  根據 $\eqref{32} \eqref{34}$，在計算完 $t + 1$ 時間點的**輸入閘門** $y^{\opig}(t + 1)$ 後便可以更新 $t + 1$ 時間點的**記憶細胞內部狀態** $s^{\blk{k}}(t + 1)$。
+  根據 $\eqref{32} \eqref{34}$，在計算完 $t+1$ 時間點的**輸入閘門** $y^{\opig}(t+1)$ 後便可以更新 $t+1$ 時間點的**記憶細胞內部狀態** $s^{\blk{k}}(t+1)$。
 
   - **記憶細胞淨輸入**會與**輸入閘門**進行**相乘**，因此稱為**乘法輸入閘門**
-  - 由於 $t + 1$ 時間點的資訊有加上 $t$ 時間點的資訊，因此稱為**自連接線性單元**
-  - 同一個記憶細胞區域會**共享**同一個輸入閘門，因此 $\eqref{34}$ 中的乘法是**純量乘上向量**，這也是 $y^{ig}(t + 1) \in \R^{\nblk}$ 的理由
-  - 當模型認為**輸入訊號不重要**時，模型應該要**關閉輸入閘門**，即 $y_k^{\opig}(t + 1) \approx 0$
+  - 由於 $t+1$ 時間點的資訊有加上 $t$ 時間點的資訊，因此稱為**自連接線性單元**
+  - 同一個記憶細胞區域會**共享**同一個輸入閘門，因此 $\eqref{34}$ 中的乘法是**純量乘上向量**，這也是 $y^{ig}(t+1) \in \R^{\nblk}$ 的理由
+  - 當模型認為**輸入訊號不重要**時，模型應該要**關閉輸入閘門**，即 $y_k^{\opig}(t+1) \approx 0$
     - 丟棄**當前**輸入訊號，只以**過去資訊**進行決策
-    - 在此狀態下 $t + 1$ 時間點的**記憶細胞內部狀態**與 $t$ 時間點**完全相同**，達成 $\eqref{23} \eqref{25}$，藉此保障**梯度不會消失**
-  - 當模型認為**輸入訊號重要**時，模型應該要**開啟輸入閘門**，即 $y_k^{\opig}(t + 1) \approx 1$
-  - 不論**輸入訊號** $g\pa{\opnet^{\blk{k}}(t + 1)}$ 的大小，只要 $y_k^{\opig}(t + 1) \approx 0$，則輸入訊號**完全無法影響**接下來的所有計算，LSTM 以此設計避免 $\eqref{26}$ 所遇到的困境
+    - 在此狀態下 $t+1$ 時間點的**記憶細胞內部狀態**與 $t$ 時間點**完全相同**，達成 $\eqref{23} \eqref{25}$，藉此保障**梯度不會消失**
+  - 當模型認為**輸入訊號重要**時，模型應該要**開啟輸入閘門**，即 $y_k^{\opig}(t+1) \approx 1$
+  - 不論**輸入訊號** $g\pa{\opnet^{\blk{k}}(t+1)}$ 的大小，只要 $y_k^{\opig}(t+1) \approx 0$，則輸入訊號**完全無法影響**接下來的所有計算，LSTM 以此設計避免 $\eqref{26}$ 所遇到的困境
 
-  根據 $\eqref{33} \eqref{35}$，在計算完 $t + 1$ 時間點的**輸出閘門** $y^{\opog}(t + 1)$ 與**記憶細胞內部狀態** $s^{\blk{k}}(t + 1)$ 後便可以得到 $t + 1$ 時間點的**記憶細胞輸出** $y^{\blk{k}}(t + 1)$。
+  根據 $\eqref{33} \eqref{35}$，在計算完 $t+1$ 時間點的**輸出閘門** $y^{\opog}(t+1)$ 與**記憶細胞內部狀態** $s^{\blk{k}}(t+1)$ 後便可以得到 $t+1$ 時間點的**記憶細胞輸出** $y^{\blk{k}}(t+1)$。
 
   - **記憶細胞啟發值**會與**輸出閘門**進行**相乘**，因此稱為**乘法輸出閘門**
-  - 同一個記憶細胞區域會**共享**同一個輸出閘門，因此 $\eqref{35}$ 中的乘法是**純量乘上向量**，這也是 $y^{og}(t + 1) \in \R^{\nblk}$ 的理由
-  - 當模型認為**輸出訊號**會導致**當前計算錯誤**時，模型應該**關閉輸出閘門**，即 $y_k^{\opog}(t + 1) \approx 0$
+  - 同一個記憶細胞區域會**共享**同一個輸出閘門，因此 $\eqref{35}$ 中的乘法是**純量乘上向量**，這也是 $y^{og}(t+1) \in \R^{\nblk}$ 的理由
+  - 當模型認為**輸出訊號**會導致**當前計算錯誤**時，模型應該**關閉輸出閘門**，即 $y_k^{\opog}(t+1) \approx 0$
     - 在**輸入**閘門**開啟**的狀況下，**關閉輸出**閘門代表不讓**現在**時間點的資訊影響當前計算
     - 在**輸入**閘門**關閉**的狀況下，**關閉輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
-  - 當模型認為**輸出訊號包含重要資訊**時，模型應該要開啟**輸出閘門**，即 $y_k^{\opog}(t + 1) \approx 1$
+  - 當模型認為**輸出訊號包含重要資訊**時，模型應該要開啟**輸出閘門**，即 $y_k^{\opog}(t+1) \approx 1$
     - 在**輸入**閘門**開啟**的狀況下，**開啟輸出**閘門代表讓**現在**時間點的資訊影響當前計算
     - 在**輸入**閘門**關閉**的狀況下，**開啟輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
-  - 不論**輸出訊號** $h\pa{s^{\blk{k}}(t + 1)}$ 的大小，只要 $y_k^{\opog}(t + 1) \approx 0$，則輸出訊號**完全無法影響**接下來的所有計算，LSTM 以此設計避免 $\eqref{26} \eqref{27}$ 所遇到的困境
+  - 不論**輸出訊號** $h\pa{s^{\blk{k}}(t+1)}$ 的大小，只要 $y_k^{\opog}(t+1) \approx 0$，則輸出訊號**完全無法影響**接下來的所有計算，LSTM 以此設計避免 $\eqref{26} \eqref{27}$ 所遇到的困境
   - [PyTorch 實作的 LSTM][Pytorch-LSTM] 中 $h(t)$ 表達的意思是記憶細胞輸出 $y^{\blk{k}}(t)$
 
-  根據 $\eqref{36}$，得到 $t + 1$ 時間點的**記憶細胞輸出** $y^{\blk{k}}(t + 1)$ 後就可以計算 $t + 1$ 時間點的模型**總輸出** $y(t + 1)$。
+  根據 $\eqref{36}$，得到 $t+1$ 時間點的**記憶細胞輸出** $y^{\blk{k}}(t+1)$ 後就可以計算 $t+1$ 時間點的模型**總輸出** $y(t+1)$。
 
   - 注意在計算 $\eqref{36}$ 時並沒有使用閘門單元，與 $\eqref{29}$ 的計算不同
-  - 注意 $y(t + 1)$ 與 $y^{\opog}$ 不同
-    - $y(t + 1)$ 是**總輸出**，我的 $y(t + 1)$ 是論文中的 $y^k(t + 1)$
-    - $y^{\opog}(t + 1)$ 是**記憶細胞**的**輸出閘門**，我的 $y^{\opog}(t + 1)$ 是論文中的 $y^{\opout_i}(t + 1)$
+  - 注意 $y(t+1)$ 與 $y^{\opog}$ 不同
+    - $y(t+1)$ 是**總輸出**，我的 $y(t+1)$ 是論文中的 $y^k(t+1)$
+    - $y^{\opog}(t+1)$ 是**記憶細胞**的**輸出閘門**，我的 $y^{\opog}(t+1)$ 是論文中的 $y^{\opout_i}(t+1)$
 
-  根據論文 A.7 式下方的描述，$t + 1$ 時間點的**總輸出**只與 $t$ 時間點的**模型狀態**（**不含閘門與總輸出**）有關係，所以 $\eqref{31} \eqref{32} \eqref{33} \eqref{35}$ 的計算都只是在幫助 $t + 2$ 時間點的計算狀態**鋪陳**。
+  根據論文 A.7 式下方的描述，$t+1$ 時間點的**總輸出**只與 $t$ 時間點的**模型狀態**（**不含閘門與總輸出**）有關係，所以 $\eqref{31} \eqref{32} \eqref{33} \eqref{35}$ 的計算都只是在幫助 $t + 2$ 時間點的計算狀態**鋪陳**。
 
   我不確定這是否為作者的筆誤，畢竟附錄中所有分析的數學式都寫的蠻正確的，我認為這裡是筆誤的理由如下：
 
@@ -924,7 +930,7 @@ Long Short-Term Memory
   - 至少要傳播兩個時間點才能得到輸出，代表第 $1$ 個時間點的輸出完全無法利用到記憶細胞的知識
   - 後續的實驗架構設計中沒有將外部輸入連接到輸出，代表第 $1$ 個時間點的輸出完全依賴模型的初始狀態（常數），非常不合理
 
-  因此我決定改用我認為是正確的版本撰寫後續的筆記，即 $t + 1$ 時間點的**總輸出**與 $t$ 時間點的**外部輸入**和 $t + 1$ 時間點的**計算狀態**有關。
+  因此我決定改用我認為是正確的版本撰寫後續的筆記，即 $t+1$ 時間點的**總輸出**與 $t$ 時間點的**外部輸入**和 $t+1$ 時間點的**計算狀態**有關。
 
   注意 $\eqref{32} \eqref{33}$ 沒有使用偏差項（bias term），但後續的分析會提到可以使用偏差項進行計算缺陷的修正。
 
@@ -946,15 +952,15 @@ Long Short-Term Memory
 
   - 最佳化的核心思想是確保能夠達成 **CEC** （見 $\eqref{25}$）
   - 使用的手段是要求所有梯度**反向傳播**的過程在經過**記憶細胞區域**與**隱藏單元**後便**停止**傳播
-  - 停止傳播導致在完成 $t + 1$ 時間點的 forward pass 後梯度可以**馬上計算完成**（real time 的精神便是來自於此）
+  - 停止傳播導致在完成 $t+1$ 時間點的 forward pass 後梯度可以**馬上計算完成**（real time 的精神便是來自於此）
 
   首先我們定義新的符號 $\aptr$，代表計算**梯度**的過程會有**部份梯度**故意被**丟棄**（設定為 $0$），並以丟棄結果**近似**真正的**全微分**。
 
   $$
-  \pd{\opnet_i^a(t + 1)}{y_j^b(t)} \aptr 0 \quad \text{where } a, b \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \tag{37}\label{37}
+  \pd{\opnet_i^a(t+1)}{y_j^b(t)} \aptr 0 \quad \text{where } a, b \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \tag{37}\label{37}
   $$
 
-  所有與**隱藏單元淨輸入** $\nethid{i}{t + 1}$、**輸入閘門淨輸入** $\netig{i}{t + 1}$、**輸出閘門淨輸入** $\netog{i}{t + 1}$、**記憶細胞淨輸入** $\netcell{i}{k}{t + 1}$ **直接相連**的 $t$ 時間點的**單元**，一律**丟棄梯度**
+  所有與**隱藏單元淨輸入** $\nethid{i}{t+1}$、**輸入閘門淨輸入** $\netig{i}{t+1}$、**輸出閘門淨輸入** $\netog{i}{t+1}$、**記憶細胞淨輸入** $\netcell{i}{k}{t+1}$ **直接相連**的 $t$ 時間點的**單元**，一律**丟棄梯度**
 
   - 注意論文在 A.1.2 節的開頭只提到**輸入閘門**、**輸出閘門**、**記憶細胞**要**丟棄梯度**
   - 但論文在 A.9 式描述可以將**隱藏單元**的梯度一起**丟棄**，害我白白推敲公式好幾天
@@ -967,22 +973,22 @@ Long Short-Term Memory
   \begin{align*}
   a & \in \set{\ophid, \opig, \opog} \\
   b & \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
-  \pd{y_i^a(t + 1)}{y_j^b(t)} & = \pd{y_i^a(t + 1)}{\opnet_i^a(t + 1)} \cdot \cancelto{0}{\pd{\opnet_i^a(t + 1)}{y_j^b(t)}} \aptr 0 \\
+  \pd{y_i^a(t+1)}{y_j^b(t)} & = \pd{y_i^a(t+1)}{\opnet_i^a(t+1)} \cdot \cancelto{0}{\pd{\opnet_i^a(t+1)}{y_j^b(t)}} \aptr 0 \\
   k & \in \set{1, 2, \dots, \nblk} \\
-  \pd{y_i^{\blk{k}}(t + 1)}{y_j^b(t)} & = \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t + 1)}{y_j^b(t)}} \\
-  & \quad + \pd{y_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t + 1}}{y_j^b(t)}} \\
-  & \quad + \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t + 1)}{y_j^b(t)}} \\
+  \pd{y_i^{\blk{k}}(t+1)}{y_j^b(t)} & = \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t+1)}{y_j^b(t)}} \\
+  & \quad + \pd{y_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t+1}}{y_j^b(t)}} \\
+  & \quad + \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t+1)}{y_j^b(t)}} \\
   & \aptr 0
   \end{align*} \tag{38}\label{38}
   $$
 
-  由於 $y^{\opig}(t + 1), y^{\opog}(t + 1), \opnet^{\blk{k}}(t + 1)$ 並不是**直接**透過 $w^{\ophid}$ 產生，因此 $w^{\ophid}$ 只能透過參與 $t$ 時間點**以前**的計算**間接**對 $t + 1$ 時間點的計算造成影響（見 $\eqref{31}$），這也代表在 $\eqref{38}$ 作用的情況下 $w^{\ophid}$ **無法**從 $y^{\opig}(t + 1), y^{\opog}(t + 1), \opnet^{\blk{k}}(t + 1)$ 收到任何的**梯度**：
+  由於 $y^{\opig}(t+1), y^{\opog}(t+1), \opnet^{\blk{k}}(t+1)$ 並不是**直接**透過 $w^{\ophid}$ 產生，因此 $w^{\ophid}$ 只能透過參與 $t$ 時間點**以前**的計算**間接**對 $t+1$ 時間點的計算造成影響（見 $\eqref{31}$），這也代表在 $\eqref{38}$ 作用的情況下 $w^{\ophid}$ **無法**從 $y^{\opig}(t+1), y^{\opog}(t+1), \opnet^{\blk{k}}(t+1)$ 收到任何的**梯度**：
 
   $$
   \begin{align*}
   a & \in \set{\opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
   b & \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
-  \pd{y_i^a(t + 1)}{\whid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \bigg[\cancelto{0}{\pd{y_i^a(t + 1)}{y_j^b(t)}} \cdot \pd{y_j^b(t)}{\whid_{p, q}}\bigg] \aptr 0
+  \pd{y_i^a(t+1)}{\whid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \bigg[\cancelto{0}{\pd{y_i^a(t+1)}{y_j^b(t)}} \cdot \pd{y_j^b(t)}{\whid_{p, q}}\bigg] \aptr 0
   \end{align*} \tag{39}\label{39}
   $$
 
@@ -1001,46 +1007,46 @@ Long Short-Term Memory
   \end{dcases} \tag{40}\label{40}
   $$
 
-  由於**總輸出** $y(t + 1)$ 不會像是 $\eqref{1} \eqref{2}$ 的方式**回饋**到模型的計算狀態中，因此**總輸出參數** $\wout$ 對**總輸出** $y(t + 1)$ 計算所得的**梯度**為
+  由於**總輸出** $y(t+1)$ 不會像是 $\eqref{1} \eqref{2}$ 的方式**回饋**到模型的計算狀態中，因此**總輸出參數** $\wout$ 對**總輸出** $y(t+1)$ 計算所得的**梯度**為
 
   $$
   \begin{align*}
   i, p & \in \set{1, \dots, \dout} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
-  \pd{y_i(t + 1)}{\wout_{p, q}} & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wout_{p, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
+  \pd{y_i(t+1)}{\wout_{p, q}} & = \pd{y_i(t+1)}{\netout{i}{t+1}} \cdot \pd{\netout{i}{t+1}}{\wout_{p, q}} \\
+  & = \dfnetout{i}{t+1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
   x(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
+  y^{\ophid}(t+1) \\
+  y^{\blk{1}}(t+1) \\
   \vdots \\
-  y^{\blk{\nblk}}(t + 1)
+  y^{\blk{\nblk}}(t+1)
   \end{pmatrix}_q
   \end{align*} \tag{41}\label{41}
   $$
 
   - $\eqref{41}$ 就是論文中 A.8 式的第一個 case
-  - 由於 $p$ 可以是**任意**的輸出節點，因此在 $i \neq p$ 時 $\wout_{p, q}$ 對於 $y_i(t + 1)$ 的梯度為 $0$
+  - 由於 $p$ 可以是**任意**的輸出節點，因此在 $i \neq p$ 時 $\wout_{p, q}$ 對於 $y_i(t+1)$ 的梯度為 $0$
 
   #### 隱藏單元參數
 
-  在 $\eqref{37} \eqref{38} \eqref{39}$ 的作用下，我們可以求得**隱藏單元參數** $\whid$ 在**丟棄**部份梯度後對於**總輸出** $y(t + 1)$ 計算所得的**剩餘梯度**
+  在 $\eqref{37} \eqref{38} \eqref{39}$ 的作用下，我們可以求得**隱藏單元參數** $\whid$ 在**丟棄**部份梯度後對於**總輸出** $y(t+1)$ 計算所得的**剩餘梯度**
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot \dblk \\
-  \tilde{x}(t + 1) & = \begin{pmatrix}
+  \tilde{x}(t+1) & = \begin{pmatrix}
   x(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
+  y^{\ophid}(t+1) \\
+  y^{\blk{1}}(t+1) \\
   \vdots \\
-  y^{\blk{\nblk}}(t + 1)
+  y^{\blk{\nblk}}(t+1)
   \end{pmatrix} \in \R^D \\
   i & \in \set{1, \dots, \dout} \\
   p & \in \set{1, \dots, \dhid} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_i(t + 1)}{\whid_{p, q}} & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\whid_{p, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t + 1)}{\whid_{p, q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t + 1)}{\whid_{p, q}}
+  \pd{y_i(t+1)}{\whid_{p, q}} & = \pd{y_i(t+1)}{\netout{i}{t+1}} \cdot \pd{\netout{i}{t+1}}{\whid_{p, q}} \\
+  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t+1)}{\whid_{p, q}}}} \\
+  & \aptr \dfnetout{i}{t+1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t+1)}{\whid_{p, q}}
   \end{align*} \tag{42}\label{42}
   $$
 
@@ -1048,25 +1054,25 @@ Long Short-Term Memory
 
   #### 閘門單元參數
 
-  同 $\eqref{42}$，我們可以計算**閘門單元參數** $\wig, \wog$ 對**總輸出** $y(t + 1)$ 計算所得的**剩餘梯度**
+  同 $\eqref{42}$，我們可以計算**閘門單元參數** $\wig, \wog$ 對**總輸出** $y(t+1)$ 計算所得的**剩餘梯度**
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot \dblk \\
-  \tilde{x}(t + 1) & = \begin{pmatrix}
+  \tilde{x}(t+1) & = \begin{pmatrix}
   x(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
+  y^{\ophid}(t+1) \\
+  y^{\blk{1}}(t+1) \\
   \vdots \\
-  y^{\blk{\nblk}}(t + 1)
+  y^{\blk{\nblk}}(t+1)
   \end{pmatrix} \in \R^D \\
   i & \in \set{1, \dots, \dout} \\
   k & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i(t + 1)}{\wog_{k, q}} & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wog_{k, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t + 1)}{\wog_{k, q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}} \\
-  \pd{y_i(t + 1)}{\wig_{k, q}} & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}
+  \pd{y_i(t+1)}{\wog_{k, q}} & = \pd{y_i(t+1)}{\netout{i}{t+1}} \cdot \pd{\netout{i}{t+1}}{\wog_{k, q}} \\
+  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t+1)}{\wog_{k, q}}}} \\
+  & \aptr \dfnetout{i}{t+1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t+1)}{\wog_{k, q}}} \\
+  \pd{y_i(t+1)}{\wig_{k, q}} & \aptr \dfnetout{i}{t+1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t+1)}{\wig_{k, q}}}
   \end{align*} \tag{43}\label{43}
   $$
 
@@ -1074,25 +1080,25 @@ Long Short-Term Memory
 
   #### 記憶細胞淨輸入參數
 
-  **記憶細胞淨輸入參數** $\wblk{k}$ 對**總輸出** $y(t + 1)$ 計算所得的**剩餘梯度**與 $\eqref{43}$ 幾乎**相同**
+  **記憶細胞淨輸入參數** $\wblk{k}$ 對**總輸出** $y(t+1)$ 計算所得的**剩餘梯度**與 $\eqref{43}$ 幾乎**相同**
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot \dblk \\
-  \tilde{x}(t + 1) & = \begin{pmatrix}
+  \tilde{x}(t+1) & = \begin{pmatrix}
   x(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
+  y^{\ophid}(t+1) \\
+  y^{\blk{1}}(t+1) \\
   \vdots \\
-  y^{\blk{\nblk}}(t + 1)
+  y^{\blk{\nblk}}(t+1)
   \end{pmatrix} \in \R^D \\
   i & \in \set{1, \dots, \dout} \\
   k & \in \set{1, \dots, \nblk} \\
   p & \in \set{1, \dots, \dblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i(t + 1)}{\wblk{k}_{p, q}} & = \pd{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pd{\netout{i}{t + 1}}{\wblk{k}_{p, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t + 1)}{\wblk{k}_{p, q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pd{y_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}
+  \pd{y_i(t+1)}{\wblk{k}_{p, q}} & = \pd{y_i(t+1)}{\netout{i}{t+1}} \cdot \pd{\netout{i}{t+1}}{\wblk{k}_{p, q}} \\
+  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t+1)}{\wblk{k}_{p, q}}}} \\
+  & \aptr \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pd{y_p^{\blk{k}}(t+1)}{\wblk{k}_{p, q}}
   \end{align*} \tag{44}\label{44}
   $$
 
@@ -1104,14 +1110,14 @@ Long Short-Term Memory
 
   #### 隱藏單元參數
 
-  根據 $\eqref{37} \eqref{38}$ 我們可以得到**隱藏單元參數** $\whid$ 對於**隱藏單元** $y^{\ophid}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{37} \eqref{38}$ 我們可以得到**隱藏單元參數** $\whid$ 對於**隱藏單元** $y^{\ophid}(t+1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   i, p & \in \set{1, \dots, \dhid} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i^{\ophid}(t + 1)}{\whid_{p, q}} & = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \cancelto{\aptr}{\pd{\nethid{i}{t + 1}}{\whid_{p, q}}} \\
-  & \aptr \dfnethid{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
+  \pd{y_i^{\ophid}(t+1)}{\whid_{p, q}} & = \pd{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \cancelto{\aptr}{\pd{\nethid{i}{t+1}}{\whid_{p, q}}} \\
+  & \aptr \dfnethid{i}{t+1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
   x(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
@@ -1125,7 +1131,7 @@ Long Short-Term Memory
 
   #### 閘門單元參數
 
-  由於**隱藏單元** $y^{\ophid}(t + 1)$ 並不是**直接**透過**閘門參數** $\wig, \wog$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wig, \wog$ 對於 $y^{\ophid}(t + 1)$ **剩餘梯度**為 $0$
+  由於**隱藏單元** $y^{\ophid}(t+1)$ 並不是**直接**透過**閘門參數** $\wig, \wog$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wig, \wog$ 對於 $y^{\ophid}(t+1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
@@ -1142,14 +1148,14 @@ Long Short-Term Memory
   i & \in \set{1, \dots, \dhid} \\
   p & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_i^{\ophid}(t + 1)}{\wog_{p, q}} & = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wog_{p, q}}} \aptr 0 \\
-  \pd{y_i^{\ophid}(t + 1)}{\wig_{p, q}} & \aptr 0
+  \pd{y_i^{\ophid}(t+1)}{\wog_{p, q}} & = \pd{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\nethid{i}{t+1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wog_{p, q}}} \aptr 0 \\
+  \pd{y_i^{\ophid}(t+1)}{\wig_{p, q}} & \aptr 0
   \end{align*} \tag{46}\label{46}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  同 $\eqref{46}$，由於**隱藏單元** $y^{\ophid}(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\ophid}(t + 1)$ **剩餘梯度**為 $0$
+  同 $\eqref{46}$，由於**隱藏單元** $y^{\ophid}(t+1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\ophid}(t+1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
@@ -1167,7 +1173,7 @@ Long Short-Term Memory
   k & \in \set{1, \dots, \nblk} \\
   p & \in \set{1, \dots, \dblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_i^{\ophid}(t + 1)}{\wblk{k}_{p, q}} & = \pd{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0
+  \pd{y_i^{\ophid}(t+1)}{\wblk{k}_{p, q}} & = \pd{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\nethid{i}{t+1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0
   \end{align*} \tag{47}\label{47}
   $$
 
@@ -1177,31 +1183,31 @@ Long Short-Term Memory
 
   #### 閘門單元參數
 
-  根據 $\eqref{37}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞輸出** $y^{\blk{k}}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{37}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞輸出** $y^{\blk{k}}(t+1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   i & \in \set{1, \dots, \dblk} \\
   k, p & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \pd{y_k^{\opog}(t + 1)}{\wog_{p, q}} + \pd{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \cancelto{0}{\pd{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}}} \\
-  & \aptr h_i\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pd{y_k^{\opog}(t + 1)}{\wog_{k, q}} \tag{48}\label{48} \\
-  \pd{y_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t + 1)}{\wig_{p, q}}} + \pd{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pd{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} \\
-  & \aptr y_k^{\opog}(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pd{s_i^{\blk{k}}(t + 1)}{\wig_{k, q}} \tag{49}\label{49}
+  \pd{y_i^{\blk{k}}(t+1)}{\wog_{p, q}} & = \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \pd{y_k^{\opog}(t+1)}{\wog_{p, q}} + \pd{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \cancelto{0}{\pd{s_i^{\blk{k}}(t+1)}{\wog_{p, q}}} \\
+  & \aptr h_i\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, p} \cdot \pd{y_k^{\opog}(t+1)}{\wog_{k, q}} \tag{48}\label{48} \\
+  \pd{y_i^{\blk{k}}(t+1)}{\wig_{p, q}} & = \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t+1)}{\wig_{p, q}}} + \pd{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \pd{s_i^{\blk{k}}(t+1)}{\wig_{p, q}} \\
+  & \aptr y_k^{\opog}(t+1) \cdot h_i'\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, p} \cdot \pd{s_i^{\blk{k}}(t+1)}{\wig_{k, q}} \tag{49}\label{49}
   \end{align*}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  同 $\eqref{49}$，使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^{\star}}$ 對於**記憶細胞輸出** $y^{\blk{k}}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^{\star}$ 可以**不等於** $k$）
+  同 $\eqref{49}$，使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^{\star}}$ 對於**記憶細胞輸出** $y^{\blk{k}}(t+1)$ 計算所得**剩餘梯度**（注意 $k^{\star}$ 可以**不等於** $k$）
 
   $$
   \begin{align*}
   i, p & \in \set{1, \dots, \dblk} \\
   k, k^{\star} & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i^{\blk{k}}(t + 1)}{\wblk{k^{\star}}_{p, q}} & = \pd{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t + 1)}{\wblk{k^{\star}}_{p, q}}} + \pd{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pd{s_i^{\blk{k}}(t + 1)}{\wblk{k^{\star}}_{p, q}} \\
-  & \aptr y_k^{\opog}(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \pd{s_i^{\blk{k}}(t + 1)}{\wblk{k}_{i, q}}
+  \pd{y_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} & = \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t+1)}{\wblk{k^{\star}}_{p, q}}} + \pd{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \pd{s_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} \\
+  & \aptr y_k^{\opog}(t+1) \cdot h_i'\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \pd{s_i^{\blk{k}}(t+1)}{\wblk{k}_{i, q}}
   \end{align*} \tag{50}\label{50}
   $$
 
@@ -1213,7 +1219,7 @@ Long Short-Term Memory
 
   #### 閘門單元參數
 
-  根據 $\eqref{37} \eqref{38}$ 我們可以得到**閘門單元參數** $\wig, \wog$ 對於**閘門單元** $y^{\opig}(t + 1), y^{\opog}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{37} \eqref{38}$ 我們可以得到**閘門單元參數** $\wig, \wog$ 對於**閘門單元** $y^{\opig}(t+1), y^{\opog}(t+1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
@@ -1229,15 +1235,15 @@ Long Short-Term Memory
   \end{pmatrix} \in \R^D \\
   k, p & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_k^{\opig}(t + 1)}{[\wig ; \wog]_{p, q}} & = \pd{y_k^{\opig}(t + 1)}{\netig{k}{t + 1}} \cdot \cancelto{\aptr}{\pd{\netig{k}{t + 1}}{[\wig ; \wog]_{p, q}}} \\
-  & \aptr \dfnetig{k}{t + 1} \cdot \delta_{k, p} \cdot \tilde{x}_q(t) \\
-  \pd{y_k^{\opog}(t + 1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t + 1} \cdot \tilde{x}_q(t)
+  \pd{y_k^{\opig}(t+1)}{[\wig ; \wog]_{p, q}} & = \pd{y_k^{\opig}(t+1)}{\netig{k}{t+1}} \cdot \cancelto{\aptr}{\pd{\netig{k}{t+1}}{[\wig ; \wog]_{p, q}}} \\
+  & \aptr \dfnetig{k}{t+1} \cdot \delta_{k, p} \cdot \tilde{x}_q(t) \\
+  \pd{y_k^{\opog}(t+1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t+1} \cdot \tilde{x}_q(t)
   \end{align*} \tag{51}\label{51}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  由於**閘門單元** $y^{\opig}(t + 1), y^{\opog}(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\opig}(t + 1), y^{\opog}(t + 1)$ **剩餘梯度**為 $0$
+  由於**閘門單元** $y^{\opig}(t+1), y^{\opog}(t+1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\opig}(t+1), y^{\opog}(t+1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
@@ -1254,8 +1260,8 @@ Long Short-Term Memory
   k & \in \set{1, \dots, \nblk} \\
   p & \in \set{1, \dots, \dblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_k^{\opig}(t + 1)}{\wblk{k}_{p, q}} & = \pd{y_k^{\opig}(t + 1)}{\netig{k}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\netig{k}{t + 1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
-  \pd{y_k^{\opog}(t + 1)}{\wblk{k}_{p, q}} & \aptr 0
+  \pd{y_k^{\opig}(t+1)}{\wblk{k}_{p, q}} & = \pd{y_k^{\opig}(t+1)}{\netig{k}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\netig{k}{t+1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
+  \pd{y_k^{\opog}(t+1)}{\wblk{k}_{p, q}} & \aptr 0
   \end{align*} \tag{52}\label{52}
   $$
 
@@ -1265,7 +1271,7 @@ Long Short-Term Memory
 
   #### 閘門單元參數
 
-  將 $\eqref{37}$ 結合 $\eqref{51}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞內部狀態** $s^{\blk{k}}(t + 1)$ 計算所得**剩餘梯度**
+  將 $\eqref{37}$ 結合 $\eqref{51}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞內部狀態** $s^{\blk{k}}(t+1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
@@ -1282,19 +1288,19 @@ Long Short-Term Memory
   i & \in \set{1, \dots, \dblk} \\
   k, p & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \pd{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\pd{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \pd{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t + 1)}{\wog_{p, q}}} \\
-  & \quad + \pd{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t + 1}}{\wog_{p, q}}} \\
+  \pd{s_i^{\blk{k}}(t+1)}{\wog_{p, q}} & = \pd{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\pd{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \pd{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t+1)}{\wog_{p, q}}} \\
+  & \quad + \pd{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t+1}}{\wog_{p, q}}} \\
   & \aptr 0 \tag{53}\label{53} \\
-  \pd{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \pd{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pd{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \pd{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \pd{y_k^{\opig}(t + 1)}{\wig_{p, q}} \\
-  & \quad + \pd{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t + 1}}{\wig_{p, q}}} \\
-  & \aptr 1 \cdot \delta_{k, p} \cdot \pd{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\pd{y_k^{\opig}(t + 1)}{\wig_{k, q}}} \\
-  & \aptr \delta_{k, p} \cdot \br{\pd{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
+  \pd{s_i^{\blk{k}}(t+1)}{\wig_{p, q}} & = \pd{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \pd{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \pd{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \pd{y_k^{\opig}(t+1)}{\wig_{p, q}} \\
+  & \quad + \pd{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t+1}}{\wig_{p, q}}} \\
+  & \aptr 1 \cdot \delta_{k, p} \cdot \pd{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t+1}} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\pd{y_k^{\opig}(t+1)}{\wig_{k, q}}} \\
+  & \aptr \delta_{k, p} \cdot \br{\pd{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t+1}} \cdot \dfnetig{k}{t+1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
   \end{align*}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^{\star}}$ 對於**記憶細胞內部狀態** $s^{\blk{k}}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^{\star}$ 可以**不等於** $k$）
+  使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^{\star}}$ 對於**記憶細胞內部狀態** $s^{\blk{k}}(t+1)$ 計算所得**剩餘梯度**（注意 $k^{\star}$ 可以**不等於** $k$）
 
   $$
   \begin{align*}
@@ -1311,11 +1317,11 @@ Long Short-Term Memory
   i, p & \in \set{1, \dots, \dblk} \\
   k, k^{\star} & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{s_i^{\blk{k}}(t + 1)}{\wblk{k^{\star}}_{p, q}} & = \pd{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pd{s_i^{\blk{k}}(t)}{\wblk{k^{\star}}_{p, q}} + \pd{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t + 1)}{\wblk{k^{\star}}_{p, q}}} \\
-  & \quad + \pd{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \pd{\netcell{i}{k}{t + 1}}{\wblk{k^{\star}}_{p, q}} \\
+  \pd{s_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} & = \pd{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \pd{s_i^{\blk{k}}(t)}{\wblk{k^{\star}}_{p, q}} + \pd{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t+1)}{\wblk{k^{\star}}_{p, q}}} \\
+  & \quad + \pd{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \pd{\netcell{i}{k}{t+1}}{\wblk{k^{\star}}_{p, q}} \\
   & \aptr \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot 1 \cdot \pd{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} \\
-  & \quad + \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot y_k^{\opig}(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t) \\
-  & = \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \br{\pd{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + y_k^{\opig}(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t)}
+  & \quad + \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot y_k^{\opig}(t+1) \cdot g_i'\pa{\netcell{i}{k}{t+1}} \cdot \tilde{x}_q(t) \\
+  & = \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \br{\pd{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + y_k^{\opig}(t+1) \cdot g_i'\pa{\netcell{i}{k}{t+1}} \cdot \tilde{x}_q(t)}
   \end{align*} \tag{55}\label{55}
   $$
 
@@ -1329,18 +1335,18 @@ Long Short-Term Memory
 
   $$
   \begin{align*}
-  \tilde{x}(t + 1) & = \begin{pmatrix}
+  \tilde{x}(t+1) & = \begin{pmatrix}
   x(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
+  y^{\ophid}(t+1) \\
+  y^{\blk{1}}(t+1) \\
   \vdots \\
-  y^{\blk{\nblk}}(t + 1)
+  y^{\blk{\nblk}}(t+1)
   \end{pmatrix} \\
   i & \in \set{1, \dots, \dout} \\
   j & \in \set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
-  \pd{\Loss{t + 1}}{\wout_{i, j}} & = \pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wout_{i, j}} \\
-  & = \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \pd{y_i(t + 1)}{\wout_{i, j}} \\
-  & = \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \tilde{x}_j(t + 1)
+  \pd{\tloss(t+1)}{\wout_{i, j}} & = \pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\wout_{i, j}} \\
+  & = \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \pd{y_i(t+1)}{\wout_{i, j}} \\
+  & = \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \tilde{x}_j(t+1)
   \end{align*} \tag{56}\label{56}
   $$
 
@@ -1352,11 +1358,11 @@ Long Short-Term Memory
   \begin{align*}
   & p \in \set{1, \dots, \dhid} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pd{\Loss{t + 1}}{\whid_{p, q}} = \sum_{i = 1}^{\dout} \br{\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\whid_{p, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t + 1)}{\whid_{p, q}}} \\
-  & = \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \pd{y_p^{\ophid}(t + 1)}{\whid_{p, q}} \\
-  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \\
-  & \quad \quad \dfnethid{p}{t + 1} \cdot \begin{pmatrix}
+  & \pd{\tloss(t+1)}{\whid_{p, q}} = \sum_{i = 1}^{\dout} \br{\pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\whid_{p, q}}} \\
+  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t+1) - \hat{y}_i(t+1)} \cdot \dfnetout{i}{t+1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t+1)}{\whid_{p, q}}} \\
+  & = \sum_{i = 1}^{\dout} \br{\pa{y_i(t+1) - \hat{y}_i(t+1)} \cdot \dfnetout{i}{t+1} \cdot \wout_{i, p}} \cdot \pd{y_p^{\ophid}(t+1)}{\whid_{p, q}} \\
+  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t+1) - \hat{y}_i(t+1)} \cdot \dfnetout{i}{t+1} \cdot \wout_{i, p}} \cdot \\
+  & \quad \quad \dfnethid{p}{t+1} \cdot \begin{pmatrix}
   x(t) \\
   y^{\ophid}(t) \\
   y^{\blk{1}}(t) \\
@@ -1374,16 +1380,16 @@ Long Short-Term Memory
   \begin{align*}
   k & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{\Loss{t + 1}}{\wog_{k, q}} & = \sum_{i = 1}^{\dout} \br{\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wog_{k, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}}\Bigg] \\
-  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \pd{y_k^{\opog}(t + 1)}{\wog_{k, q}}}\Bigg] \\
-  & = \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \pd{y_k^{\opog}(t + 1)}{\wog_{k, q}} \\
-  & \aptr \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \\
-  & \quad \quad \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
+  \pd{\tloss(t+1)}{\wog_{k, q}} & = \sum_{i = 1}^{\dout} \br{\pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\wog_{k, q}}} \\
+  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t+1)}{\wog_{k, q}}}\Bigg] \\
+  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t+1)} \cdot \pd{y_k^{\opog}(t+1)}{\wog_{k, q}}}\Bigg] \\
+  & = \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t+1)}}\Bigg] \cdot \pd{y_k^{\opog}(t+1)}{\wog_{k, q}} \\
+  & \aptr \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t+1)}}\Bigg] \cdot \\
+  & \quad \quad \dfnetog{k}{t+1} \cdot \begin{pmatrix}
   x(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
@@ -1412,16 +1418,16 @@ Long Short-Term Memory
   \end{pmatrix} \\
   & k \in \set{1, \dots, \nblk} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pd{\Loss{t + 1}}{\wig_{k, q}} = \sum_{i = 1}^{\dout} \br{\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wig_{k, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
-  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pd{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
-  & = \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pd{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot y_k^{\opog}(t + 1) \\
-  & \aptr \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\pd{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
-  & \quad \quad g_j\pa{\netcell{j}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot y_k^{\opog}(t + 1)
+  & \pd{\tloss(t+1)}{\wig_{k, q}} = \sum_{i = 1}^{\dout} \br{\pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\wig_{k, q}}} \\
+  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg] \\
+  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t+1) \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \pd{s_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg] \\
+  & = \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \pd{s_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot y_k^{\opog}(t+1) \\
+  & \aptr \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \bigg[\pd{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
+  & \quad \quad g_j\pa{\netcell{j}{k}{t+1}} \cdot \dfnetig{k}{t+1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot y_k^{\opog}(t+1)
   \end{align*} \tag{59}\label{59}
   $$
 
@@ -1443,16 +1449,16 @@ Long Short-Term Memory
   & k \in \set{1, \dots, \nblk} \\
   & p \in \set{1, \dots, \dblk} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pd{\Loss{t + 1}}{\wblk{k}_{p, q}} = \sum_{i = 1}^{\dout} \br{\pd{\Loss{t + 1}}{\loss{i}{t + 1}} \cdot \pd{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pd{y_i(t + 1)}{\wblk{k}_{p, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pd{y^{\blk{k}}_p(t + 1)}{\wblk{k}_{p, q}}\bigg] \\
-  & = \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \pd{y^{\blk{k}}_p(t + 1)}{\wblk{k}_{p, q}} \\
-  & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad y_k^{\opog}(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \pd{s_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}\Bigg] \\
-  & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad y_k^{\opog}(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
-  & \quad \quad y_k^{\opig}(t + 1) \cdot g_p'\pa{\netcell{p}{k}{t + 1}} \cdot \tilde{x}_q(t)\Bigg]
+  & \pd{\tloss(t+1)}{\wblk{k}_{p, q}} = \sum_{i = 1}^{\dout} \br{\pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\wblk{k}_{p, q}}} \\
+  & \aptr \sum_{i = 1}^{\dout} \bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
+  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pd{y^{\blk{k}}_p(t+1)}{\wblk{k}_{p, q}}\bigg] \\
+  & = \br{\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+  & \quad \quad \pd{y^{\blk{k}}_p(t+1)}{\wblk{k}_{p, q}} \\
+  & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+  & \quad \quad y_k^{\opog}(t+1) \cdot h_p'\pa{s_p^{\blk{k}}(t+1)} \cdot \pd{s_p^{\blk{k}}(t+1)}{\wblk{k}_{p, q}}\Bigg] \\
+  & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+  & \quad \quad y_k^{\opog}(t+1) \cdot h_p'\pa{s_p^{\blk{k}}(t+1)} \cdot \Bigg[\pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
+  & \quad \quad y_k^{\opig}(t+1) \cdot g_p'\pa{\netcell{p}{k}{t+1}} \cdot \tilde{x}_q(t)\Bigg]
   \end{align*} \tag{60}\label{60}
   $$
 
@@ -1460,21 +1466,21 @@ Long Short-Term Memory
 
   ### 時間複雜度
 
-  假設 $t + 1$ 時間點的 **forward pass** 已經執行完成，則**更新** $t + 1$ 時間點**所有參數**的**時間複雜度**為
+  假設 $t+1$ 時間點的 **forward pass** 已經執行完成，則**更新** $t+1$ 時間點**所有參數**的**時間複雜度**為
 
   $$
   O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)) \tag{61}\label{61}
   $$
 
   - $\eqref{61}$ 就是論文中的 A.27 式
-  - 在 $t + 1$ 時間點**參數更新**需要考慮 $t$ 時間點的**計算狀態**，請見 $\eqref{57} \eqref{58} \eqref{59} \eqref{60}$
+  - 在 $t+1$ 時間點**參數更新**需要考慮 $t$ 時間點的**計算狀態**，請見 $\eqref{57} \eqref{58} \eqref{59} \eqref{60}$
   - 沒有如同 $\eqref{14}$ 的**連乘積**項，因此不會有**梯度消失**問題
   - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\pd{s_j^{\blk{k}}(t)}{\wig_{k, q}}, \pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}}$
     - 紀錄讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
     - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
-    - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
+    - **即時更新**（意思是 $t+1$ 時間點的 forward pass 完成後便可計算 $t+1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
 
-  總共會執行 $T + 1$ 個 **forward pass**，因此**更新所有參數**所需的**總時間複雜度**為
+  總共會執行 $t+1$ 個 **forward pass**，因此**更新所有參數**所需的**總時間複雜度**為
 
   $$
   O\big(T \cdot \big[\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)\big]\big) \tag{62}\label{62}
@@ -1482,7 +1488,7 @@ Long Short-Term Memory
 
   ### 空間複雜度
 
-  我們也可以推得在 $t + 1$ 時間點**更新所有參數**所需的**空間複雜度**
+  我們也可以推得在 $t+1$ 時間點**更新所有參數**所需的**空間複雜度**
 
   $$
   O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)) \tag{63}\label{63}
@@ -1490,7 +1496,7 @@ Long Short-Term Memory
 
   總共會執行 $T$ 個 **forward pass**，但**更新**所需的**總空間複雜度**仍然同 $\eqref{63}$
 
-  - 依照**時間順序**計算梯度，計算完 $t + 1$ 時間點的梯度時 $t$ 的資訊便可丟棄
+  - 依照**時間順序**計算梯度，計算完 $t+1$ 時間點的梯度時 $t$ 的資訊便可丟棄
   - 這就是 **RTRL** 的最大優點
 
   ### 達成梯度常數
@@ -1501,8 +1507,8 @@ Long Short-Term Memory
   \begin{align*}
   i & \in \set{1, \dots, \dblk} \\
   k & \in \set{1, \dots, \nblk} \\
-  \pd{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} & = \pd{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\pd{y_k^{\opig}(t + 1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\netcell{i}{k}{t + 1}} + \\
-  & \quad y_k^{\opig}(t + 1) \cdot \cancelto{0}{\pd{g_i\pa{\netcell{i}{k}{t + 1}}}{s_i^{\blk{k}}(t)}} \\
+  \pd{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} & = \pd{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\pd{y_k^{\opig}(t+1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\netcell{i}{k}{t+1}} + \\
+  & \quad y_k^{\opig}(t+1) \cdot \cancelto{0}{\pd{g_i\pa{\netcell{i}{k}{t+1}}}{s_i^{\blk{k}}(t)}} \\
   & \aptr 1
   \end{align*} \tag{64}\label{64}
   $$
@@ -1514,9 +1520,9 @@ Long Short-Term Memory
 
   觀察 $\eqref{54} \eqref{59}$，當 $h$ 是 sigmoid 函數時，我們可以發現
 
-  - 如果 $s^{\blk{k}}(t + 1)$ 是一個**非常大**的**正數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 會變得**非常小**
-  - 如果 $s^{\blk{k}}(t + 1)$ 是一個**非常小**的**負數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 也會變得**非常小**
-  - 在 $s^{\blk{k}}(t + 1)$ 極正或極負的情況下，**輸入閘門參數** $\wig$ 的**梯度**會**消失**
+  - 如果 $s^{\blk{k}}(t+1)$ 是一個**非常大**的**正數**，則 $h_j'\pa{s_j^{\blk{k}}(t+1)}$ 會變得**非常小**
+  - 如果 $s^{\blk{k}}(t+1)$ 是一個**非常小**的**負數**，則 $h_j'\pa{s_j^{\blk{k}}(t+1)}$ 也會變得**非常小**
+  - 在 $s^{\blk{k}}(t+1)$ 極正或極負的情況下，**輸入閘門參數** $\wig$ 的**梯度**會**消失**
   - 此現象稱為**內部狀態偏差行為**（**Internal State Drift**）
   - 同樣的現象也會發生在**記憶細胞淨輸入參數** $\wblk{1}, \dots \wblk{\nblk}$ 身上，請見 $\eqref{60}$
   - 此分析就是論文的 A.39 式改寫而來
@@ -1533,8 +1539,8 @@ Long Short-Term Memory
   \implies & s^{\wblk{k}}(1) = s^{\wblk{k}}(0) + y^{\opig}(1) \odot g\big(\opnet^{\wblk{k}}(1)\big) \\
   & = y^{\opig}(1) \odot g\big(\opnet^{\wblk{k}}(1)\big) \approx 0 \\
   \implies & \begin{dcases}
-  s^{\wblk{k}}(t + 1) \not\ll 0 \\
-  s^{\wblk{k}}(t + 1) \not\gg 0
+  s^{\wblk{k}}(t+1) \not\ll 0 \\
+  s^{\wblk{k}}(t+1) \not\gg 0
   \end{dcases} \quad \forall t = 0, \dots, T - 1
   \end{align*} \tag{65}\label{65}
   $$
@@ -1636,9 +1642,9 @@ Long Short-Term Memory
     - 如果生成 BT，則結尾一定要是 TE
     - 如果生成 BP，則結尾一定要是 PE
     - 因此 RNN 模型必須學會記住**開頭**的 T / P 與**結尾搭配**，判斷一個文字序列是否由 Embedded Reber Grammar 生成
-  - 模型會在每個時間點 $t$ 收到一個字元，並輸出下一個時間點 $t + 1$ 會收到的字元
+  - 模型會在每個時間點 $t$ 收到一個字元，並輸出下一個時間點 $t+1$ 會收到的字元
     - 輸入與輸出都是 one-hot vector，維度為 $7$，每個維度各自代表 BEPSTVX 中的一個字元，取數值最大的維度作為預測結果
-    - 模型必須根據 $0, 1, \dots t - 1, t$ 時間點收到的字元預測 $t + 1$ 時間點輸出的字元
+    - 模型必須根據 $0, 1, \dots t - 1, t$ 時間點收到的字元預測 $t+1$ 時間點輸出的字元
     - 概念就是 Language Model
   - 資料數
     - 訓練集：256 筆
@@ -1702,7 +1708,7 @@ Long Short-Term Memory
 
   令 $\opseq_{\star} \in \set{\opseq_1, \opseq_2}$，令 $\opseq_{\star}$ 第 $t$ 個時間點的字元為 $\opseq_{\star}(t) \in V$。
 
-  當給予模型 $\opseq_{\star}(t)$ 時，模型要能夠根據 $\opseq_{\star}(0), \opseq_{\star}(1), \dots \opseq_{\star}(t - 1), \opseq_{\star}(t)$ 預測 $\opseq_{\star}(t + 1)$。
+  當給予模型 $\opseq_{\star}(t)$ 時，模型要能夠根據 $\opseq_{\star}(0), \opseq_{\star}(1), \dots \opseq_{\star}(t - 1), \opseq_{\star}(t)$ 預測 $\opseq_{\star}(t+1)$。
 
   - 模型需要記住 $c_1, \dots, c_{p - 1}$ 的順序
   - 模型也需要記住開頭的 $\opseq_{\star}(0)$ 是 $\alpha$ 還是 $\beta$，並利用 $\opseq_{\star}(0)$ 的資訊預測 $\opseq_{\star}(p + 1)$
