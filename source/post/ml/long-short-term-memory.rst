@@ -414,8 +414,8 @@ Long Short-Term Memory
       & \indent{2} \algoFor{i \in \Set{1, \dots, \dout}} \\
       & \indent{3} \loss_i(t) \algoEq \frac{1}{2} \qty(y_i(t) - \hat{y}_{i}(t))^2 \\
       & \indent{2} \algoEndFor \\
-      & \indent{2} \tloss(t) \algoEq \sum_{i = 1}^{\dout} \loss_i(t) \\
       & \indent{1} \algoEndFor \\
+      & \indent{1} \algoReturn \loss(1), \dots, \loss(T) \\
       & \algoEndProc
     \end{align*}
   \]
@@ -423,29 +423,25 @@ Long Short-Term Memory
 對目標函數微分
 --------------
 
-根據目標函數的定義，我們知道 :math:`y_i(t + 1)` 對 :math:`\tloss(t + 1)` 微分可得：
+根據目標函數的定義，我們知道 :math:`y_i(t + 1)` 對 :math:`\loss_i(t + 1)` 微分可得：
 
 .. math::
   :nowrap:
 
   \[
-    \begin{align*}
-      \eval{\pdv{\tloss(t + 1)}{y_i(t + 1)}}_{y_i(t + 1)} & = \eval{\pdv{\tloss(t + 1)}{\loss_i(t + 1)}}_{\loss_i(t + 1)} \cdot \eval{\dv{\loss_i(t + 1)}{y_i(t + 1)}}_{y_i(t + 1)} \\
-                                                          & = 1 \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \\
-                                                          & = y_i(t + 1) - \hat{y}_{i}(t + 1).
-    \end{align*} \tag{1}\label{1}
+    \eval{\pdv{\loss_i(t + 1)}{y_i(t + 1)}}_{y_i(t + 1), \hat{y}_i(t + 1)} = y_i(t + 1) - \hat{y}_{i}(t + 1). \tag{1}\label{1}
   \]
 
-根據 :math:`\eqref{1}` 我們可以推得 :math:`\net{i}{t + 1}` 對 :math:`\tloss(t + 1)` 的微分：
+根據 :math:`\eqref{1}` 我們可以推得 :math:`z_i(t + 1)` 對 :math:`\loss_i(t + 1)` 的微分：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \eval{\pdv{\tloss(t + 1)}{\net{i}{t + 1}}}_{\net{i}{t + 1}} & = \eval{\pdv{\tloss(t + 1)}{y_i(t + 1)}}_{y_i(t + 1)} \cdot \eval{\dv{y_i(t + 1)}{\net{i}{t + 1}}}_{\net{i}{t + 1}} \\
-                                                                  & = \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot f'\qty(\net{i}{t + 1}) \\
-                                                                  & = \sigma'\qty(\net{i}{t + 1}) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)).
+      \eval{\pdv{\loss_i(t + 1)}{z_i(t + 1)}}_{z_i(t + 1), \hat{y}_i(t + 1)} & = \eval{\pdv{\loss_i(t + 1)}{y_i(t + 1)}}_{y_i(t + 1), \hat{y}_i(t + 1)} \cdot \eval{\dv{y_i(t + 1)}{z_i(t + 1)}}_{z_i(t + 1)} \\
+                                                                             & = \qty[y_i(t + 1) - \hat{y}_{i}(t + 1)] \cdot f'\qty(z_i(t + 1)) \\
+                                                                             & = \sigma'\qty(z_i(t + 1)) \cdot \qty[y_i(t + 1) - \hat{y}_{i}(t + 1)].
     \end{align*} \tag{2}\label{2}
   \]
 
@@ -453,28 +449,28 @@ Long Short-Term Memory
 
   式子 :math:`\eqref{2}` 就是論文 3.1.1 節的第一條公式。
 
-根據 :math:`\eqref{2}` 我們可以推得 :math:`y_j(t)` 對 :math:`\tloss(t + 1)` 的微分（注意時間差）：
+根據 :math:`\eqref{2}` 我們可以推得 :math:`y_j(t)` 對 :math:`\loss_i(t + 1)` 的微分（注意時間差）：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \eval{\pdv{\tloss(t + 1)}{y_j(t)}}_{y_j(t)} & = \sum_{i = 1}^{\dout} \qty[\eval{\pdv{\tloss(t + 1)}{\net{i}{t + 1}}}_{\net{i}{t + 1}} \cdot \eval{\pdv{\net{i}{t + 1}}{y_j(t)}}_{y_j(t)}] \\
-                                                  & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(\net{i}{t + 1}) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot w_{i, j}].
+      \eval{\pdv{\loss_i(t + 1)}{y_j(t)}}_{y_j(t)} & = \sum_{i = 1}^{\dout} \qty[\eval{\pdv{\loss_i(t + 1)}{z_i(t + 1)}}_{z_i(t + 1)} \cdot \eval{\pdv{z_i(t + 1)}{y_j(t)}}_{y_j(t)}] \\
+                                                  & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(z_i(t + 1)) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot w_{i, j}].
     \end{align*} \tag{3}\label{3}
   \]
 
-由於 :math:`y(t)` 是由 :math:`\opnet(t)` 計算而來，所以我們也利用 :math:`\eqref{3}` 計算 :math:`\net{j}{t}` 對 :math:`\tloss(t + 1)` 的微分：
+由於 :math:`y(t)` 是由 :math:`\opnet(t)` 計算而來，所以我們也利用 :math:`\eqref{3}` 計算 :math:`\net{j}{t}` 對 :math:`\loss_i(t + 1)` 的微分：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-    \eval{\pdv{\tloss(t + 1)}{\net{j}{t}}}_{\net{j}{t}} & = \eval{\pdv{\tloss(t + 1)}{y_j(t)}}_{y_j(t)} \cdot \eval{\dv{y_j(t)}{\net{j}{t}}}_{\net{j}{t}} \\
-                                                        & = \qty[\sum_{i = 1}^{\dout} \pdv{\tloss(t + 1)}{\net{i}{t + 1}} \cdot w_{i, j}] \cdot \sigma'\qty(\net{j}{t}) \\
-                                                        & = \sigma'\qty(\net{j}{t}) \cdot \sum_{i = 1}^{\dout} \qty[w_{i, j} \cdot \pdv{\tloss(t + 1)}{\net{i}{t + 1}}].
+    \eval{\pdv{\loss_i(t + 1)}{\net{j}{t}}}_{\net{j}{t}} & = \eval{\pdv{\loss_i(t + 1)}{y_j(t)}}_{y_j(t)} \cdot \eval{\dv{y_j(t)}{\net{j}{t}}}_{\net{j}{t}} \\
+                                                        & = \qty[\sum_{i = 1}^{\dout} \pdv{\loss_i(t + 1)}{z_i(t + 1)} \cdot w_{i, j}] \cdot \sigma'\qty(\net{j}{t}) \\
+                                                        & = \sigma'\qty(\net{j}{t}) \cdot \sum_{i = 1}^{\dout} \qty[w_{i, j} \cdot \pdv{\tloss(t + 1)}{z_i(t + 1)}].
     \end{align*} \tag{4}\label{4}
   \]
 
@@ -489,7 +485,7 @@ Long Short-Term Memory
 
   \[
     \begin{align*}
-      \pdv{\loss_i(t + 1)}{w_{i, j}}    & = \pdv{\loss_i(t + 1)}{\net{i}{t + 1}} \cdot \pdv{\net{i}{t + 1}}{w_{i, j}} \\
+      \pdv{\loss_i(t + 1)}{w_{i, j}}    & = \pdv{\loss_i(t + 1)}{z_i(t + 1)} \cdot \pdv{z_i(t + 1)}{w_{i, j}} \\
                                         & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot \begin{pmatrix}
                                               x(t) \\
                                               y(t)
@@ -499,7 +495,7 @@ Long Short-Term Memory
                                               x(t) \\
                                               y(t)
                                             \end{pmatrix}_j; \\
-      \pdv{\tloss(t + 1)}{w_{i, j}}     & = \pdv{\tloss(t + 1)}{\net{i}{t + 1}} \cdot \pdv{\net{i}{t + 1}}{w_{i, j}} + \sum_{k = 1}^\dout \pdv{\tloss(t + 1)}{y_k(t)} \cdot \pdv{y_k(t)}{w_{i, j}} \\
+      \pdv{\tloss(t + 1)}{w_{i, j}}     & = \pdv{\tloss(t + 1)}{z_i(t + 1)} \cdot \pdv{z_i(t + 1)}{w_{i, j}} + \sum_{k = 1}^\dout \pdv{\tloss(t + 1)}{y_k(t)} \cdot \pdv{y_k(t)}{w_{i, j}} \\
                                         & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot \begin{pmatrix}
                                               x(t) \\
                                               y(t)
