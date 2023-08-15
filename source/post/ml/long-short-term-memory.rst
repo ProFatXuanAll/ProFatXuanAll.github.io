@@ -369,7 +369,7 @@ Long Short-Term Memory
       & \indent{1} y(0) \algoEq \zv \\
       & \indent{1} \algoFor{t \in \Set{0, \dots, T-1}} \\
       & \indent{2} \algoFor{i \in \Set{1, \dots, \dout}} \\
-      & \indent{3} \net{i}{t+1} \algoEq \sum_{j = 1}^\din w_{i, j} \cdot x_j(t) + \sum_{j = \din + 1}^{\din + \dout} w_{i, j} \cdot y_j(t) \\
+      & \indent{3} \net{i}{t+1} \algoEq \sum_{j = 1}^\din w_{i,j} \cdot x_j(t) + \sum_{j = \din + 1}^{\din + \dout} w_{i,j} \cdot y_j(t) \\
       & \indent{3} y_i(t+1) \algoEq \fnet{i}{t+1} \\
       & \indent{2} \algoEndFor \\
       & \indent{1} \algoEndFor \\
@@ -429,73 +429,87 @@ Long Short-Term Memory
 .. math::
   :nowrap:
 
-  \begin{align*}
-    \dv{\tloss(t+1)}{y_i(t+1)} &= \dv{\tloss(t+1)}{\loss_i(t+1)} \cdot \dv{\loss_i(t+1)}{y_i(t+1)} \\
-    &= 1 \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)) \\
-    &= y_i(t+1) - \hat{y}_{i}(t+1). \tag{1}\label{1}
-  \end{align*}
+  \[
+    \begin{align*}
+      \pdv{\tloss(t+1)}{y_i(t+1)} &= \pdv{\tloss(t+1)}{\loss_i(t+1)} \cdot \pdv{\loss_i(t+1)}{y_i(t+1)} \\
+                                  &= 1 \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)) \\
+                                  &= y_i(t+1) - \hat{y}_{i}(t+1).
+    \end{align*} \tag{1}\label{1}
+  \]
 
 根據 :math:`\eqref{1}` 我們可以推得 :math:`\net{i}{t+1}` 對 :math:`\tloss(t+1)` 所得梯度為
 
 .. math::
   :nowrap:
 
-  \begin{align*}
-    \dv{\tloss(t+1)}{\net{i}{t+1}} &= \dv{\tloss(t+1)}{y_i(t+1)} \cdot \dv{y_i(t+1)}{\net{i}{t+1}} \\
-    &= \sigma'\qty(\net{i}{t+1}) \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)). \tag{2}\label{2}
-  \end{align*}
+  \[
+    \begin{align*}
+      \pdv{\tloss(t+1)}{\net{i}{t+1}} &= \pdv{\tloss(t+1)}{y_i(t+1)} \cdot \pdv{y_i(t+1)}{\net{i}{t+1}} \\
+                                      &= \sigma'\qty(\net{i}{t+1}) \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)).
+    \end{align*} \tag{2}\label{2}
+  \]
 
 .. note::
 
   式子 :math:`\eqref{2}` 就是論文 3.1.1 節的第一條公式。
 
-根據 :math:`\eqref{2}` 我們可以推得 :math:`y_j(t)` 對 :math:`\tloss(t+1)` 所得梯度為（注意時間差）
+根據 :math:`\eqref{2}` 我們可以推得 :math:`y_j(t)` 對 :math:`\tloss(t+1)` 所得梯度為（注意時間差）：
 
 .. math::
   :nowrap:
 
-  \begin{align*}
-    \dv{\tloss(t+1)}{y_j(t)} & = \sum_{i = 1}^{\dout} \qty[\dv{\tloss(t+1)}{\net{i}{t+1}} \cdot \dv{\net{i}{t+1}}{y_j(t)}] \\
-    & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(\net{i}{t+1}) \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)) \cdot w_{i, j}] \tag{3}\label{3}
-  \end{align*}
+  \[
+    \begin{align*}
+      \pdv{\tloss(t+1)}{y_j(t)} & = \sum_{i = 1}^{\dout} \qty[\pdv{\tloss(t+1)}{\net{i}{t+1}} \cdot \pdv{\net{i}{t+1}}{y_j(t)}] \\
+                                & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(\net{i}{t+1}) \cdot \qty(y_i(t+1) - \hat{y}_{i}(t+1)) \cdot w_{i,j}].
+    \end{align*} \tag{3}\label{3}
+  \]
+
+由於 :math:`y(t)` 是由 :math:`\opnet(t)` 計算而來，所以我們也利用 :math:`\eqref{3}` 計算 :math:`\net{j}{t}` 對 :math:`\tloss(t+1)` 所得梯度：
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+    \pdv{\tloss(t+1)}{\net{j}{t}} & = \pdv{\tloss(t+1)}{y_j(t)} \cdot \pdv{y_j(t)}{\net{j}{t}} \\
+                                  & = \sum_{i = 1}^{\dout} \qty[\pdv{\tloss(t+1)}{\net{i}{t+1}} \cdot w_{i,j} \cdot \sigma'\qty(\net{j}{t})] \\
+                                  & = \sigma'\qty(\net{j}{t}) \cdot \sum_{i = 1}^{\dout} \qty[w_{i,j} \cdot \pdv{\tloss(t+1)}{\net{i}{t+1}}].
+    \end{align*} \tag{4}\label{4}
+  \]
+
+.. note::
+
+  式子 :math:`\eqref{4}` 就是論文 3.1.1 節的最後一條公式。
+
+模型參數 :math:`w_{i,j}` 對於 :math:`\tloss(t+1)` 所得梯度為
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      & \pdv{\tloss(t+1)}{w_{i,j}} \\
+      & = \sum_{k = 1}^{\dout} \pdv{\tloss(t+1)}{\net{k}{t+1}} \cdot \pdv{\net{k}{t+1}}{w_{i,j}} \\
+      & = \sum_{k = 1}^{\dout} \pdv{\tloss(t+1)}{\net{k}{t+1}} \cdot \qty[\sum_{j^{\star} = 1}^{\dout + \din} \qty(\pdv{w_{k, j^{\star}}}{w_{i,j}}) \cdot \begin{pmatrix}
+            y(t) \\
+            x(t)
+          \end{pmatrix}_{j^{\star}} + w_{k,j^{\star}} \cdot \pdv{\begin{pmatrix}
+            y(t) \\
+            x(t)
+          \end{pmatrix}_{j^{\star}}}{w_{i,j}}] \\
+      & = \sum_{k = 1}^{\dout} \pdv{\tloss(t+1)}{\net{k}{t+1}} \cdot \qty[\begin{pmatrix}
+            y(t) \\
+            x(t)
+          \end{pmatrix}_j + \sum_{j^{\star} = 1}^{\dout} w_{k,j^{\star}} \cdot \sigma'\qty(\net{j^{\star}}{t}) \cdot \pdv{\net{j^{\star}}{t}}{w_{i,j}}].
+    \end{align*} \tag{5}\label{5}
+  \]
 
 ..
-  由於第 $t$ 時間點的輸出 $y(t)$ 的計算是由 $\opnet(t)$ 而來（請見 $\eqref{2}$），所以我們也利用 $\eqref{6}$ 計算 $\net{j}{t}$ 對 $\tloss(t+1)$ 所得梯度（注意是 $t$ 不是 $t+1$）
-
-  $$
-  \begin{align*}
-  \pd{\tloss(t+1)}{\net{j}{t}} & = \pd{\tloss(t+1)}{y_j(t)} \cdot \pd{y_j(t)}{\net{j}{t}} \\
-  & = \sum_{i = 1}^{\dout} \bigg[\pd{\tloss(t+1)}{\net{i}{t+1}} \cdot w_{i, j} \cdot \sigma'\pa{\net{j}{t+1}}\bigg] \\
-  & = \sigma'\pa{\net{j}{t+1}} \cdot \sum_{i = 1}^{\dout} \bigg[w_{i, j} \cdot \pd{\tloss(t+1)}{\net{i}{t+1}}\bigg]
-  \end{align*} \tag{7}\label{7}
-  $$
-
-  式子 $\eqref{7}$ 就是論文 3.1.1 節的最後一條公式。
-
-  模型參數 $w_{i, j}$ 對於 $\tloss(t+1)$ 所得梯度為
-
-  $$
-  \begin{align*}
-  & \pd{\tloss(t+1)}{w_{i, j}} \\
-  & = \sum_{k = 1}^{\dout} \pd{\tloss(t+1)}{\net{k}{t+1}} \cdot \pd{\net{k}{t+1}}{w_{i, j}} \\
-  & = \sum_{k = 1}^{\dout} \pd{\tloss(t+1)}{\net{k}{t+1}} \cdot \br{\sum_{j^{\star} = 1}^{\dout + \din} \pa{\pd{w_{k, j^{\star}}}{w_{i, j}} \cdot \begin{pmatrix}
-  y(t) \\
-  x(t)
-  \end{pmatrix}_{j^{\star}} + w_{k, j^{\star}} \cdot \pd{\begin{pmatrix}
-  y(t) \\
-  x(t)
-  \end{pmatrix}_{j^{\star}}}{w_{i, j}}}} \\
-  & = \sum_{k = 1}^{\dout} \pd{\tloss(t+1)}{\net{k}{t+1}} \cdot \br{\begin{pmatrix}
-  y(t) \\
-  x(t)
-  \end{pmatrix}_j + \sum_{j^{\star} = 1}^{\dout} w_{k, j^{\star}} \cdot \sigma'\pa{\net{j^{\star}}{t}} \cdot \pd{\net{j^{\star}}{t}}{w_{i, j}}}
-  \end{align*} \tag{8}\label{8}
-  $$
-
   而在時間點 $t+1$ 進行參數更新的方法為
 
   $$
-  w_{i, j} \leftarrow w_{i, j} - \alpha \pd{\tloss(t+1)}{w_{i, j}} \tag{9}\label{9}
+  w_{i,j} \leftarrow w_{i,j} - \alpha \pdv{\tloss(t+1)}{w_{i,j}} \tag{9}\label{9}
   $$
 
   $\eqref{9}$ 就是最常用來最佳化神經網路的**梯度下降演算法**（Gradient Descent），$\alpha$ 代表**學習率**（Learning Rate）。
@@ -508,7 +522,7 @@ Long Short-Term Memory
   為了方便計算，我們定義新的符號
 
   $$
-  \dv{k}{\tf}{\tp} = \pd{\Loss{\tf}}{\net{k}{\tp}} \tag{10}\label{10}
+  \dv{k}{\tf}{\tp} = \pdv{\Loss{\tf}}{\net{k}{\tp}} \tag{10}\label{10}
   $$
 
   意思是在**過去**時間點 $\tp$ 的第 $k$ 個**模型內部節點** $\net{k}{\tp}$ 對於**未來**時間點 $\tf$ 貢獻的**總誤差** $\Loss{\tf}$ 計算所得之**梯度**。
@@ -521,20 +535,20 @@ Long Short-Term Memory
 
   $$
   \begin{align*}
-  & \dv{k_0}{t}{t} = \pd{\Loss{t}}{\net{k_0}{t}}; \\
-  & \dv{k_1}{t}{t - 1} = \pd{\Loss{t}}{\net{k_1}{t - 1}} \\
+  & \dv{k_0}{t}{t} = \pdv{\Loss{t}}{\net{k_0}{t}}; \\
+  & \dv{k_1}{t}{t - 1} = \pdv{\Loss{t}}{\net{k_1}{t - 1}} \\
   & = \sigma'\pa{\net{k_1}{t - 1}} \cdot \pa{\sum_{k_0 = 1}^{\dout} w_{k_0, k_1} \cdot \dv{k_0}{t}{t}}; \\
-  & \dv{k_2}{t}{t - 2} = \pd{\Loss{t}}{\net{k_2}{t - 2}} \\
-  & = \sum_{k_1 = 1}^{\dout} \br{\pd{\Loss{t}}{\net{k_1}{t - 1}} \cdot \pd{\net{k_1}{t - 1}}{y_{k_2}(t - 2)} \cdot \pd{y_{k_2}(t - 2)}{\net{k_2}{t - 2}}} \\
+  & \dv{k_2}{t}{t - 2} = \pdv{\Loss{t}}{\net{k_2}{t - 2}} \\
+  & = \sum_{k_1 = 1}^{\dout} \br{\pdv{\Loss{t}}{\net{k_1}{t - 1}} \cdot \pdv{\net{k_1}{t - 1}}{y_{k_2}(t - 2)} \cdot \pdv{y_{k_2}(t - 2)}{\net{k_2}{t - 2}}} \\
   & = \sum_{k_1 = 1}^{\dout} \br{\dv{k_1}{t}{t - 1} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_2}{t - 2}}} \\
   & = \sum_{k_1 = 1}^{\dout} \br{\sigma'\pa{\net{k_1}{t - 1}} \cdot \pa{\sum_{k_0 = 1}^{\dout} w_{k_0, k_1} \cdot \dv{k_0}{t}{t}} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_2}{t - 2}}} \\
   & = \sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \br{w_{k_0, k_1} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_1}{t - 1}} \cdot \sigma'\pa{\net{k_2}{t - 2}} \cdot \dv{k_0}{t}{t}}; \\
-  & \dv{k_3}{t}{t - 3} = \sum_{k_2 = 1}^{\dout} \br{\pd{\Loss{t}}{\net{k_2}{t - 2}} \cdot \pd{\net{k_2}{t - 2}}{y_{k_3}(t - 3)} \cdot \pd{y_{k_3}(t - 3)}{\net{k_3}{t - 3}}} \\
+  & \dv{k_3}{t}{t - 3} = \sum_{k_2 = 1}^{\dout} \br{\pdv{\Loss{t}}{\net{k_2}{t - 2}} \cdot \pdv{\net{k_2}{t - 2}}{y_{k_3}(t - 3)} \cdot \pdv{y_{k_3}(t - 3)}{\net{k_3}{t - 3}}} \\
   & = \sum_{k_2 = 1}^{\dout} \br{\dv{k_2}{t}{t - 2} \cdot w_{k_2, k_3} \cdot \sigma'\pa{\net{k_3}{t - 3}}} \\
-  & = \sum_{k_2 = 1}^{\dout} \Bigg[\sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \br{w_{k_0, k_1} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_1}{t - 1}} \cdot \sigma'\pa{\net{k_2}{t - 2}} \cdot \dv{k_0}{t}{t}} \\
-  & \quad \cdot w_{k_2, k_3} \cdot \sigma'\pa{\net{k_3}{t - 3}}\Bigg] \\
-  & = \sum_{k_2 = 1}^{\dout} \sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \bigg[w_{k_0, k_1} \cdot w_{k_1, k_2} \cdot w_{k_2, k_3} \cdot \\
-  & \quad \sigma'\pa{\net{k_1}{t - 1}} \cdot \sigma'\pa{\net{k_2}{t - 2}} \cdot \sigma'\pa{\net{k_3}{t - 3}} \cdot \dv{k_0}{t}{t}\bigg] \\
+  & = \sum_{k_2 = 1}^{\dout} \qty[\sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \br{w_{k_0, k_1} \cdot w_{k_1, k_2} \cdot \sigma'\pa{\net{k_1}{t - 1}} \cdot \sigma'\pa{\net{k_2}{t - 2}} \cdot \dv{k_0}{t}{t}} \\
+  & \quad \cdot w_{k_2, k_3} \cdot \sigma'\pa{\net{k_3}{t - 3}}] \\
+  & = \sum_{k_2 = 1}^{\dout} \sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \qty[w_{k_0, k_1} \cdot w_{k_1, k_2} \cdot w_{k_2, k_3} \cdot \\
+  & \quad \sigma'\pa{\net{k_1}{t - 1}} \cdot \sigma'\pa{\net{k_2}{t - 2}} \cdot \sigma'\pa{\net{k_3}{t - 3}} \cdot \dv{k_0}{t}{t}] \\
   & = \sum_{k_2 = 1}^{\dout} \sum_{k_1 = 1}^{\dout} \sum_{k_0 = 1}^{\dout} \br{\br{\prod_{q = 1}^{3} w_{k_{q - 1}, k_q} \cdot \sigma'\pa{\net{k_q}{t - q}}} \cdot \dv{k_0}{t}{t}}
   \end{align*} \tag{11}\label{11}
   $$
@@ -552,13 +566,13 @@ Long Short-Term Memory
   - 當 $n = 1$ 時，根據 $\eqref{11}$ 我們可以推得論文中的 (3.1) 式
 
     $$
-    \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} = w_{k_{0}^{\star}, k_{1}} \cdot \sigma'\pa{\net{k_{1}}{t - 1}} \tag{13}\label{13}
+    \pdv{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} = w_{k_{0}^{\star}, k_{1}} \cdot \sigma'\pa{\net{k_{1}}{t - 1}} \tag{13}\label{13}
     $$
 
   - 當 $n > 1$ 時，根據 $\eqref{12}$ 我們可以推得論文中的 (3.2) 式
 
     $$
-    \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^{\star}}} \br{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} \tag{14}\label{14}
+    \pdv{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} = \sum_{k_{n - 1} = 1}^{\dout} \cdots \sum_{k_{1} = 1}^{\dout} \sum_{k_{0} \in \set{k_{0}^{\star}}} \br{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} \tag{14}\label{14}
     $$
 
   **注意錯誤**：論文中的 (3.2) 式不小心把 $w_{l_{m - 1} l_{m}}$ 寫成 $w_{l_{m} l_{m - 1}}$。
@@ -612,7 +626,7 @@ Long Short-Term Memory
   \end{dcases} \\
   \implies & \abs{\sigma'\pa{\net{k_{q - 1}}{t - q + 1}}} \to 0 \\
   \implies & \abs{\prod_{q = 1}^{n} w_{k_{q - 1}, k_{q}} \cdot \sigma'\pa{\net{k_{q}}{t - q}}} \\
-  & = \abs{w_{k_0, k_1} \cdot \prod_{q = 2}^{n} \bigg[\sigma'\pa{\net{k_{q - 1}}{t - q + 1}} \cdot w_{k_{q - 1}, k_{q}}\bigg] \cdot \sigma'\pa{\net{k_{n}}{t - n}}} \\
+  & = \abs{w_{k_0, k_1} \cdot \prod_{q = 2}^{n} \qty[\sigma'\pa{\net{k_{q - 1}}{t - q + 1}} \cdot w_{k_{q - 1}, k_{q}}] \cdot \sigma'\pa{\net{k_{n}}{t - n}}} \\
   & \to 0
   \end{align*} \tag{19}\label{19}
   $$
@@ -639,17 +653,17 @@ Long Short-Term Memory
   最大值發生於微分值為 $0$ 的點，即我們想求出滿足以下式子的 $w_{l_{m} l_{m - 1}}$
 
   $$
-  \pd{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} = 0
+  \pdv{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} = 0
   $$
 
   拆解微分式可得
 
   $$
   \begin{align*}
-  & \pd{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} \\
-  & = \pd{\sigma\big(\net{l_{m}}{t - m}\big)}{\net{l_{m}}{t - m}} \cdot \pd{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}} \\
-  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \pd{\Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)}{\net{l_{m}}{t - m}} \cdot \pd{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot w_{l_{m} l_{m - l}} \\
-  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot \pd{w_{l_{m} l_{m - 1}}}{w_{l_{m} l_{m - 1}}} \\
+  & \pdv{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} \\
+  & = \pdv{\sigma\big(\net{l_{m}}{t - m}\big)}{\net{l_{m}}{t - m}} \cdot \pdv{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}} \\
+  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \pdv{\Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)}{\net{l_{m}}{t - m}} \cdot \pdv{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot w_{l_{m} l_{m - l}} \\
+  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot \pdv{w_{l_{m} l_{m - 1}}}{w_{l_{m} l_{m - 1}}} \\
   & = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
   & \quad - \Big(\sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
   & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
@@ -690,7 +704,7 @@ Long Short-Term Memory
   接著我們可以計算 $t$ 時間點 $\dout$ 個**不同**節點 $\net{k_0^{\star}}{t}$ 對於**同一個** $t - n$ 時間點的 $\net{k_{n}}{t - n}$ 節點所貢獻的**梯度變化總和**：
 
   $$
-  \sum_{k_{0}^{\star} = 1}^{\dout} \pd{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} \tag{20}\label{20}
+  \sum_{k_{0}^{\star} = 1}^{\dout} \pdv{\dv{k_{n}}{t}{t - n}}{\dv{k_{0}^{\star}}{t}{t}} \tag{20}\label{20}
   $$
 
   由於**每個項次**都能遭遇**梯度消失**，因此**總和**也會遭遇**梯度消失**。
@@ -957,7 +971,7 @@ Long Short-Term Memory
   首先我們定義新的符號 $\aptr$，代表計算**梯度**的過程會有**部份梯度**故意被**丟棄**（設定為 $0$），並以丟棄結果**近似**真正的**全微分**。
 
   $$
-  \pd{\opnet_i^a(t+1)}{y_j^b(t)} \aptr 0 \quad \text{where } a, b \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \tag{37}\label{37}
+  \pdv{\opnet_i^a(t+1)}{y_j^b(t)} \aptr 0 \quad \text{where } a, b \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \tag{37}\label{37}
   $$
 
   所有與**隱藏單元淨輸入** $\nethid{i}{t+1}$、**輸入閘門淨輸入** $\netig{i}{t+1}$、**輸出閘門淨輸入** $\netog{i}{t+1}$、**記憶細胞淨輸入** $\netcell{i}{k}{t+1}$ **直接相連**的 $t$ 時間點的**單元**，一律**丟棄梯度**
@@ -973,11 +987,11 @@ Long Short-Term Memory
   \begin{align*}
   a & \in \set{\ophid, \opig, \opog} \\
   b & \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
-  \pd{y_i^a(t+1)}{y_j^b(t)} & = \pd{y_i^a(t+1)}{\opnet_i^a(t+1)} \cdot \cancelto{0}{\pd{\opnet_i^a(t+1)}{y_j^b(t)}} \aptr 0 \\
+  \pdv{y_i^a(t+1)}{y_j^b(t)} & = \pdv{y_i^a(t+1)}{\opnet_i^a(t+1)} \cdot \cancelto{0}{\pdv{\opnet_i^a(t+1)}{y_j^b(t)}} \aptr 0 \\
   k & \in \set{1, 2, \dots, \nblk} \\
-  \pd{y_i^{\blk{k}}(t+1)}{y_j^b(t)} & = \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t+1)}{y_j^b(t)}} \\
-  & \quad + \pd{y_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t+1}}{y_j^b(t)}} \\
-  & \quad + \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t+1)}{y_j^b(t)}} \\
+  \pdv{y_i^{\blk{k}}(t+1)}{y_j^b(t)} & = \pdv{y_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pdv{y_k^{\opig}(t+1)}{y_j^b(t)}} \\
+  & \quad + \pdv{y_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t+1}}{y_j^b(t)}} \\
+  & \quad + \pdv{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pdv{y_k^{\opog}(t+1)}{y_j^b(t)}} \\
   & \aptr 0
   \end{align*} \tag{38}\label{38}
   $$
@@ -988,7 +1002,7 @@ Long Short-Term Memory
   \begin{align*}
   a & \in \set{\opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
   b & \in \set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
-  \pd{y_i^a(t+1)}{\whid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \bigg[\cancelto{0}{\pd{y_i^a(t+1)}{y_j^b(t)}} \cdot \pd{y_j^b(t)}{\whid_{p, q}}\bigg] \aptr 0
+  \pdv{y_i^a(t+1)}{\whid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{0}{\pdv{y_i^a(t+1)}{y_j^b(t)}} \cdot \pdv{y_j^b(t)}{\whid_{p, q}}] \aptr 0
   \end{align*} \tag{39}\label{39}
   $$
 
@@ -1013,7 +1027,7 @@ Long Short-Term Memory
   \begin{align*}
   i, p & \in \set{1, \dots, \dout} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
-  \pd{y_i(t+1)}{\wout_{p, q}} & = \pd{y_i(t+1)}{\netout{i}{t+1}} \cdot \pd{\netout{i}{t+1}}{\wout_{p, q}} \\
+  \pdv{y_i(t+1)}{\wout_{p, q}} & = \pdv{y_i(t+1)}{\netout{i}{t+1}} \cdot \pdv{\netout{i}{t+1}}{\wout_{p, q}} \\
   & = \dfnetout{i}{t+1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
   x(t) \\
   y^{\ophid}(t+1) \\
@@ -1044,9 +1058,9 @@ Long Short-Term Memory
   i & \in \set{1, \dots, \dout} \\
   p & \in \set{1, \dots, \dhid} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_i(t+1)}{\whid_{p, q}} & = \pd{y_i(t+1)}{\netout{i}{t+1}} \cdot \pd{\netout{i}{t+1}}{\whid_{p, q}} \\
-  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t+1)}{\whid_{p, q}}}} \\
-  & \aptr \dfnetout{i}{t+1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t+1)}{\whid_{p, q}}
+  \pdv{y_i(t+1)}{\whid_{p, q}} & = \pdv{y_i(t+1)}{\netout{i}{t+1}} \cdot \pdv{\netout{i}{t+1}}{\whid_{p, q}} \\
+  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pdv{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pdv{\tilde{x}_j(t+1)}{\whid_{p, q}}}} \\
+  & \aptr \dfnetout{i}{t+1} \cdot \wout_{i, p} \cdot \pdv{y_p^{\ophid}(t+1)}{\whid_{p, q}}
   \end{align*} \tag{42}\label{42}
   $$
 
@@ -1069,10 +1083,10 @@ Long Short-Term Memory
   i & \in \set{1, \dots, \dout} \\
   k & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i(t+1)}{\wog_{k, q}} & = \pd{y_i(t+1)}{\netout{i}{t+1}} \cdot \pd{\netout{i}{t+1}}{\wog_{k, q}} \\
-  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t+1)}{\wog_{k, q}}}} \\
-  & \aptr \dfnetout{i}{t+1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t+1)}{\wog_{k, q}}} \\
-  \pd{y_i(t+1)}{\wig_{k, q}} & \aptr \dfnetout{i}{t+1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t+1)}{\wig_{k, q}}}
+  \pdv{y_i(t+1)}{\wog_{k,q}} & = \pdv{y_i(t+1)}{\netout{i}{t+1}} \cdot \pdv{\netout{i}{t+1}}{\wog_{k,q}} \\
+  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pdv{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pdv{\tilde{x}_j(t+1)}{\wog_{k,q}}}} \\
+  & \aptr \dfnetout{i}{t+1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t+1)}{\wog_{k,q}}} \\
+  \pdv{y_i(t+1)}{\wig_{k,q}} & \aptr \dfnetout{i}{t+1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t+1)}{\wig_{k, q}}}
   \end{align*} \tag{43}\label{43}
   $$
 
@@ -1096,9 +1110,9 @@ Long Short-Term Memory
   k & \in \set{1, \dots, \nblk} \\
   p & \in \set{1, \dots, \dblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i(t+1)}{\wblk{k}_{p, q}} & = \pd{y_i(t+1)}{\netout{i}{t+1}} \cdot \pd{\netout{i}{t+1}}{\wblk{k}_{p, q}} \\
-  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pd{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pd{\tilde{x}_j(t+1)}{\wblk{k}_{p, q}}}} \\
-  & \aptr \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pd{y_p^{\blk{k}}(t+1)}{\wblk{k}_{p, q}}
+  \pdv{y_i(t+1)}{\wblk{k}_{p, q}} & = \pdv{y_i(t+1)}{\netout{i}{t+1}} \cdot \pdv{\netout{i}{t+1}}{\wblk{k}_{p, q}} \\
+  & = \dfnetout{i}{t+1} \cdot \sum_{j = 1}^D \br{\pdv{\netout{i}{t+1}}{\tilde{x}_j(t+1)} \cdot \cancelto{\aptr}{\pdv{\tilde{x}_j(t+1)}{\wblk{k}_{p, q}}}} \\
+  & \aptr \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pdv{y_p^{\blk{k}}(t+1)}{\wblk{k}_{p, q}}
   \end{align*} \tag{44}\label{44}
   $$
 
@@ -1116,7 +1130,7 @@ Long Short-Term Memory
   \begin{align*}
   i, p & \in \set{1, \dots, \dhid} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i^{\ophid}(t+1)}{\whid_{p, q}} & = \pd{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \cancelto{\aptr}{\pd{\nethid{i}{t+1}}{\whid_{p, q}}} \\
+  \pdv{y_i^{\ophid}(t+1)}{\whid_{p, q}} & = \pdv{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \cancelto{\aptr}{\pdv{\nethid{i}{t+1}}{\whid_{p, q}}} \\
   & \aptr \dfnethid{i}{t+1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
   x(t) \\
   y^{\ophid}(t) \\
@@ -1148,8 +1162,8 @@ Long Short-Term Memory
   i & \in \set{1, \dots, \dhid} \\
   p & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_i^{\ophid}(t+1)}{\wog_{p, q}} & = \pd{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\nethid{i}{t+1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wog_{p, q}}} \aptr 0 \\
-  \pd{y_i^{\ophid}(t+1)}{\wig_{p, q}} & \aptr 0
+  \pdv{y_i^{\ophid}(t+1)}{\wog_{p, q}} & = \pdv{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pdv{\nethid{i}{t+1}}{\tilde{x}_j(t)}} \cdot \pdv{\tilde{x}_j(t)}{\wog_{p, q}}} \aptr 0 \\
+  \pdv{y_i^{\ophid}(t+1)}{\wig_{p, q}} & \aptr 0
   \end{align*} \tag{46}\label{46}
   $$
 
@@ -1173,7 +1187,7 @@ Long Short-Term Memory
   k & \in \set{1, \dots, \nblk} \\
   p & \in \set{1, \dots, \dblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_i^{\ophid}(t+1)}{\wblk{k}_{p, q}} & = \pd{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\nethid{i}{t+1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0
+  \pdv{y_i^{\ophid}(t+1)}{\wblk{k}_{p, q}} & = \pdv{y_i^{\ophid}(t+1)}{\nethid{i}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pdv{\nethid{i}{t+1}}{\tilde{x}_j(t)}} \cdot \pdv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0
   \end{align*} \tag{47}\label{47}
   $$
 
@@ -1190,10 +1204,10 @@ Long Short-Term Memory
   i & \in \set{1, \dots, \dblk} \\
   k, p & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i^{\blk{k}}(t+1)}{\wog_{p, q}} & = \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \pd{y_k^{\opog}(t+1)}{\wog_{p, q}} + \pd{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \cancelto{0}{\pd{s_i^{\blk{k}}(t+1)}{\wog_{p, q}}} \\
-  & \aptr h_i\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, p} \cdot \pd{y_k^{\opog}(t+1)}{\wog_{k, q}} \tag{48}\label{48} \\
-  \pd{y_i^{\blk{k}}(t+1)}{\wig_{p, q}} & = \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t+1)}{\wig_{p, q}}} + \pd{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \pd{s_i^{\blk{k}}(t+1)}{\wig_{p, q}} \\
-  & \aptr y_k^{\opog}(t+1) \cdot h_i'\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, p} \cdot \pd{s_i^{\blk{k}}(t+1)}{\wig_{k, q}} \tag{49}\label{49}
+  \pdv{y_i^{\blk{k}}(t+1)}{\wog_{p, q}} & = \pdv{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \pdv{y_k^{\opog}(t+1)}{\wog_{p, q}} + \pdv{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \cancelto{0}{\pdv{s_i^{\blk{k}}(t+1)}{\wog_{p, q}}} \\
+  & \aptr h_i\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, p} \cdot \pdv{y_k^{\opog}(t+1)}{\wog_{k, q}} \tag{48}\label{48} \\
+  \pdv{y_i^{\blk{k}}(t+1)}{\wig_{p, q}} & = \pdv{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pdv{y_k^{\opog}(t+1)}{\wig_{p, q}}} + \pdv{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \pdv{s_i^{\blk{k}}(t+1)}{\wig_{p, q}} \\
+  & \aptr y_k^{\opog}(t+1) \cdot h_i'\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, p} \cdot \pdv{s_i^{\blk{k}}(t+1)}{\wig_{k, q}} \tag{49}\label{49}
   \end{align*}
   $$
 
@@ -1206,8 +1220,8 @@ Long Short-Term Memory
   i, p & \in \set{1, \dots, \dblk} \\
   k, k^{\star} & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{y_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} & = \pd{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opog}(t+1)}{\wblk{k^{\star}}_{p, q}}} + \pd{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \pd{s_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} \\
-  & \aptr y_k^{\opog}(t+1) \cdot h_i'\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \pd{s_i^{\blk{k}}(t+1)}{\wblk{k}_{i, q}}
+  \pdv{y_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} & = \pdv{y_i^{\blk{k}}(t+1)}{y_k^{\opog}(t+1)} \cdot \cancelto{0}{\pdv{y_k^{\opog}(t+1)}{\wblk{k^{\star}}_{p, q}}} + \pdv{y_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t+1)} \cdot \pdv{s_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} \\
+  & \aptr y_k^{\opog}(t+1) \cdot h_i'\pa{s_i^{\blk{k}}(t+1)} \cdot \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \pdv{s_i^{\blk{k}}(t+1)}{\wblk{k}_{i, q}}
   \end{align*} \tag{50}\label{50}
   $$
 
@@ -1235,9 +1249,9 @@ Long Short-Term Memory
   \end{pmatrix} \in \R^D \\
   k, p & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_k^{\opig}(t+1)}{[\wig ; \wog]_{p, q}} & = \pd{y_k^{\opig}(t+1)}{\netig{k}{t+1}} \cdot \cancelto{\aptr}{\pd{\netig{k}{t+1}}{[\wig ; \wog]_{p, q}}} \\
+  \pdv{y_k^{\opig}(t+1)}{[\wig ; \wog]_{p, q}} & = \pdv{y_k^{\opig}(t+1)}{\netig{k}{t+1}} \cdot \cancelto{\aptr}{\pdv{\netig{k}{t+1}}{[\wig ; \wog]_{p, q}}} \\
   & \aptr \dfnetig{k}{t+1} \cdot \delta_{k, p} \cdot \tilde{x}_q(t) \\
-  \pd{y_k^{\opog}(t+1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t+1} \cdot \tilde{x}_q(t)
+  \pdv{y_k^{\opog}(t+1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t+1} \cdot \tilde{x}_q(t)
   \end{align*} \tag{51}\label{51}
   $$
 
@@ -1260,8 +1274,8 @@ Long Short-Term Memory
   k & \in \set{1, \dots, \nblk} \\
   p & \in \set{1, \dots, \dblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{y_k^{\opig}(t+1)}{\wblk{k}_{p, q}} & = \pd{y_k^{\opig}(t+1)}{\netig{k}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pd{\netig{k}{t+1}}{\tilde{x}_j(t)}} \cdot \pd{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
-  \pd{y_k^{\opog}(t+1)}{\wblk{k}_{p, q}} & \aptr 0
+  \pdv{y_k^{\opig}(t+1)}{\wblk{k}_{p, q}} & = \pdv{y_k^{\opig}(t+1)}{\netig{k}{t+1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pdv{\netig{k}{t+1}}{\tilde{x}_j(t)}} \cdot \pdv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
+  \pdv{y_k^{\opog}(t+1)}{\wblk{k}_{p, q}} & \aptr 0
   \end{align*} \tag{52}\label{52}
   $$
 
@@ -1288,13 +1302,13 @@ Long Short-Term Memory
   i & \in \set{1, \dots, \dblk} \\
   k, p & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{s_i^{\blk{k}}(t+1)}{\wog_{p, q}} & = \pd{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\pd{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \pd{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t+1)}{\wog_{p, q}}} \\
-  & \quad + \pd{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t+1}}{\wog_{p, q}}} \\
+  \pdv{s_i^{\blk{k}}(t+1)}{\wog_{p, q}} & = \pdv{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\pdv{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \pdv{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pdv{y_k^{\opig}(t+1)}{\wog_{p, q}}} \\
+  & \quad + \pdv{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t+1}}{\wog_{p, q}}} \\
   & \aptr 0 \tag{53}\label{53} \\
-  \pd{s_i^{\blk{k}}(t+1)}{\wig_{p, q}} & = \pd{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \pd{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \pd{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \pd{y_k^{\opig}(t+1)}{\wig_{p, q}} \\
-  & \quad + \pd{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pd{\netcell{i}{k}{t+1}}{\wig_{p, q}}} \\
-  & \aptr 1 \cdot \delta_{k, p} \cdot \pd{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t+1}} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\pd{y_k^{\opig}(t+1)}{\wig_{k, q}}} \\
-  & \aptr \delta_{k, p} \cdot \br{\pd{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t+1}} \cdot \dfnetig{k}{t+1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
+  \pdv{s_i^{\blk{k}}(t+1)}{\wig_{p, q}} & = \pdv{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \pdv{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \pdv{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \pdv{y_k^{\opig}(t+1)}{\wig_{p, q}} \\
+  & \quad + \pdv{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t+1}}{\wig_{p, q}}} \\
+  & \aptr 1 \cdot \delta_{k, p} \cdot \pdv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t+1}} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\pdv{y_k^{\opig}(t+1)}{\wig_{k, q}}} \\
+  & \aptr \delta_{k, p} \cdot \br{\pdv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t+1}} \cdot \dfnetig{k}{t+1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
   \end{align*}
   $$
 
@@ -1317,11 +1331,11 @@ Long Short-Term Memory
   i, p & \in \set{1, \dots, \dblk} \\
   k, k^{\star} & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, D} \\
-  \pd{s_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} & = \pd{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \pd{s_i^{\blk{k}}(t)}{\wblk{k^{\star}}_{p, q}} + \pd{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pd{y_k^{\opig}(t+1)}{\wblk{k^{\star}}_{p, q}}} \\
-  & \quad + \pd{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \pd{\netcell{i}{k}{t+1}}{\wblk{k^{\star}}_{p, q}} \\
-  & \aptr \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot 1 \cdot \pd{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} \\
+  \pdv{s_i^{\blk{k}}(t+1)}{\wblk{k^{\star}}_{p, q}} & = \pdv{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} \cdot \pdv{s_i^{\blk{k}}(t)}{\wblk{k^{\star}}_{p, q}} + \pdv{s_i^{\blk{k}}(t+1)}{y_k^{\opig}(t+1)} \cdot \cancelto{0}{\pdv{y_k^{\opig}(t+1)}{\wblk{k^{\star}}_{p, q}}} \\
+  & \quad + \pdv{s_i^{\blk{k}}(t+1)}{\netcell{i}{k}{t+1}} \cdot \pdv{\netcell{i}{k}{t+1}}{\wblk{k^{\star}}_{p, q}} \\
+  & \aptr \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot 1 \cdot \pdv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} \\
   & \quad + \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot y_k^{\opig}(t+1) \cdot g_i'\pa{\netcell{i}{k}{t+1}} \cdot \tilde{x}_q(t) \\
-  & = \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \br{\pd{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + y_k^{\opig}(t+1) \cdot g_i'\pa{\netcell{i}{k}{t+1}} \cdot \tilde{x}_q(t)}
+  & = \delta_{k, k^{\star}} \cdot \delta_{i, p} \cdot \br{\pdv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + y_k^{\opig}(t+1) \cdot g_i'\pa{\netcell{i}{k}{t+1}} \cdot \tilde{x}_q(t)}
   \end{align*} \tag{55}\label{55}
   $$
 
@@ -1344,8 +1358,8 @@ Long Short-Term Memory
   \end{pmatrix} \\
   i & \in \set{1, \dots, \dout} \\
   j & \in \set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
-  \pd{\tloss(t+1)}{\wout_{i, j}} & = \pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\wout_{i, j}} \\
-  & = \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \pd{y_i(t+1)}{\wout_{i, j}} \\
+  \pdv{\tloss(t+1)}{\wout_{i, j}} & = \pdv{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pdv{\loss{i}{t+1}}{y_i(t+1)} \cdot \pdv{y_i(t+1)}{\wout_{i, j}} \\
+  & = \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \pdv{y_i(t+1)}{\wout_{i, j}} \\
   & = \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \tilde{x}_j(t+1)
   \end{align*} \tag{56}\label{56}
   $$
@@ -1358,9 +1372,9 @@ Long Short-Term Memory
   \begin{align*}
   & p \in \set{1, \dots, \dhid} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pd{\tloss(t+1)}{\whid_{p, q}} = \sum_{i = 1}^{\dout} \br{\pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\whid_{p, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t+1) - \hat{y}_i(t+1)} \cdot \dfnetout{i}{t+1} \cdot \wout_{i, p} \cdot \pd{y_p^{\ophid}(t+1)}{\whid_{p, q}}} \\
-  & = \sum_{i = 1}^{\dout} \br{\pa{y_i(t+1) - \hat{y}_i(t+1)} \cdot \dfnetout{i}{t+1} \cdot \wout_{i, p}} \cdot \pd{y_p^{\ophid}(t+1)}{\whid_{p, q}} \\
+  & \pdv{\tloss(t+1)}{\whid_{p, q}} = \sum_{i = 1}^{\dout} \br{\pdv{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pdv{\loss{i}{t+1}}{y_i(t+1)} \cdot \pdv{y_i(t+1)}{\whid_{p, q}}} \\
+  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t+1) - \hat{y}_i(t+1)} \cdot \dfnetout{i}{t+1} \cdot \wout_{i, p} \cdot \pdv{y_p^{\ophid}(t+1)}{\whid_{p, q}}} \\
+  & = \sum_{i = 1}^{\dout} \br{\pa{y_i(t+1) - \hat{y}_i(t+1)} \cdot \dfnetout{i}{t+1} \cdot \wout_{i, p}} \cdot \pdv{y_p^{\ophid}(t+1)}{\whid_{p, q}} \\
   & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t+1) - \hat{y}_i(t+1)} \cdot \dfnetout{i}{t+1} \cdot \wout_{i, p}} \cdot \\
   & \quad \quad \dfnethid{p}{t+1} \cdot \begin{pmatrix}
   x(t) \\
@@ -1380,13 +1394,13 @@ Long Short-Term Memory
   \begin{align*}
   k & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pd{\tloss(t+1)}{\wog_{k, q}} & = \sum_{i = 1}^{\dout} \br{\pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\wog_{k, q}}} \\
+  \pdv{\tloss(t+1)}{\wog_{k, q}} & = \sum_{i = 1}^{\dout} \br{\pdv{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pdv{\loss{i}{t+1}}{y_i(t+1)} \cdot \pdv{y_i(t+1)}{\wog_{k, q}}} \\
   & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t+1)}{\wog_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t+1)}{\wog_{k, q}}}\Bigg] \\
   & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t+1)} \cdot \pd{y_k^{\opog}(t+1)}{\wog_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t+1)} \cdot \pdv{y_k^{\opog}(t+1)}{\wog_{k, q}}}\Bigg] \\
   & = \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t+1)}}\Bigg] \cdot \pd{y_k^{\opog}(t+1)}{\wog_{k, q}} \\
+  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t+1)}}\Bigg] \cdot \pdv{y_k^{\opog}(t+1)}{\wog_{k, q}} \\
   & \aptr \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
   & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t+1)}}\Bigg] \cdot \\
   & \quad \quad \dfnetog{k}{t+1} \cdot \begin{pmatrix}
@@ -1418,15 +1432,15 @@ Long Short-Term Memory
   \end{pmatrix} \\
   & k \in \set{1, \dots, \nblk} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pd{\tloss(t+1)}{\wig_{k, q}} = \sum_{i = 1}^{\dout} \br{\pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\wig_{k, q}}} \\
+  & \pdv{\tloss(t+1)}{\wig_{k, q}} = \sum_{i = 1}^{\dout} \br{\pdv{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pdv{\loss{i}{t+1}}{y_i(t+1)} \cdot \pdv{y_i(t+1)}{\wig_{k, q}}} \\
   & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pd{y_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg] \\
   & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t+1) \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \pd{s_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t+1) \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \pdv{s_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg] \\
   & = \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \pd{s_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot y_k^{\opog}(t+1) \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \pdv{s_j^{\blk{k}}(t+1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot y_k^{\opog}(t+1) \\
   & \aptr \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \bigg[\pd{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t+1)} \cdot \bigg[\pdv{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
   & \quad \quad g_j\pa{\netcell{j}{k}{t+1}} \cdot \dfnetig{k}{t+1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot y_k^{\opog}(t+1)
   \end{align*} \tag{59}\label{59}
   $$
@@ -1449,15 +1463,15 @@ Long Short-Term Memory
   & k \in \set{1, \dots, \nblk} \\
   & p \in \set{1, \dots, \dblk} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pd{\tloss(t+1)}{\wblk{k}_{p, q}} = \sum_{i = 1}^{\dout} \br{\pd{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pd{\loss{i}{t+1}}{y_i(t+1)} \cdot \pd{y_i(t+1)}{\wblk{k}_{p, q}}} \\
+  & \pdv{\tloss(t+1)}{\wblk{k}_{p, q}} = \sum_{i = 1}^{\dout} \br{\pdv{\tloss(t+1)}{\loss{i}{t+1}} \cdot \pdv{\loss{i}{t+1}}{y_i(t+1)} \cdot \pdv{y_i(t+1)}{\wblk{k}_{p, q}}} \\
   & \aptr \sum_{i = 1}^{\dout} \bigg[\big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \\
-  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pd{y^{\blk{k}}_p(t+1)}{\wblk{k}_{p, q}}\bigg] \\
+  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pdv{y^{\blk{k}}_p(t+1)}{\wblk{k}_{p, q}}\bigg] \\
   & = \br{\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \pd{y^{\blk{k}}_p(t+1)}{\wblk{k}_{p, q}} \\
+  & \quad \quad \pdv{y^{\blk{k}}_p(t+1)}{\wblk{k}_{p, q}} \\
   & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad y_k^{\opog}(t+1) \cdot h_p'\pa{s_p^{\blk{k}}(t+1)} \cdot \pd{s_p^{\blk{k}}(t+1)}{\wblk{k}_{p, q}}\Bigg] \\
+  & \quad \quad y_k^{\opog}(t+1) \cdot h_p'\pa{s_p^{\blk{k}}(t+1)} \cdot \pdv{s_p^{\blk{k}}(t+1)}{\wblk{k}_{p, q}}\Bigg] \\
   & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t+1) - \hat{y}_i(t+1)\big) \cdot \dfnetout{i}{t+1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad y_k^{\opog}(t+1) \cdot h_p'\pa{s_p^{\blk{k}}(t+1)} \cdot \Bigg[\pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
+  & \quad \quad y_k^{\opog}(t+1) \cdot h_p'\pa{s_p^{\blk{k}}(t+1)} \cdot \Bigg[\pdv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
   & \quad \quad y_k^{\opig}(t+1) \cdot g_p'\pa{\netcell{p}{k}{t+1}} \cdot \tilde{x}_q(t)\Bigg]
   \end{align*} \tag{60}\label{60}
   $$
@@ -1475,7 +1489,7 @@ Long Short-Term Memory
   - $\eqref{61}$ 就是論文中的 A.27 式
   - 在 $t+1$ 時間點**參數更新**需要考慮 $t$ 時間點的**計算狀態**，請見 $\eqref{57} \eqref{58} \eqref{59} \eqref{60}$
   - 沒有如同 $\eqref{14}$ 的**連乘積**項，因此不會有**梯度消失**問題
-  - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\pd{s_j^{\blk{k}}(t)}{\wig_{k, q}}, \pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}}$
+  - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\pdv{s_j^{\blk{k}}(t)}{\wig_{k, q}}, \pdv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}}$
     - 紀錄讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
     - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
     - **即時更新**（意思是 $t+1$ 時間點的 forward pass 完成後便可計算 $t+1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
@@ -1507,8 +1521,8 @@ Long Short-Term Memory
   \begin{align*}
   i & \in \set{1, \dots, \dblk} \\
   k & \in \set{1, \dots, \nblk} \\
-  \pd{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} & = \pd{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\pd{y_k^{\opig}(t+1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\netcell{i}{k}{t+1}} + \\
-  & \quad y_k^{\opig}(t+1) \cdot \cancelto{0}{\pd{g_i\pa{\netcell{i}{k}{t+1}}}{s_i^{\blk{k}}(t)}} \\
+  \pdv{s_i^{\blk{k}}(t+1)}{s_i^{\blk{k}}(t)} & = \pdv{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\pdv{y_k^{\opig}(t+1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\netcell{i}{k}{t+1}} + \\
+  & \quad y_k^{\opig}(t+1) \cdot \cancelto{0}{\pdv{g_i\pa{\netcell{i}{k}{t+1}}}{s_i^{\blk{k}}(t)}} \\
   & \aptr 1
   \end{align*} \tag{64}\label{64}
   $$
