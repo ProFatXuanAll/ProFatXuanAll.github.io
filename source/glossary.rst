@@ -44,6 +44,15 @@
     Gradient magnitude tends to get close to zero since back-propagation uses chain rule, which is essentially just a bunch of multiplications, and small number times small number get smaller.
     Eventually, no parameters can be updated, and it causes optimization to fail.
 
+  Hyperparameter
+  hyperparameter
+    Hyperparameters are parameters used to control machine learning processes.
+    Hyperparameters determine the values of model parameters that a learning algorithm ends up learning.
+
+  Learning Rate
+  learning rate
+    Learning rate is a :term:`hyperparameter` used to control the magnitude of learning steps.
+
   LSTM
   Long Short-Term Memory
     LSTM is a :term:`RNN` variant.
