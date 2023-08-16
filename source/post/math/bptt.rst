@@ -59,7 +59,10 @@ Back-Propagation Through Time
     % Symbols with subscripts.
     \newcommand{\vxj}{{\vx_j}}
     \newcommand{\vyi}{{\vy_i}}
+    \newcommand{\vyj}{{\vy_j}}
+    \newcommand{\vyk}{{\vy_k}}
     \newcommand{\vyhi}{{\vyh_i}}
+    \newcommand{\vyhk}{{\vyh_k}}
     \newcommand{\vzi}{{\vz_i}}
 
     % Symbols with star.
@@ -68,8 +71,11 @@ Back-Propagation Through Time
     \newcommand{\vxs}{{\vx^\star}}
     \newcommand{\vys}{{\vy^\star}}
     \newcommand{\vyis}{{\vy_i^\star}}
+    \newcommand{\vyjs}{{\vy_j^\star}}
+    \newcommand{\vyks}{{\vy_k^\star}}
     \newcommand{\vyhs}{{\vyh^\star}}
     \newcommand{\vyhis}{{\vyh_i^\star}}
+    \newcommand{\vyhks}{{\vyh_k^\star}}
     \newcommand{\vzs}{{\vz^\star}}
     \newcommand{\vzis}{{\vz_i^\star}}
     \newcommand{\vWs}{{\vW^\star}}
@@ -106,7 +112,7 @@ RNN 計算定義
       & \algoProc{\operatorname{RNN}}(\vx, \vW, \cT) \\
       & \indent{1} \vy(0) \algoEq \zv \\
       & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
-      & \indent{2} \vz(t + 1) \algoEq \vW \cdot \mqty[\vx(t) \\ \vy(t)] \\
+      & \indent{2} \vz(t + 1) \algoEq m\qty(\vW, \vx(t), \vy(t)) \\
       & \indent{2} \vy(t + 1) \algoEq f\qty(\vz(t + 1)) \\
       & \indent{1} \algoEndFor \\
       & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
@@ -145,10 +151,15 @@ RNN 計算定義
   - 定義 :math:`t \in \Set{1, 2, \dots, \cT}`
   - RNN 模型的 net input 來源為輸入 :math:`\vx(t - 1)` 與前一次的模型輸出 :math:`\vy(t - 1)`
 
+- 定義 :math:`m : \R^{\dout \times (\din + \dout)} \times \R^\din \times \R^\dout \to \R^\dout` 為矩陣乘法
+
+  - 滿足 :math:`m(\vW, \vx(t), \vy(t)) = \vW \cdot \mqty[\vx(t) \\ \vy(t)]`
+
 - 定義 :math:`f` 為 RNN 模型的 :term:`activation function`
 
   - 定義 :math:`f_i` 為 :math:`f` 的第 :math:`i` 個 real valued function，:math:`i \in \Set{1, \dots, \dout}`
   - :math:`f` 必須要可以\ **微分**，每個 :math:`f_i` 所使用的 activation function 可以\ **不同**，但都只用 :math:`\vzi(t + 1)` 作為輸入
+  - 為了方便討論，以下所有 :math:`f_i` 都用 sigmoid 函數替代 :math:`\sigma(s) = \frac{1}{1 + e^{-s}}`
 
 透過以上符號我們可以拆解矩陣乘法：
 
@@ -161,7 +172,7 @@ RNN 計算定義
       & \indent{1} \vy(0) \algoEq \zv \\
       & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
       & \indent{2} \algoFor{i \in \Set{1, \dots, \dout}} \\
-      & \indent{3} \vzi(t + 1) \algoEq \sum_{j = 1}^\din \vW_{i, j} \cdot \vx_j(t) + \sum_{j = \din + 1}^{\din + \dout} \vW_{i, j} \cdot \vy_j(t) \\
+      & \indent{3} \vzi(t + 1) \algoEq \sum_{j = 1}^\din \vW_{i, j} \cdot \vx_j(t) + \sum_{j = \din + 1}^{\din + \dout} \vW_{i, j} \cdot \vyj(t) \\
       & \indent{3} \vyi(t + 1) \algoEq f_i(\vzi(t + 1)) \\
       & \indent{2} \algoEndFor \\
       & \indent{1} \algoEndFor \\
@@ -205,53 +216,66 @@ RNN 計算定義
 - 假設 RNN forward pass 演算法產生的 net inputs 為 :math:`\vzs(1), \dots, \vzs(\cT)`
 - 假設 RNN forward pass 演算法產生的 輸出序列為 :math:`\vys(1), \dots, \vys(\cT)`
 
-根據目標函數 :math:`\eqref{2}` 的定義，我們計算 :math:`\vyi(t + 1)` 對 :math:`\cL(\vy, \vyh)` 的微分可得：
+根據目標函數 :math:`\eqref{2}` 的定義，我們可以計算 :math:`L(\vy(t + 1), \vyh(t + 1))` 對 :math:`\cL(\vy, \vyh)` 的微分：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \eval{\pdv{\cL(\vy, \vyh)}{\vyi(t + 1)}}_{\vy = \vys, \vyh = \vyhs} \\
-      & = \qty[\sum_{s = 0}^{\cT - 1} \eval{\pdv{L(\vy(s + 1), \vyh(s + 1))}{\vyi(t + 1)}}_{\vy(s + 1) = \vys(s + 1), \vyh(s + 1) = \vyhs(s + 1)}] \\
-      & = \eval{\pdv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
-      & = \qty[\frac{1}{2} \sum_{k = 1}^\dout \eval{\pdv{\qty[\vy_k(t + 1) - \vyh_k(t + 1)]^2}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)}] \\
-      & = \qty[\frac{1}{2} \eval{\pdv{\qty[\vyi(t + 1) - \vyhi(t + 1)]^2}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)}] \\
-      & = \eval{\qty[\vyi(t + 1) - \vyhi(t + 1)]}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)} \\
-      & = \vyis(t + 1) - \vyhis(t + 1).
+      \eval{\pdv{\cL(\vy, \vyh)}{L(\vy(t + 1), \vyh(t + 1))}}_{\vy = \vys, \vyh = \vyhs}
+      & = \sum_{s = 0}^{\cT - 1} \eval{\pdv{L(\vy(s + 1), \vyh(s + 1))}{L(\vy(t + 1), \vyh(t + 1))}}_{\vy(s + 1) = \vys(s + 1), \vyh(s + 1) = \vyhs(s + 1)} \\
+      & = \eval{\pdv{L(\vy(t + 1), \vyh(t + 1))}{L(\vy(t + 1), \vyh(t + 1))}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
+      & = 1.
     \end{align*} \tag{3}\label{3}
   \]
 
-由於 :math:`\vy(t + 1)` 是由 :math:`\vz(t + 1)` 產生，我們可以定義新的函數 :math:`L^z : \R^\dout \times \R^\dout \to \R` 用來描述 :math:`\vz(t + 1)` 對 :math:`\cL(\vy, \vyh)` 的貢獻
-根據 :math:`\eqref{3}` 我們可以推得 :math:`\vzi(t + 1)` 對 :math:`\cL(\vy, \vyh)` 的微分：
+
+利用 :math:`\eqref{3}` 可以計算 :math:`\vyi(t + 1)` 對 :math:`\cL(\vy, \vyh)` 的微分：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \eval{\pdv{\cL}{z_i(t + 1)}}_{z_i(t + 1), \vyhi(t + 1)}
-      & = \eval{\pdv{\cL}{y_i(t + 1)}}_{y_i(t + 1), \vyhi(t + 1)}
-        \cdot
-        \eval{\dv{y_i(t + 1)}{z_i(t + 1)}}_{z_i(t + 1)} \\
-      & = \qty[y_i(t + 1) - \vyhi(t + 1)] \cdot f'\qty(z_i(t + 1)) \\
-      & = \sigma'\qty(z_i(t + 1)) \cdot \qty[y_i(t + 1) - \vyhi(t + 1)].
-    \end{align*}
+      \eval{\pdv{\cL(\vy, \vyh)}{\vyi(t + 1)}}_{\vy = \vys, \vyh = \vyhs}
+      & = \eval{\pdv{\cL(\vy, \vyh)}{L(\vy(t + 1), \vyh(t + 1))}}_{\vy = \vys, \vyh = \vyhs} \cdot \eval{\pdv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
+      & = \eval{\pdv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
+      & = \qty[\frac{1}{2} \sum_{k = 1}^\dout \eval{\pdv{\qty[\vyk(t + 1) - \vyhk(t + 1)]^2}{\vyi(t + 1)}}_{\vyk(t + 1) = \vyks(t + 1), \vyhk(t + 1) = \vyhks(t + 1)}] \\
+      & = \qty[\frac{1}{2} \eval{\pdv{\qty[\vyi(t + 1) - \vyhi(t + 1)]^2}{\vyi(t + 1)}}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)}] \\
+      & = \eval{\qty[\vyi(t + 1) - \vyhi(t + 1)]}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)} \\
+      & = \vyis(t + 1) - \vyhis(t + 1).
+    \end{align*} \tag{4}\label{4}
+  \]
+
+由於 :math:`\vy` 是由 :math:`\vz` 產生，透過 :math:`\eqref{4}` 我們可以推得 :math:`\vzi(t + 1)` 對 :math:`\cL(\vy, \vyh)` 的微分：
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \eval{\pdv{\cL(\vy, \vyh)}{\vzi(t + 1)}}_{\vy = [f(\vzs(1)), \dots, f(\vzs(\cT))], \vyh = \vyhs}
+      & = \eval{\pdv{\cL(\vy, \vyh)}{\vyi(t + 1)}}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)} \cdot \eval{\pdv{\vyi(t + 1)}{\vzi(t + 1)}}_{\vzi(t + 1) = \vzis(t + 1)} \\
+      & = \qty[\vyis(t + 1) - \vyhis(t + 1)] \cdot \eval{\sigma'\qty(\vzi(t + 1))}_{\vzi(t + 1) = \vzis(t + 1)} \\
+      & = \qty[\vyis(t + 1) - \vyhis(t + 1)] \cdot \sigma'\qty(\vzis(t + 1))
+    \end{align*} \tag{5}\label{5}
   \]
 
 .. note::
 
-  式子 :math:`\eqref{2}` 就是論文 3.1.1 節的第一條公式。
+  式子 :math:`\eqref{5}` 就是論文 3.1.1 節的第一條公式。
 
-根據 :math:`\eqref{2}` 我們可以推得 :math:`y_j(t)` 對 :math:`\cL` 的微分（注意時間差）：
+根據 :math:`\eqref{5}` 我們可以推得 :math:`\vyj(t)` 對 :math:`\cL(\vy, \vyh)` 的微分（注意時間差）：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \eval{\pdv{\cL}{y_j(t)}}_{y_j(t), w_{i, j}, \vyhi(t + 1)} & = \sum_{i = 1}^{\dout} \qty[\eval{\pdv{\cL}{z_i(t + 1)}}_{z_i(t + 1), \vyhi(t + 1)} \cdot \eval{\pdv{z_i(t + 1)}{y_j(t)}}_{y_j(t)}] \\
-                                                                               & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(z_i(t + 1)) \cdot \qty(y_i(t + 1) - \vyhi(t + 1)) \cdot w_{i, j}].
+      \eval{\pdv{\cL}{\vyj(t)}}_{\vyj(t), w_{i, j}, \vyhi(t + 1)}
+      & = \sum_{i = 1}^{\dout} \qty[\eval{\pdv{\cL}{\vzi(t + 1)}}_{\vzi(t + 1), \vyhi(t + 1)} \cdot \eval{\pdv{\vzi(t + 1)}{\vyj(t)}}_{\vyj(t)}] \\
+      & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(\vzi(t + 1)) \cdot \qty(\vyi(t + 1) - \vyhi(t + 1)) \cdot w_{i, j}].
     \end{align*}
   \]
 
@@ -262,9 +286,9 @@ RNN 計算定義
 
   \[
     \begin{align*}
-    \eval{\pdv{\cL}{\net{j}{t}}}_{\net{j}{t}} & = \eval{\pdv{\cL}{y_j(t)}}_{y_j(t)} \cdot \eval{\dv{y_j(t)}{\net{j}{t}}}_{\net{j}{t}} \\
-                                                        & = \qty[\sum_{i = 1}^{\dout} \pdv{\cL}{z_i(t + 1)} \cdot w_{i, j}] \cdot \sigma'\qty(\net{j}{t}) \\
-                                                        & = \sigma'\qty(\net{j}{t}) \cdot \sum_{i = 1}^{\dout} \qty[w_{i, j} \cdot \pdv{\tloss(t + 1)}{z_i(t + 1)}].
+    \eval{\pdv{\cL}{\net{j}{t}}}_{\net{j}{t}} & = \eval{\pdv{\cL}{\vyj(t)}}_{\vyj(t)} \cdot \eval{\pdv{\vyj(t)}{\net{j}{t}}}_{\net{j}{t}} \\
+                                                        & = \qty[\sum_{i = 1}^{\dout} \pdv{\cL}{\vzi(t + 1)} \cdot w_{i, j}] \cdot \sigma'\qty(\net{j}{t}) \\
+                                                        & = \sigma'\qty(\net{j}{t}) \cdot \sum_{i = 1}^{\dout} \qty[w_{i, j} \cdot \pdv{\tloss(t + 1)}{\vzi(t + 1)}].
     \end{align*}
   \]
 
@@ -279,18 +303,18 @@ RNN 計算定義
 
   \[
     \begin{align*}
-      \pdv{\cL}{w_{i, j}}    & = \pdv{\cL}{z_i(t + 1)} \cdot \pdv{z_i(t + 1)}{w_{i, j}} \\
-                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \vyhi(t + 1)) \cdot \begin{pmatrix}
+      \pdv{\cL}{w_{i, j}}    & = \pdv{\cL}{\vzi(t + 1)} \cdot \pdv{\vzi(t + 1)}{w_{i, j}} \\
+                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(\vyi(t + 1) - \vyhi(t + 1)) \cdot \begin{pmatrix}
                                               \vx(t) \\
                                               \vy(t)
                                             \end{pmatrix}_j; \\
       \pdv{\loss_{i'}(t + 1)}{w_{i, j}} & = \pdv{\loss_{i'}(t + 1)}{\net{i}{t}} \cdot \pdv{\net{i}{t}}{w_{i, j}} \\
-                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \vyhi(t + 1)) \cdot \begin{pmatrix}
+                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(\vyi(t + 1) - \vyhi(t + 1)) \cdot \begin{pmatrix}
                                               \vx(t) \\
                                               \vy(t)
                                             \end{pmatrix}_j; \\
-      \pdv{\tloss(t + 1)}{w_{i, j}}     & = \pdv{\tloss(t + 1)}{z_i(t + 1)} \cdot \pdv{z_i(t + 1)}{w_{i, j}} + \sum_{k = 1}^\dout \pdv{\tloss(t + 1)}{y_k(t)} \cdot \pdv{y_k(t)}{w_{i, j}} \\
-                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \vyhi(t + 1)) \cdot \begin{pmatrix}
+      \pdv{\tloss(t + 1)}{w_{i, j}}     & = \pdv{\tloss(t + 1)}{\vzi(t + 1)} \cdot \pdv{\vzi(t + 1)}{w_{i, j}} + \sum_{k = 1}^\dout \pdv{\tloss(t + 1)}{y_k(t)} \cdot \pdv{y_k(t)}{w_{i, j}} \\
+                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(\vyi(t + 1) - \vyhi(t + 1)) \cdot \begin{pmatrix}
                                               \vx(t) \\
                                               \vy(t)
                                             \end{pmatrix}_j.
@@ -504,10 +528,10 @@ RNN 計算定義
 
   ### 情境 1：模型輸出與內部節點 1-1 對應
 
-  假設模型沒有任何輸入，啟發函數 $f_j$ 為未知且 $t - 1$ 時間點的輸出節點 $y_j(t - 1)$ 只與 $\net{j}{t}$ 相連，即
+  假設模型沒有任何輸入，啟發函數 $f_j$ 為未知且 $t - 1$ 時間點的輸出節點 $\vyj(t - 1)$ 只與 $\net{j}{t}$ 相連，即
 
   $$
-  \net{j}{t} = w_{j, j} \cdot y_j(t - 1) \tag{21}\label{21}
+  \net{j}{t} = w_{j, j} \cdot \vyj(t - 1) \tag{21}\label{21}
   $$
 
   則根據式子 $\eqref{11}$ 我們可以推得
@@ -533,7 +557,7 @@ RNN 計算定義
   \begin{align*}
   & \int w_{j, j} \cdot \dfnet{j}{t - 1} \; d \big[\net{j}{t - 1}\big] = \int 1.0 \; d \big[\net{j}{t - 1}\big] \\
   \iff & w_{j, j} \cdot \fnet{j}{t - 1} = \net{j}{t - 1} \\
-  \iff & y_j(t - 1) = \fnet{j}{t - 1} = \frac{\net{j}{t - 1}}{w_{j, j}}
+  \iff & \vyj(t - 1) = \fnet{j}{t - 1} = \frac{\net{j}{t - 1}}{w_{j, j}}
   \end{align*} \tag{24}\label{24}
   $$
 
@@ -546,8 +570,8 @@ RNN 計算定義
 
   $$
   \begin{align*}
-  y_j(t) & = \fnet{j}{t} = f_j\big(w_{j, j} \cdot y_j(t - 1)\big) \\
-  & = f_j\big(w_{j, j} \cdot \frac{\net{j}{t - 1}}{w_{j, j}}\big) = \fnet{j}{t - 1} = y_j(t - 1) \tag{25}\label{25}
+  \vyj(t) & = \fnet{j}{t} = f_j\big(w_{j, j} \cdot \vyj(t - 1)\big) \\
+  & = f_j\big(w_{j, j} \cdot \frac{\net{j}{t - 1}}{w_{j, j}}\big) = \fnet{j}{t - 1} = \vyj(t - 1) \tag{25}\label{25}
   \end{align*}
   $$
 
@@ -558,10 +582,10 @@ RNN 計算定義
   將 $\eqref{21}$ 的假設改成每個模型內部節點可以額外接收**外部輸入**
 
   $$
-  \net{j}{t} = w_{j, j} \cdot y_j(t - 1) + \sum_{i = 1}^{\din} w_{j, i} \cdot x_{i}(t - 1) \tag{26}\label{26}
+  \net{j}{t} = w_{j, j} \cdot \vyj(t - 1) + \sum_{i = 1}^{\din} w_{j, i} \cdot x_{i}(t - 1) \tag{26}\label{26}
   $$
 
-  由於 $y_j(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{26}$ 的假設中唯一能夠**更新**資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j, i}$ 將新資訊合併進入 $\net{j}{t}$。
+  由於 $\vyj(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{26}$ 的假設中唯一能夠**更新**資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j, i}$ 將新資訊合併進入 $\net{j}{t}$。
 
   但作者認為，在計算的過程中，部份時間點的**輸入**資訊 $x_{i}(\cdot)$ 可能是**雜訊**，因此可以（甚至必須）被**忽略**。
   但這代表與外部輸入相接的參數 $w_{j, i}$ 需要**同時**達成**兩種**任務：
@@ -576,12 +600,12 @@ RNN 計算定義
   將 $\eqref{21} \eqref{26}$ 的假設改回正常的模型架構
 
   $$
-  \net{j}{t} = \sum_{i = 1}^{\dout} w_{j, i} \cdot y_i(t - 1) + \sum_{i = 1}^{\din} w_{j, \dout + i} \cdot x_{i}(t - 1) \tag{27}\label{27}
+  \net{j}{t} = \sum_{i = 1}^{\dout} w_{j, i} \cdot \vyi(t - 1) + \sum_{i = 1}^{\din} w_{j, \dout + i} \cdot x_{i}(t - 1) \tag{27}\label{27}
   $$
 
-  由於 $y_j(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{27}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $y_i(t - 1)$ 配合 $w_{j, \din + i}$ 將新資訊合併進入 $\net{j}{t}$。
+  由於 $\vyj(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{27}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $\vyi(t - 1)$ 配合 $w_{j, \din + i}$ 將新資訊合併進入 $\net{j}{t}$。
 
-  但作者認為，在計算的過程中，部份時間點的**輸出**資訊 $y_i(*)$ 可能對預測沒有幫助，因此可以(甚至必須)被**忽略**。
+  但作者認為，在計算的過程中，部份時間點的**輸出**資訊 $\vyi(*)$ 可能對預測沒有幫助，因此可以(甚至必須)被**忽略**。
   但這代表與輸出相接的參數 $w_{j, \din + i}$ 需要**同時**達成**兩種**任務：
 
   - **保留過去資訊**：代表 $\abs{w_{j, \din + i}} \neq 0$
