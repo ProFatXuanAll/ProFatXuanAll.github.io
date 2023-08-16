@@ -41,14 +41,14 @@ Back-Propagation Through Time
   :nowrap:
 
   \[
-    % Vector notations.
+    % Vectors' notation.
     \newcommand{\vh}{\mathbf{h}}
     \newcommand{\vx}{\mathbf{x}}
     \newcommand{\vy}{\mathbf{y}}
     \newcommand{\vyh}{\hat{\mathbf{y}}}
     \newcommand{\vz}{\mathbf{z}}
 
-    % Matrix notations.
+    % Matrixs' notation.
     \newcommand{\vW}{\mathbf{W}}
 
     % Symbols in mathcal.
@@ -56,7 +56,7 @@ Back-Propagation Through Time
     \newcommand{\cM}{\mathcal{M}}
     \newcommand{\cT}{\mathcal{T}}
 
-    % Symbols with subscripts.
+    % Vectors with subscript.
     \newcommand{\vxj}{{\vx_j}}
     \newcommand{\vyi}{{\vy_i}}
     \newcommand{\vyj}{{\vy_j}}
@@ -64,8 +64,9 @@ Back-Propagation Through Time
     \newcommand{\vyhi}{{\vyh_i}}
     \newcommand{\vyhk}{{\vyh_k}}
     \newcommand{\vzi}{{\vz_i}}
+    \newcommand{\vzj}{{\vz_j}}
 
-    % Symbols with star.
+    % Vectors with star.
     \newcommand{\ts}{{t^\star}}
     \newcommand{\vhs}{{\vh^\star}}
     \newcommand{\vxs}{{\vx^\star}}
@@ -78,7 +79,18 @@ Back-Propagation Through Time
     \newcommand{\vyhks}{{\vyh_k^\star}}
     \newcommand{\vzs}{{\vz^\star}}
     \newcommand{\vzis}{{\vz_i^\star}}
+    \newcommand{\vzjs}{{\vz_j^\star}}
+
+    % Matrixs with subscript.
+    \newcommand{\vWij}{{\vW_{i, j}}}
+    \newcommand{\vWik}{{\vW_{i, k}}}
+    \newcommand{\vWkj}{{\vW_{k, j}}}
+
+    % Matrixs with star.
     \newcommand{\vWs}{{\vW^\star}}
+    \newcommand{\vWijs}{{\vW_{i, j}^\star}}
+    \newcommand{\vWiks}{{\vW_{i, k}^\star}}
+    \newcommand{\vWkjs}{{\vW_{k, j}^\star}}
 
     % Dimensions.
     \newcommand{\din}{{d_{\operatorname{in}}}}
@@ -184,24 +196,26 @@ RNN 計算定義
 目標函數
 =========
 
-定義 :math:`L : \R^\dout \times \R^\dout \to \R` 代表\ **最小平方差**。
+定義 :math:`\cL : \R^\dout \times \R^\dout \to \R` 代表\ **最小平方差**。
 假設每個時間點的誤差計算法為最小平方差，則 :math:`t + 1` 時間點的誤差可以表達為
 
 .. math::
   :nowrap:
 
   \[
-    L(\vy(t + 1), \vyh(t + 1)) = \frac{1}{2} \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)]^2. \tag{1}\label{1}
+    \cL(\vy(t + 1), \vyh(t + 1)) = \frac{1}{2} \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)]^2. \tag{1}\label{1}
   \]
 
-而目標函數（objective function） :math:`\cL : \R^\dout \times \R^\dout \to \R` 的定義如下
+而目標函數（objective function）的定義如下
 
 .. math::
   :nowrap:
 
   \[
-    \cL(\vy, \vyh) = \sum_{t = 0}^{\cT - 1} L(\vy(t + 1), \vyh(t + 1)). \tag{2}\label{2}
+    \sum_{t = 0}^{\cT - 1} \cL(\vy(t + 1), \vyh(t + 1)). \tag{2}\label{2}
   \]
+
+接下來的討論將會專注在單一時間點的誤差上。
 
 對目標函數微分
 ==============
@@ -212,53 +226,48 @@ RNN 計算定義
 - 令 RNN 模型目前使用的參數為 :math:`\vWs`
 - 令 :math:`t \in \Set{0, \dots, \cT - 1}`
 - 令 :math:`i \in \Set{1, \dots, \dout}`
-- 令 :math:`j \in \Set{1, \dots, \din}`
+- 當 :math:`j` 為 :math:`\vx` 的下標時，令 :math:`j \in \Set{1, \dots, \din}`
+- 當 :math:`j` 為 :math:`\vy` 或 :math:`\vz` 的下標時，令 :math:`j \in \Set{1, \dots, \dout}`
 - 假設 RNN forward pass 演算法產生的 net inputs 為 :math:`\vzs(1), \dots, \vzs(\cT)`
 - 假設 RNN forward pass 演算法產生的 輸出序列為 :math:`\vys(1), \dots, \vys(\cT)`
 
-根據目標函數 :math:`\eqref{2}` 的定義，我們可以計算 :math:`L(\vy(t + 1), \vyh(t + 1))` 對 :math:`\cL(\vy, \vyh)` 的微分：
+根據目標函數 :math:`\eqref{1}` 的定義，我們可以計算 :math:`\vyi(t + 1)` 對 :math:`\cL(\vy(t + 1), \vyh(t + 1))` 的微分：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \eval{\pdv{\cL(\vy, \vyh)}{L(\vy(t + 1), \vyh(t + 1))}}_{\vy = \vys, \vyh = \vyhs}
-      & = \sum_{s = 0}^{\cT - 1} \eval{\pdv{L(\vy(s + 1), \vyh(s + 1))}{L(\vy(t + 1), \vyh(t + 1))}}_{\vy(s + 1) = \vys(s + 1), \vyh(s + 1) = \vyhs(s + 1)} \\
-      & = \eval{\pdv{L(\vy(t + 1), \vyh(t + 1))}{L(\vy(t + 1), \vyh(t + 1))}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
-      & = 1.
+      & \eval{\pdv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
+      & = \qty[\frac{1}{2} \sum_{k = 1}^\dout \eval{\pdv{\qty[\vyk(t + 1) - \vyhk(t + 1)]^2}{\vyi(t + 1)}}_{\vyk(t + 1) = \vyks(t + 1), \vyhk(t + 1) = \vyhks(t + 1)}] \\
+      & = \qty[\frac{1}{2} \cdot \eval{\pdv{\qty[\vyi(t + 1) - \vyhi(t + 1)]^2}{\vyi(t + 1)}}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)}] \\
+      & = \eval{\qty[\vyi(t + 1) - \vyhi(t + 1)]}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)} \\
+      & = \vyis(t + 1) - \vyhis(t + 1).
     \end{align*} \tag{3}\label{3}
   \]
 
-
-利用 :math:`\eqref{3}` 可以計算 :math:`\vyi(t + 1)` 對 :math:`\cL(\vy, \vyh)` 的微分：
+由於 :math:`\vyi(t + 1)` 是由 :math:`\vzi(t + 1)` 產生，我們求得 :math:`\vzi(t + 1)` 對 :math:`\vyi(t + 1)` 的微分：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \eval{\pdv{\cL(\vy, \vyh)}{\vyi(t + 1)}}_{\vy = \vys, \vyh = \vyhs}
-      & = \eval{\pdv{\cL(\vy, \vyh)}{L(\vy(t + 1), \vyh(t + 1))}}_{\vy = \vys, \vyh = \vyhs} \cdot \eval{\pdv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
-      & = \eval{\pdv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
-      & = \qty[\frac{1}{2} \sum_{k = 1}^\dout \eval{\pdv{\qty[\vyk(t + 1) - \vyhk(t + 1)]^2}{\vyi(t + 1)}}_{\vyk(t + 1) = \vyks(t + 1), \vyhk(t + 1) = \vyhks(t + 1)}] \\
-      & = \qty[\frac{1}{2} \eval{\pdv{\qty[\vyi(t + 1) - \vyhi(t + 1)]^2}{\vyi(t + 1)}}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)}] \\
-      & = \eval{\qty[\vyi(t + 1) - \vyhi(t + 1)]}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)} \\
-      & = \vyis(t + 1) - \vyhis(t + 1).
+      \eval{\pdv{\vyi(t + 1)}{\vzi(t + 1)}}_{\vzi(t + 1) = \vzis(t + 1)} & = \eval{\sigma'\qty(\vzi(t + 1))}_{\vzi(t + 1) = \vzis(t + 1)} \\
+      & = \sigma'\qty(\vzis(t + 1)).
     \end{align*} \tag{4}\label{4}
   \]
 
-由於 :math:`\vy` 是由 :math:`\vz` 產生，透過 :math:`\eqref{4}` 我們可以推得 :math:`\vzi(t + 1)` 對 :math:`\cL(\vy, \vyh)` 的微分：
+透過 :math:`\eqref{4}` 我們可以推得 :math:`\vzi(t + 1)` 對 :math:`\cL(\vy(t + 1), \vyh(t + 1))` 的微分：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \eval{\pdv{\cL(\vy, \vyh)}{\vzi(t + 1)}}_{\vy = [f(\vzs(1)), \dots, f(\vzs(\cT))], \vyh = \vyhs}
-      & = \eval{\pdv{\cL(\vy, \vyh)}{\vyi(t + 1)}}_{\vyi(t + 1) = \vyis(t + 1), \vyhi(t + 1) = \vyhis(t + 1)} \cdot \eval{\pdv{\vyi(t + 1)}{\vzi(t + 1)}}_{\vzi(t + 1) = \vzis(t + 1)} \\
-      & = \qty[\vyis(t + 1) - \vyhis(t + 1)] \cdot \eval{\sigma'\qty(\vzi(t + 1))}_{\vzi(t + 1) = \vzis(t + 1)} \\
-      & = \qty[\vyis(t + 1) - \vyhis(t + 1)] \cdot \sigma'\qty(\vzis(t + 1))
+      & \eval{\pdv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
+      & = \eval{\pdv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \cdot \eval{\pdv{\vyi(t + 1)}{\vzi(t + 1)}}_{\vzi(t + 1) = \vzis(t + 1)} \\
+      & = \qty[\vyis(t + 1) - \vyhis(t + 1)] \cdot \sigma'\qty(\vzis(t + 1)).
     \end{align*} \tag{5}\label{5}
   \]
 
@@ -266,35 +275,50 @@ RNN 計算定義
 
   式子 :math:`\eqref{5}` 就是論文 3.1.1 節的第一條公式。
 
-根據 :math:`\eqref{5}` 我們可以推得 :math:`\vyj(t)` 對 :math:`\cL(\vy, \vyh)` 的微分（注意時間差）：
+接著討論與遞迴有關的微分。
+由於 :math:`\vzi(t + 1)` 是由 :math:`\vyj(t)` 產生（注意時間差），因此我們可以求 :math:`\vyj(t)` 對 :math:`\vzi(t + 1)` 的微分：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \eval{\pdv{\cL}{\vyj(t)}}_{\vyj(t), w_{i, j}, \vyhi(t + 1)}
-      & = \sum_{i = 1}^{\dout} \qty[\eval{\pdv{\cL}{\vzi(t + 1)}}_{\vzi(t + 1), \vyhi(t + 1)} \cdot \eval{\pdv{\vzi(t + 1)}{\vyj(t)}}_{\vyj(t)}] \\
-      & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(\vzi(t + 1)) \cdot \qty(\vyi(t + 1) - \vyhi(t + 1)) \cdot w_{i, j}].
-    \end{align*}
+      \eval{\pdv{\vzi(t + 1)}{\vyj(t)}}_{\vW = \vWs, \vx(t) = \vxs(t), \vy(t) = \vys(t)}
+      & = \eval{\sum_{k = 1}^{\dout} \pdv{\vWik \cdot \mqty[\vx(t) \\ \vy(t)]_k}{\vyj(t)}}_{\vW = \vWs, \vx(t) = \vxs(t), \vy(t) = \vys(t)} \\
+      & = \eval{\vWij}_{\vW = \vWs, \vx(t) = \vxs(t), \vy(t) = \vys(t)} \\
+      & = \vWijs.
+    \end{align*} \tag{6}\label{6}
   \]
 
-由於 :math:`\vy(t)` 是由 :math:`\opnet(t)` 計算而來，所以我們也利用 :math:`\eqref{3}` 計算 :math:`\net{j}{t}` 對 :math:`\cL` 的微分：
+根據 :math:`\eqref{5}\eqref{6}` 我們可以推得 :math:`\vyj(t)` 對 :math:`\cL(\vy(t + 1), \vyh(t + 1))` 的微分（注意時間差）：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-    \eval{\pdv{\cL}{\net{j}{t}}}_{\net{j}{t}} & = \eval{\pdv{\cL}{\vyj(t)}}_{\vyj(t)} \cdot \eval{\pdv{\vyj(t)}{\net{j}{t}}}_{\net{j}{t}} \\
-                                                        & = \qty[\sum_{i = 1}^{\dout} \pdv{\cL}{\vzi(t + 1)} \cdot w_{i, j}] \cdot \sigma'\qty(\net{j}{t}) \\
-                                                        & = \sigma'\qty(\net{j}{t}) \cdot \sum_{i = 1}^{\dout} \qty[w_{i, j} \cdot \pdv{\tloss(t + 1)}{\vzi(t + 1)}].
-    \end{align*}
+      & \eval{\pdv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyj(t)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
+      & = \sum_{i = 1}^{\dout} \qty[\eval{\pdv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \cdot \eval{\pdv{\vzi(t + 1)}{\vyj(t)}}_{\vW = \vWs, \vx(t) = \vxs(t), \vy(t) = \vys(t)}] \\
+      & = \sum_{i = 1}^{\dout} \qty[\qty[\vyis(t + 1) - \vyhis(t + 1)] \cdot \sigma'\qty(\vzis(t + 1)) \cdot \vWijs].
+    \end{align*} \tag{7}\label{7}
+  \]
+
+我們再利用 :math:`\eqref{4}\eqref{7}` 計算 :math:`\vzj(t)` 對 :math:`\cL(\vy(t + 1), \vyh(t + 1))` 的微分：
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+    & \eval{\pdv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzj(t)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \\
+    & = \eval{\pdv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyj(t)}}_{\vy(t + 1) = \vys(t + 1), \vyh(t + 1) = \vyhs(t + 1)} \cdot \eval{\pdv{\vyj(t)}{\vzj(t)}}_{\vzj(t) = \vzjs(t)} \\
+    & = \qty(\sum_{i = 1}^{\dout} \qty[\qty[\vyis(t + 1) - \vyhis(t + 1)] \cdot \sigma'\qty(\vzis(t + 1)) \cdot \vWijs]) \cdot \sigma'\qty(\vzis(t)).
+    \end{align*} \tag{8}\label{8}
   \]
 
 .. note::
 
-  式子 :math:`\eqref{4}` 就是論文 3.1.1 節的最後一條公式。
+  式子 :math:`\eqref{8}` 就是論文 3.1.1 節的最後一條公式。
 
 模型參數 :math:`w_{i, j}` 對於 :math:`\tloss(t + 1)` 微分可得：
 
@@ -323,12 +347,12 @@ RNN 計算定義
 
 .. note::
 
-  式子 :math:`\eqref{5}` 是論文 3.1.1 節最後一段文字中提到的參數更新演算法。
+  式子 :math:`\eqref{4}` 是論文 3.1.1 節最後一段文字中提到的參數更新演算法。
 
 梯度爆炸 / 消失
 ---------------
 
-從 :math:`\eqref{2}\eqref{4}` 式我們可以進一步推得對不同時間點 net input 對誤差的微分。
+從 :math:`\eqref{2}\eqref{3}` 式我們可以進一步推得對不同時間點 net input 對誤差的微分。
 探討此微分公式的目的是為了後續對微分分析，推導產生\ **梯度爆炸**\與\ **梯度消失**\的原因。
 為了方便討論，我們定義新的符號：
 
@@ -339,7 +363,7 @@ RNN 計算定義
     \vth{k}{\tf}{\tp} = \pdv{\tloss(\tf)}{\net{k}{\tp}}.
   \]
 
-意思是 the :math:`k`\-th coordinate of :math:`\opnet(\tp)` 對於 :math:`\tloss(\tf)` 計算所得之\ **微分**。
+意思是 the :math:`k`\-th coordinate of :math:`\vz(\tp)` 對於 :math:`\tloss(\tf)` 計算所得之\ **微分**。
 
 - 根據時間的限制我們有不等式 :math:`0 \leq \tp \leq \tf \leq T`
 - 節點 :math:`k` 的數值範圍為 :math:`k \in \Set{1, \dots, \dout}`，見 RNN 計算定義
@@ -528,10 +552,10 @@ RNN 計算定義
 
   ### 情境 1：模型輸出與內部節點 1-1 對應
 
-  假設模型沒有任何輸入，啟發函數 $f_j$ 為未知且 $t - 1$ 時間點的輸出節點 $\vyj(t - 1)$ 只與 $\net{j}{t}$ 相連，即
+  假設模型沒有任何輸入，啟發函數 $f_j$ 為未知且 $t - 1$ 時間點的輸出節點 $\vyj(t - 1)$ 只與 $\vzj(t)$ 相連，即
 
   $$
-  \net{j}{t} = w_{j, j} \cdot \vyj(t - 1) \tag{21}\label{21}
+  \vzj(t) = w_{j, j} \cdot \vyj(t - 1) \tag{21}\label{21}
   $$
 
   則根據式子 $\eqref{11}$ 我們可以推得
@@ -582,10 +606,10 @@ RNN 計算定義
   將 $\eqref{21}$ 的假設改成每個模型內部節點可以額外接收**外部輸入**
 
   $$
-  \net{j}{t} = w_{j, j} \cdot \vyj(t - 1) + \sum_{i = 1}^{\din} w_{j, i} \cdot x_{i}(t - 1) \tag{26}\label{26}
+  \vzj(t) = w_{j, j} \cdot \vyj(t - 1) + \sum_{i = 1}^{\din} w_{j, i} \cdot x_{i}(t - 1) \tag{26}\label{26}
   $$
 
-  由於 $\vyj(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{26}$ 的假設中唯一能夠**更新**資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j, i}$ 將新資訊合併進入 $\net{j}{t}$。
+  由於 $\vyj(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{26}$ 的假設中唯一能夠**更新**資訊的方法只有透過 $x_{i}(t - 1)$ 配合 $w_{j, i}$ 將新資訊合併進入 $\vzj(t)$。
 
   但作者認為，在計算的過程中，部份時間點的**輸入**資訊 $x_{i}(\cdot)$ 可能是**雜訊**，因此可以（甚至必須）被**忽略**。
   但這代表與外部輸入相接的參數 $w_{j, i}$ 需要**同時**達成**兩種**任務：
@@ -600,10 +624,10 @@ RNN 計算定義
   將 $\eqref{21} \eqref{26}$ 的假設改回正常的模型架構
 
   $$
-  \net{j}{t} = \sum_{i = 1}^{\dout} w_{j, i} \cdot \vyi(t - 1) + \sum_{i = 1}^{\din} w_{j, \dout + i} \cdot x_{i}(t - 1) \tag{27}\label{27}
+  \vzj(t) = \sum_{i = 1}^{\dout} w_{j, i} \cdot \vyi(t - 1) + \sum_{i = 1}^{\din} w_{j, \dout + i} \cdot x_{i}(t - 1) \tag{27}\label{27}
   $$
 
-  由於 $\vyj(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{27}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $\vyi(t - 1)$ 配合 $w_{j, \din + i}$ 將新資訊合併進入 $\net{j}{t}$。
+  由於 $\vyj(t - 1)$ 的設計功能是保留過去計算所擁有的資訊，在 $\eqref{27}$ 的假設中唯一能夠讓**過去**資訊**影響未來**計算結果的方法只有透過 $\vyi(t - 1)$ 配合 $w_{j, \din + i}$ 將新資訊合併進入 $\vzj(t)$。
 
   但作者認為，在計算的過程中，部份時間點的**輸出**資訊 $\vyi(*)$ 可能對預測沒有幫助，因此可以(甚至必須)被**忽略**。
   但這代表與輸出相接的參數 $w_{j, \din + i}$ 需要**同時**達成**兩種**任務：
