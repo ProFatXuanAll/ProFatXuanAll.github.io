@@ -5,4 +5,5 @@
 .. toctree::
   :maxdepth: 1
 
+  math/index
   ml/index

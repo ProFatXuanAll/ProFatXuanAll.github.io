@@ -75,6 +75,22 @@ Long Short-Term Memory
   :nowrap:
 
   \[
+    % Vector notations.
+    \newcommand{\vh}{\mathbf{h}}
+    \newcommand{\vw}{\mathbf{w}}
+    \newcommand{\vx}{\mathbf{x}}
+    \newcommand{\vy}{\mathbf{y}}
+    \newcommand{\vyh}{\hat{\mathbf{y}}}
+    \newcommand{\vz}{\mathbf{z}}
+
+    % Symbols in mathcal.
+    \newcommand{\cL}{\mathcal{L}}
+    \newcommand{\cM}{\mathcal{M}}
+    \newcommand{\cT}{\mathcal{T}}
+
+    % Symbols with hat.
+    \newcommand{\hy}{\hat{y}}
+
     % Operator names.
     \newcommand{\opnet}{\operatorname{net}}
     \newcommand{\opin}{\operatorname{in}}
@@ -308,50 +324,48 @@ Long Short-Term Memory
 計算定義
 --------
 
-給定一資料集，資料集中的每個資料點都由兩個序列組成，分別稱為輸入序列 :math:`x` 與答案序列 :math:`\hat{y}` 。
-當一個 RNN 模型被用於訓練在該資料集上，我們會希望給予任意資料點中的輸入序列 :math:`x` 所得到的 RNN 輸出序列 :math:`y` 會近似於對應資料點的答案序列 :math:`\hat{y}`。
+給定一資料集，資料集中的每個資料點都由兩個序列組成，分別稱為輸入序列 :math:`\vx` 與答案序列 :math:`\vyh` 。
+當一個 RNN 模型被用於訓練在該資料集上，我們會希望給予任意資料點中的輸入序列 :math:`\vx` 所得到的 RNN 輸出序列 :math:`\vy` 會近似於對應資料點的答案序列 :math:`\vyh`。
 
-假定一個資料點中的輸入序列長度為 :math:`T`，則我們可定義以下符號：
+假定一個資料點中的輸入序列長度為 :math:`\cT`，則我們可定義以下符號：
 
-- 定義 :math:`x(t)` 為資料點輸入序列 :math:`x` 中，時間點 :math:`t` 所對應到的資料
+- 定義 :math:`\vx(t)` 為資料點輸入序列 :math:`\vx` 中，時間點 :math:`t` 所對應到的資料
 
-  - 令 :math:`t \in \Set{0, 1, \dots, T - 1}`
-  - 定義 :math:`x(t)` 為一向量，由 :math:`\din` 個實數組成，即 :math:`x(t) \in \R^\din`
-  - 定義 :math:`x_j(t)` 為向量 :math:`x(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \din}`
+  - 令 :math:`t \in \Set{0, 1, \dots, \cT - 1}`
+  - 定義 :math:`\vx(t)` 為一向量，由 :math:`\din` 個實數組成，即 :math:`\vx(t) \in \R^\din`
+  - 定義 :math:`\vx_j(t)` 為向量 :math:`\vx(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \din}`
 
-- 定義 :math:`\hat{y}(t)` 為資料點答案序列 :math:`\hat{y}` 中，時間點 :math:`t` 所對應到的資料
+- 定義 :math:`\vyh(t)` 為資料點答案序列 :math:`\vyh` 中，時間點 :math:`t` 所對應到的資料
 
-  - 令 :math:`t \in \Set{1, 2, \dots, T}`，注意此處定義與 :math:`x(t)` 的 index 範圍不同
-  - 定義 :math:`\hat{y}(t)` 為一向量，由 :math:`\dout` 個實數組成，即 :math:`\hat{y}(t) \in \R^\dout`
-  - 定義 :math:`\hat{y}_j(t)` 為向量 :math:`\hat{y}(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \dout}`
+  - 令 :math:`t \in \Set{1, 2, \dots, \cT}`，注意此處定義與 :math:`\vx(t)` 的 index 範圍不同
+  - 定義 :math:`\vyh(t)` 為一向量，由 :math:`\dout` 個實數組成，即 :math:`\vyh(t) \in \R^\dout`
+  - 定義 :math:`\vyh_j(t)` 為向量 :math:`\vyh(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \dout}`
 
-- 定義 :math:`y(t)` 為 RNN 輸出序列 :math:`y` 中，時間點 :math:`t` 所對應到的資料
+- 定義 :math:`\vy(t)` 為 RNN 輸出序列 :math:`\vy` 中，時間點 :math:`t` 所對應到的資料
 
-  - 由於目標是讓 :math:`y \approx \hat{y}`，因此定義 :math:`y(t) \in \R^\dout`
-  - 定義 :math:`t \in \Set{1, 2, \dots, T}`
-  - 定義 :math:`y_j(t)` 為向量 :math:`y(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \dout}`
+  - 由於目標是讓 :math:`\vy \approx \vyh`，因此定義 :math:`\vy(t) \in \R^\dout`
+  - 定義 :math:`t \in \Set{1, 2, \dots, \cT}`
+  - 定義 :math:`\vy_j(t)` 為向量 :math:`\vy(t)` 的第 :math:`j` 個實數，:math:`j \in \Set{1, \dots, \dout}`
 
-- 定義常數 :math:`y(0) = \zv`
+- 定義常數 :math:`\vy(0) = \zv`
 
   - :math:`\zv` 是由 :math:`\dout` 個零組成的零向量
-  - 注意此定義並無與 :math:`y(1), \dots, y(T)` 衝突
+  - 注意此定義並無與 :math:`\vy(1), \dots, \vy(\cT)` 衝突
 
-- 定義 :math:`w` 為 RNN 模型的參數
+- 定義 :math:`\vw` 為 RNN 模型的參數
 
-  - RNN 在時間點 :math:`t` 取得的輸入為資料點輸入 :math:`x(t)` 與前一次的模型輸出 :math:`y(t)`
-  - RNN 在取得時間點 :math:`t` 的輸入後，乘上參數 :math:`w`，必須得到由 :math:`\dout` 個實數組成的淨輸入向量 :math:`\opnet(t + 1)`
-  - 因此模型參數 :math:`w` 為一矩陣，由 :math:`\dout \times (\din + \dout)` 個實數組成，即 :math:`w \in \R^{\dout \times (\din + \dout)}`
+  - 定義模型參數 :math:`\vw` 為一矩陣，由 :math:`\dout \times (\din + \dout)` 個實數組成，即 :math:`\vw \in \R^{\dout \times (\din + \dout)}`
 
-- 定義 :math:`z(t)` 為 RNN 模型在時間點 :math:`t` 得到的淨輸入（net input）
+- 定義 :math:`\vz(t)` 為 RNN 模型在時間點 :math:`t` 得到的淨輸入（net input）
 
-  - 定義 :math:`t \in \Set{1, 2, \dots, T}`
-  - 淨輸入的定義為參數矩陣 :math:`w` 乘上所有輸入
-  - RNN 所有的輸入來源為資料點輸入 :math:`x(t)` 與前一次的模型輸出 :math:`y(t)`
+  - 定義 :math:`t \in \Set{1, 2, \dots, \cT}`
+  - 定義 :math:`\vz(t) = \vw \cdot \mqty[\vx(t - 1) \\ \vy(t - 1)]`
+  - RNN 模型的淨輸入來源為資料點輸入 :math:`\vx(t - 1)` 與前一次的模型輸出 :math:`\vy(t - 1)`
 
 - 定義 :math:`f` 為 RNN 模型的 :term:`activation function`
 
-  - :math:`f` 的輸入是 :math:`z(t)`
-  - 定義 :math:`y(t) = f(z(t))`
+  - :math:`f` 的輸入是 :math:`\vz(t)`
+  - 定義 :math:`\vy(t) = f(\vz(t))`
   - 定義 :math:`f_i` 為 :math:`f` 的第 :math:`i` 個 real valued function，:math:`i \in \Set{1, \dots, \dout}`
   - 使用下標 :math:`f_i` 是因為每個維度所使用的啟發函數可以\ **不同**
   - :math:`f` 必須要可以\ **微分**，當時與 RNN 有關的論文幾乎都是令 :math:`f_i` 為 sigmoid 函數 :math:`\sigma(s) = \frac{1}{1 + e^{-s}}`
@@ -364,15 +378,15 @@ Long Short-Term Memory
 
   \[
     \begin{align*}
-      & \algoProc{\operatorname{RNN}}(x, T) \\
-      & \indent{1} y(0) \algoEq \zv \\
-      & \indent{1} \algoFor{t \in \Set{0, \dots, T - 1}} \\
+      & \algoProc{\operatorname{RNN}}(x, \cT) \\
+      & \indent{1} \vy(0) \algoEq \zv \\
+      & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
       & \indent{2} \algoFor{i \in \Set{1, \dots, \dout}} \\
-      & \indent{3} z_i(t + 1) \algoEq \sum_{j = 1}^\din w_{i, j} \cdot x_j(t) + \sum_{j = \din + 1}^{\din + \dout} w_{i, j} \cdot y_j(t) \\
-      & \indent{3} y_i(t + 1) \algoEq f_i(z_i(t + 1)) \\
+      & \indent{3} \vz_i(t + 1) \algoEq \sum_{j = 1}^\din \vw_{i, j} \cdot \vx_j(t) + \sum_{j = \din + 1}^{\din + \dout} \vw_{i, j} \cdot \vy_j(t) \\
+      & \indent{3} \vy_i(t + 1) \algoEq f_i(\vz_i(t + 1)) \\
       & \indent{2} \algoEndFor \\
       & \indent{1} \algoEndFor \\
-      & \indent{1} \algoReturn y(1), \dots, y(T) \\
+      & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
       & \algoEndProc
     \end{align*}
   \]
@@ -384,52 +398,49 @@ Long Short-Term Memory
 
   \[
     \begin{align*}
-      & \algoProc{\operatorname{RNN}}(x, T) \\
-      & \indent{1} y(0) \algoEq \zv \\
-      & \indent{1} \algoFor{t \in \Set{0, \dots, T - 1}} \\
-      & \indent{2} z(t + 1) \algoEq w \cdot \begin{pmatrix}
-          x(t) \\
-          y(t)
-        \end{pmatrix} \\
-      & \indent{2} y(t + 1) \algoEq f\qty(z(t + 1)) \\
+      & \algoProc{\operatorname{RNN}}(\vx, \cT) \\
+      & \indent{1} \vy(0) \algoEq \zv \\
+      & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
+      & \indent{2} \vz(t + 1) \algoEq \vw \cdot \mqty[\vx(t) \\ \vy(t)] \\
+      & \indent{2} \vy(t + 1) \algoEq f\qty(\vz(t + 1)) \\
       & \indent{1} \algoEndFor \\
-      & \indent{1} \algoReturn y(1), \dots, y(T) \\
+      & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
       & \algoEndProc
     \end{align*}
   \]
 
-目標函數
+計算誤差
 ---------
 
-此論文設定 RNN 模型的目標函數為\ **最小平方差**\（**Mean Square Error**）：
+此論文設定 RNN 模型的誤差計算方法為\ **最小平方差**\（**Mean Square Error**）：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \algoProc{\operatorname{MSE}}(x, \hat{y}, T) \\
-      & \indent{1} y \algoEq \operatorname{RNN}(x, T) \\
-      & \indent{1} \algoFor{t \in \Set{1, \dots, T}} \\
+      & \algoProc{\operatorname{MSE}}(\vx, \vyh, \cT) \\
+      & \indent{1} \vy \algoEq \operatorname{RNN}(\vx, \cT) \\
+      & \indent{1} \algoFor{t \in \Set{1, \dots, \cT}} \\
       & \indent{2} \algoFor{i \in \Set{1, \dots, \dout}} \\
-      & \indent{3} \loss_i(t) \algoEq \frac{1}{2} \qty(y_i(t) - \hat{y}_{i}(t))^2 \\
+      & \indent{3} \loss_i(t) \algoEq \frac{1}{2} \qty(\vy_i(t) - \vyh_{i}(t))^2 \\
       & \indent{2} \algoEndFor \\
       & \indent{1} \algoEndFor \\
-      & \indent{1} \algoReturn \loss(1), \dots, \loss(T) \\
+      & \indent{1} \algoReturn \loss(1), \dots, \loss(\cT) \\
       & \algoEndProc
     \end{align*}
   \]
 
-對目標函數微分
---------------
+對誤差微分
+----------
 
-根據目標函數的定義，我們知道 :math:`y_i(t + 1)` 對 :math:`\loss_i(t + 1)` 微分可得：
+根據目標函數的定義，我們知道 :math:`\vy_i(t + 1)` 對 :math:`\loss_i(t + 1)` 微分可得：
 
 .. math::
   :nowrap:
 
   \[
-    \eval{\pdv{\loss_i(t + 1)}{y_i(t + 1)}}_{y_i(t + 1), \hat{y}_i(t + 1)} = y_i(t + 1) - \hat{y}_{i}(t + 1). \tag{1}\label{1}
+    \pdv{ \loss_i(t + 1) }{ \vy_i(t + 1) }(\vy_i(t + 1), \vyh_i(t + 1)) = \vy_i(t + 1) - \vyh_{i}(t + 1). \tag{1}\label{1}
   \]
 
 根據 :math:`\eqref{1}` 我們可以推得 :math:`z_i(t + 1)` 對 :math:`\loss_i(t + 1)` 的微分：
@@ -439,9 +450,39 @@ Long Short-Term Memory
 
   \[
     \begin{align*}
-      \eval{\pdv{\loss_i(t + 1)}{z_i(t + 1)}}_{z_i(t + 1), \hat{y}_i(t + 1)} & = \eval{\pdv{\loss_i(t + 1)}{y_i(t + 1)}}_{y_i(t + 1), \hat{y}_i(t + 1)} \cdot \eval{\dv{y_i(t + 1)}{z_i(t + 1)}}_{z_i(t + 1)} \\
-                                                                             & = \qty[y_i(t + 1) - \hat{y}_{i}(t + 1)] \cdot f'\qty(z_i(t + 1)) \\
-                                                                             & = \sigma'\qty(z_i(t + 1)) \cdot \qty[y_i(t + 1) - \hat{y}_{i}(t + 1)].
+      \eval{
+        \pdv{
+          \loss_i(t + 1)
+        }{
+          z_i(t + 1)
+        }
+      }_{
+       z_i(t + 1),
+       \vyh_i(t + 1)
+      }
+      & =
+        \eval{
+          \pdv{
+            \loss_i(t + 1)
+          }{
+            y_i(t + 1)
+          }
+        }_{
+          y_i(t + 1),
+          \vyh_i(t + 1)
+        }
+        \cdot
+        \eval{
+          \dv{
+            y_i(t + 1)
+          }{
+            z_i(t + 1)
+          }
+        }_{
+         z_i(t + 1)
+        } \\
+                                                                             & = \qty[y_i(t + 1) - \vyh_{i}(t + 1)] \cdot f'\qty(z_i(t + 1)) \\
+                                                                             & = \sigma'\qty(z_i(t + 1)) \cdot \qty[y_i(t + 1) - \vyh_{i}(t + 1)].
     \end{align*} \tag{2}\label{2}
   \]
 
@@ -456,12 +497,12 @@ Long Short-Term Memory
 
   \[
     \begin{align*}
-      \eval{\pdv{\loss_i(t + 1)}{y_j(t)}}_{y_j(t)} & = \sum_{i = 1}^{\dout} \qty[\eval{\pdv{\loss_i(t + 1)}{z_i(t + 1)}}_{z_i(t + 1)} \cdot \eval{\pdv{z_i(t + 1)}{y_j(t)}}_{y_j(t)}] \\
-                                                  & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(z_i(t + 1)) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot w_{i, j}].
+      \eval{\pdv{\loss_i(t + 1)}{y_j(t)}}_{y_j(t), w_{i, j}, \vyh_i(t + 1)} & = \sum_{i = 1}^{\dout} \qty[\eval{\pdv{\loss_i(t + 1)}{z_i(t + 1)}}_{z_i(t + 1), \vyh_i(t + 1)} \cdot \eval{\pdv{z_i(t + 1)}{y_j(t)}}_{y_j(t)}] \\
+                                                                               & = \sum_{i = 1}^{\dout} \qty[\sigma'\qty(z_i(t + 1)) \cdot \qty(y_i(t + 1) - \vyh_{i}(t + 1)) \cdot w_{i, j}].
     \end{align*} \tag{3}\label{3}
   \]
 
-由於 :math:`y(t)` 是由 :math:`\opnet(t)` 計算而來，所以我們也利用 :math:`\eqref{3}` 計算 :math:`\net{j}{t}` 對 :math:`\loss_i(t + 1)` 的微分：
+由於 :math:`\vy(t)` 是由 :math:`\opnet(t)` 計算而來，所以我們也利用 :math:`\eqref{3}` 計算 :math:`\net{j}{t}` 對 :math:`\loss_i(t + 1)` 的微分：
 
 .. math::
   :nowrap:
@@ -486,19 +527,19 @@ Long Short-Term Memory
   \[
     \begin{align*}
       \pdv{\loss_i(t + 1)}{w_{i, j}}    & = \pdv{\loss_i(t + 1)}{z_i(t + 1)} \cdot \pdv{z_i(t + 1)}{w_{i, j}} \\
-                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot \begin{pmatrix}
-                                              x(t) \\
-                                              y(t)
+                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \vyh_{i}(t + 1)) \cdot \begin{pmatrix}
+                                              \vx(t) \\
+                                              \vy(t)
                                             \end{pmatrix}_j; \\
       \pdv{\loss_{i'}(t + 1)}{w_{i, j}} & = \pdv{\loss_{i'}(t + 1)}{\net{i}{t}} \cdot \pdv{\net{i}{t}}{w_{i, j}} \\
-                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot \begin{pmatrix}
-                                              x(t) \\
-                                              y(t)
+                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \vyh_{i}(t + 1)) \cdot \begin{pmatrix}
+                                              \vx(t) \\
+                                              \vy(t)
                                             \end{pmatrix}_j; \\
       \pdv{\tloss(t + 1)}{w_{i, j}}     & = \pdv{\tloss(t + 1)}{z_i(t + 1)} \cdot \pdv{z_i(t + 1)}{w_{i, j}} + \sum_{k = 1}^\dout \pdv{\tloss(t + 1)}{y_k(t)} \cdot \pdv{y_k(t)}{w_{i, j}} \\
-                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \hat{y}_{i}(t + 1)) \cdot \begin{pmatrix}
-                                              x(t) \\
-                                              y(t)
+                                        & = \sigma'\qty(\net{j}{t + 1}) \cdot \qty(y_i(t + 1) - \vyh_{i}(t + 1)) \cdot \begin{pmatrix}
+                                              \vx(t) \\
+                                              \vy(t)
                                             \end{pmatrix}_j.
     \end{align*} \tag{5}\label{5}
   \]
@@ -843,7 +884,7 @@ Long Short-Term Memory
   |$y^{\opog}(t)$|**輸出閘門單元（Output Gate Units）**|$\R^{\nblk}$|
   |$y^{\blk{k}}(t)$|**記憶細胞區域** $k$ 的**輸出**|$\R^{\dblk}$|
   |$s^{\blk{k}}(t)$|**記憶細胞區域** $k$ 的**內部狀態**|$\R^{\dblk}$|
-  |$y(t)$|**模型總輸出**|$\R^{\dout}$|
+  |$\vy(t)$|**模型總輸出**|$\R^{\dout}$|
 
   - 以上所有向量全部都**初始化**成各自維度的**零向量**，也就是 $t = 0$ 時模型**所有節點**（除了**輸入**）都是 $0$
   - 根據論文 4.4 節，可以**同時**擁有 $\nblk$ 個不同的**記憶細胞**
@@ -858,13 +899,13 @@ Long Short-Term Memory
 
   ### 計算定義
 
-  當我們得到 $t$ 時間點的外部輸入 $x(t)$ 時，我們可以進行以下計算得到 $t + 1$ 時間點的總輸出 $y(t + 1)$
+  當我們得到 $t$ 時間點的外部輸入 $\vx(t)$ 時，我們可以進行以下計算得到 $t + 1$ 時間點的總輸出 $y(t + 1)$
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \tag{28}\label{28} \\
   \tilde{x}(t) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -880,7 +921,7 @@ Long Short-Term Memory
   & = s^{\blk{k}}(t) + y_k^{\opig}(t + 1) \cdot g\pa{\wblk{k} \cdot \tilde{x}(t)} \\
   y^{\blk{k}}(t + 1) & = y_k^{\opog}(t + 1) \cdot h\pa{s^{\blk{k}}(t + 1)} \tag{35}\label{35} \\
   y(t + 1) & = f^{\opout}(\opnet^{\opout}(t + 1)) = f^{\opout}\pa{\wout \cdot \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t + 1) \\
   y^{\blk{1}}(t + 1) \\
   \vdots \\
@@ -1026,7 +1067,7 @@ Long Short-Term Memory
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
   \pdv{y_i(t + 1)}{\wout_{p, q}} & = \pdv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pdv{\netout{i}{t + 1}}{\wout_{p, q}} \\
   & = \dfnetout{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t + 1) \\
   y^{\blk{1}}(t + 1) \\
   \vdots \\
@@ -1046,7 +1087,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot \dblk \\
   \tilde{x}(t + 1) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t + 1) \\
   y^{\blk{1}}(t + 1) \\
   \vdots \\
@@ -1071,7 +1112,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot \dblk \\
   \tilde{x}(t + 1) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t + 1) \\
   y^{\blk{1}}(t + 1) \\
   \vdots \\
@@ -1097,7 +1138,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot \dblk \\
   \tilde{x}(t + 1) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t + 1) \\
   y^{\blk{1}}(t + 1) \\
   \vdots \\
@@ -1129,7 +1170,7 @@ Long Short-Term Memory
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
   \pdv{y_i^{\ophid}(t + 1)}{\whid_{p, q}} & = \pdv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \cancelto{\aptr}{\pdv{\nethid{i}{t + 1}}{\whid_{p, q}}} \\
   & \aptr \dfnethid{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1148,7 +1189,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1172,7 +1213,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1236,7 +1277,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1260,7 +1301,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1288,7 +1329,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1317,7 +1358,7 @@ Long Short-Term Memory
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1347,7 +1388,7 @@ Long Short-Term Memory
   $$
   \begin{align*}
   \tilde{x}(t + 1) & = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t + 1) \\
   y^{\blk{1}}(t + 1) \\
   \vdots \\
@@ -1356,8 +1397,8 @@ Long Short-Term Memory
   i & \in \set{1, \dots, \dout} \\
   j & \in \set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
   \pdv{\tloss(t + 1)}{\wout_{i, j}} & = \pdv{\tloss(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wout_{i, j}} \\
-  & = \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \pdv{y_i(t + 1)}{\wout_{i, j}} \\
-  & = \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \tilde{x}_j(t + 1)
+  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \pdv{y_i(t + 1)}{\wout_{i, j}} \\
+  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \tilde{x}_j(t + 1)
   \end{align*} \tag{56}\label{56}
   $$
 
@@ -1370,11 +1411,11 @@ Long Short-Term Memory
   & p \in \set{1, \dots, \dhid} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
   & \pdv{\tloss(t + 1)}{\whid_{p, q}} = \sum_{i = 1}^{\dout} \br{\pdv{\tloss(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\whid_{p, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pdv{y_p^{\ophid}(t + 1)}{\whid_{p, q}}} \\
-  & = \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \pdv{y_p^{\ophid}(t + 1)}{\whid_{p, q}} \\
-  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \hat{y}_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \\
+  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pdv{y_p^{\ophid}(t + 1)}{\whid_{p, q}}} \\
+  & = \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \pdv{y_p^{\ophid}(t + 1)}{\whid_{p, q}} \\
+  & \aptr \sum_{i = 1}^{\dout} \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \\
   & \quad \quad \dfnethid{p}{t + 1} \cdot \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
@@ -1392,16 +1433,16 @@ Long Short-Term Memory
   k & \in \set{1, \dots, \nblk} \\
   q & \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
   \pdv{\tloss(t + 1)}{\wog_{k, q}} & = \sum_{i = 1}^{\dout} \br{\pdv{\tloss(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wog_{k, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}}\Bigg] \\
-  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{y_k^{\opog}(t + 1)}{\wog_{k, q}}}\Bigg] \\
-  & = \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & = \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \pdv{y_k^{\opog}(t + 1)}{\wog_{k, q}} \\
-  & \aptr \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & \aptr \Bigg[\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \\
   & \quad \quad \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1419,7 +1460,7 @@ Long Short-Term Memory
   $$
   \begin{align*}
   & \tilde{x}(t) = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1430,13 +1471,13 @@ Long Short-Term Memory
   & k \in \set{1, \dots, \nblk} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
   & \pdv{\tloss(t + 1)}{\wig_{k, q}} = \sum_{i = 1}^{\dout} \br{\pdv{\tloss(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wig_{k, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
-  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
-  & = \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & = \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot y_k^{\opog}(t + 1) \\
-  & \aptr \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & \aptr \Bigg(\sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\pdv{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
   & \quad \quad g_j\pa{\netcell{j}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot y_k^{\opog}(t + 1)
   \end{align*} \tag{59}\label{59}
@@ -1449,7 +1490,7 @@ Long Short-Term Memory
   $$
   \begin{align*}
   & \tilde{x}(t) = \begin{pmatrix}
-  x(t) \\
+  \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
@@ -1461,13 +1502,13 @@ Long Short-Term Memory
   & p \in \set{1, \dots, \dblk} \\
   & q \in \set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
   & \pdv{\tloss(t + 1)}{\wblk{k}_{p, q}} = \sum_{i = 1}^{\dout} \br{\pdv{\tloss(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wblk{k}_{p, q}}} \\
-  & \aptr \sum_{i = 1}^{\dout} \bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
+  & \aptr \sum_{i = 1}^{\dout} \bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pdv{y^{\blk{k}}_p(t + 1)}{\wblk{k}_{p, q}}\bigg] \\
-  & = \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+  & = \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
   & \quad \quad \pdv{y^{\blk{k}}_p(t + 1)}{\wblk{k}_{p, q}} \\
-  & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+  & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
   & \quad \quad y_k^{\opog}(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \pdv{s_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}\Bigg] \\
-  & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
+  & \aptr \br{\sum_{i = 1}^{\dout} \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
   & \quad \quad y_k^{\opog}(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\pdv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
   & \quad \quad y_k^{\opig}(t + 1) \cdot g_p'\pa{\netcell{p}{k}{t + 1}} \cdot \tilde{x}_q(t)\Bigg]
   \end{align*} \tag{60}\label{60}
@@ -1552,7 +1593,7 @@ Long Short-Term Memory
   \implies & \begin{dcases}
   s^{\wblk{k}}(t + 1) \not\ll 0 \\
   s^{\wblk{k}}(t + 1) \not\gg 0
-  \end{dcases} \quad \forall t = 0, \dots, T - 1
+  \end{dcases} \quad \forall t = 0, \dots, \cT - 1
   \end{align*} \tag{65}\label{65}
   $$
 
@@ -1597,7 +1638,7 @@ Long Short-Term Memory
     - 資料生成為隨機
     - 訓練順序為隨機
   - 在每個時間點 $t$ 的計算順序為
-    1. 將外部輸入 $x(t)$ 丟入模型
+    1. 將外部輸入 $\vx(t)$ 丟入模型
     2. 計算輸入閘門、輸出閘門、記憶細胞、隱藏單元
     3. 計算總輸出
   - 訓練初期只使用一個記憶細胞，即 $\nblk = 1$
@@ -1887,7 +1928,7 @@ Long Short-Term Memory
   如果 $\opseq \in C_1$，則該序列的前 $N$ 個數字都是 $1.0$，序列的最後一個數字為 $1.0$。
   如果 $\opseq \in C_2$，則該序列的前 $N$ 個數字都是 $-1.0$，序列的最後一個數字為 $0.0$。
 
-  給定一個常數 $T$，並從 $[T, T + \frac{T}{10}]$ 的區間中隨機挑選一個整數作為序列 $\opseq$ 的長度 $L$。
+  給定一個常數 $T$，並從 $[T, T + \frac{\cT}{10}]$ 的區間中隨機挑選一個整數作為序列 $\opseq$ 的長度 $L$。
 
   當 $L \geq N$ 時，任何在 $\opseq(N + 1), \dots \opseq(L - 1)$ 中的數字都是由常態分佈隨機產生，常態分佈的平均為 $0$ 變異數為 $0.2$。
 
@@ -1998,7 +2039,7 @@ Long Short-Term Memory
   模型在 $L + 1$ 時間點必須輸出所有元素中第二個數值為 $1$ 的元素，其第一個數值的總和，並轉換到 $[0, 1]$ 區間的數值，即
 
   $$
-  \hat{y}(L + 1) = 0.5 + \frac{1}{4} \sum_{t = 0}^{L} \br{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}
+  \vyh(L + 1) = 0.5 + \frac{1}{4} \sum_{t = 0}^{L} \br{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}
   $$
 
   只考慮 $L + 1$ 時間點的誤差，誤差必須要低於 $0.04$ 才算預測正確。
@@ -2052,7 +2093,7 @@ Long Short-Term Memory
   - $L + 1$ 時間點的輸出目標改成
 
   $$
-  \hat{y}(L + 1) = 0.5 + \frac{1}{4} \prod_{t = 0}^{L} \br{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}
+  \vyh(L + 1) = 0.5 + \frac{1}{4} \prod_{t = 0}^{L} \br{\mathbb{1}(\opseq_1(t) = 1) \cdot \opseq_2(t)}
   $$
 
   - 當連續 $2000$ 筆訓練資料中，不超過 $n_{\opseq}$ 筆資料的絕對誤差小於 $0.04$ 就停止訓練
