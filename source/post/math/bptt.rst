@@ -69,7 +69,7 @@ Back-Propagation Through Time
     \newcommand{\vzk}{{\vz_k}}
     \newcommand{\vzl}{{\vz_\ell}}
 
-    % Matrixs with subscript.
+    % Matrixs with subscripts.
     \newcommand{\vWiC}{{\vW_{i, :}}}
     \newcommand{\vWij}{{\vW_{i, j}}}
     \newcommand{\vWik}{{\vW_{i, k}}}
@@ -77,6 +77,10 @@ Back-Propagation Through Time
     \newcommand{\vWRj}{{\vW_{:, j}}}
     \newcommand{\vWkj}{{\vW_{k, j}}}
     \newcommand{\vWlj}{{\vW_{\ell, j}}}
+
+    % Matrix with subscript and superscripts
+    \newcommand{\vWkjn}{\vW_{k, j}^{\operatorname{new}}}
+    \newcommand{\vWkjo}{\vW_{k, j}^{\operatorname{old}}}
 
     % Dimensions.
     \newcommand{\din}{{d_{\operatorname{in}}}}
@@ -231,7 +235,7 @@ RNN 計算定義
 
     \[
       \begin{align*}
-        & \dv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)} \\
+        \dv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)}
         & = \dv{\frac{1}{2} \sum_{k = 1}^\dout \qty[\vyk(t + 1) - \vyhk(t + 1)]^2}{\vyi(t + 1)} \\
         & = \frac{1}{2} \sum_{k = 1}^\dout \dv{\qty[\vyk(t + 1) - \vyhk(t + 1)]^2}{\vyi(t + 1)} \\
         & = \frac{1}{2} \cdot \dv{\qty[\vyi(t + 1) - \vyhi(t + 1)]^2}{\vyi(t + 1)} \\
@@ -265,7 +269,7 @@ RNN 計算定義
 
     \[
       \begin{align*}
-        & \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)} \\
+        \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)}
         & = \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)} \cdot \dv{\vyi(t + 1)}{\vzi(t + 1)} \\
         & = \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)).
       \end{align*}
@@ -273,7 +277,7 @@ RNN 計算定義
 
 .. note::
 
-  式子 :math:`\eqref{5}` 就是論文 3.1.1 節的第一條公式。
+  式子 :math:`\eqref{5}` 就是 LSTM 論文 :footcite:`hochreiter-etal-1997-long` 3.1.1 節的第一條公式。
 
 接著討論與遞迴有關的微分。
 由於 :math:`\vzi(t + 1)` 是由 :math:`\vyj(t)` 產生（注意時間差），因此我們可以求 :math:`\vyj(t)` 對 :math:`\vzi(t + 1)` 的微分：
@@ -292,7 +296,7 @@ RNN 計算定義
 
     \[
       \begin{align*}
-        & \dv{\vzi(t + 1)}{\vyj(t)} \\
+        \dv{\vzi(t + 1)}{\vyj(t)}
         & = \dv{\sum_{k = 1}^{\dout} \vWik \cdot \mqty[\vx(t) \\ \vy(t)]_k}{\vyj(t)} \\
         & = \sum_{k = 1}^{\dout} \dv{\vWik \cdot \mqty[\vx(t) \\ \vy(t)]_k}{\vyj(t)} \\
         & = \vWij.
@@ -345,7 +349,7 @@ RNN 計算定義
 
 .. note::
 
-  式子 :math:`\eqref{8}` 就是論文 3.1.1 節的最後一條公式。
+  式子 :math:`\eqref{8}` 就是 LSTM 論文 :footcite:`hochreiter-etal-1997-long` 3.1.1 節的最後一條公式。
 
 當 :math:`t = 0` 時，模型參數 :math:`\vWkj` 對於 :math:`\vzi(t + 1)` 微分可得：
 
@@ -363,7 +367,7 @@ RNN 計算定義
 
     \[
       \begin{align*}
-        & \dv{\vzi(1)}{\vWkj} \\
+        \dv{\vzi(1)}{\vWkj}
         & = \dv{\sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mqty[\vx(0) \\ \vy(0)]_\ell}{\vWkj} \\
         & = \sum_{\ell = 1}^{\din + \dout} \dv{\vWil \cdot \mqty[\vx(0) \\ \vy(0)]_\ell}{\vWkj} \\
         & = \sum_{\ell = 1}^{\din + \dout} \delta_{i, k} \cdot \delta_{\ell, j} \cdot \mqty[\vx(0) \\ \vy(0)]_\ell \\
@@ -415,16 +419,37 @@ RNN 計算定義
         & \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vWkj} \\
         & = \sum_{i = 1}^\dout \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)} \cdot \dv{\vzi(t + 1)}{\vWkj} \\
         & = \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \qty(\delta_{i, k} \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \sigma'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}) \\
-        & = \qty[\vyk(t + 1) - \vyhk(t + 1)] \cdot \sigma'\qty(\vzk(t + 1)) \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \qty[\sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \sigma'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}] \\
+        & = \qty[\vyk(t + 1) - \vyhk(t + 1)] \cdot \sigma'\qty(\vzk(t + 1)) \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \qty[\sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \sigma'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}].
       \end{align*}
     \]
 
 .. note::
 
-  式子 :math:`\eqref{11}` 是論文 3.1.1 節最後一段文字中提到的參數更新演算法。
+  式子 :math:`\eqref{11}` 的前半段是 LSTM 論文 :footcite:`hochreiter-etal-1997-long` 3.1.1 節最後一段文字中提到的參數更新演算法。
+
+參數更新
+========
+
+根據式子 :math:`\eqref{11}` 我們可以求得 :math:`\vWkj` 對於目標函數 :math:`\eqref{2}` 的微分：
+
+.. math::
+  :nowrap:
+
+  \[
+    \dv{\sum_{t = 0}^{\cT - 1} \cL(\vy(t + 1), \vyh(t + 1))}{\vWkj} = \sum_{t = 0}^{\cT - 1} \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vWkj}. \tag{12}\label{12}
+  \]
+
+若 :math:`\alpha` 為 :term:`learning rate`，則使用 BPTT 更新 RNN 參數 :math:`\vW` 的方法如下：
+
+.. math::
+  :nowrap:
+
+  \[
+    \vWkjn = \vWkjo - \alpha \cdot \sum_{t = 0}^{\cT - 1} \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vWkjo}. \tag{13}\label{13}
+  \]
 
 梯度爆炸 / 消失
----------------
+===============
 
 從 :math:`\eqref{2}\eqref{3}` 式我們可以進一步推得對不同時間點 net input 對誤差的微分。
 探討此微分公式的目的是為了後續對微分分析，推導產生\ **梯度爆炸**\與\ **梯度消失**\的原因。
