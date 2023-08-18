@@ -365,21 +365,39 @@ Long Short-Term Memory
 
   \[
     \begin{align*}
-    \vth{i_0}{t}{t}     & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_0}(t)}; \\
-    \vth{i_1}{t}{t - 1} & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_1}(t - 1)} \\
-                        & = \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \qty(\sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \vth{i_0}{t}{t}); \\
-    \vth{i_2}{t}{t - 2} & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_2}(t - 2)} \\
-                        & = \sum_{i_1 = 1}^\dout \qty[\dv{\cL(\vy(t), \vyh(t))}{\vz_{i_1}(t - 1)} \cdot \dv{\vz_{i_1}(t - 1)}{\vy_{i_2}(t - 2)} \cdot \dv{\vy_{i_2}(t - 2)}{\vz_{i_2}(t - 2)}] \\
-                        & = \sum_{i_1 = 1}^\dout \qty[\vth{i_1}{t}{t - 1} \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2))] \\
-                        & = \sum_{i_1 = 1}^\dout \qty[\sigma'\qty(\vz_{i_1}(t - 1)) \cdot \qty(\sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \vth{i_0}{t}{t}) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2))] \\
-                        & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\vW_{i_0, i_1} \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \vth{i_0}{t}{t}]; \\
-    \vth{i_3}{t}{t - 3} & = \sum_{i_2 = 1}^\dout \qty[\dv{\cL(\vy(t), \vyh(t))}{\vz_{i_2}(t - 2)} \cdot \dv{\vz_{i_2}(t - 2)}{y_{i_3}(t - 3)} \cdot \dv{y_{i_3}(t - 3)}{\vz_{i_3}(t - 3)}] \\
-                        & = \sum_{i_2 = 1}^\dout \qty[\vth{i_2}{t}{t - 2} \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_3}(t - 3))] \\
-                        & = \sum_{i_2 = 1}^\dout \qty[\sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\vW_{i_0, i_1} \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \vth{i_0}{t}{t}] \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_3}(t - 3))] \\
-                        & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\vW_{i_0, i_1} \cdot \vW_{i_1, i_2} \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \sigma'\qty(\vz_{i_3}(t - 3)) \cdot \vth{i_0}{t}{t}] \\
-                        & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\qty[\prod_{q = 1}^3 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}].
+      \vth{i_0}{t}{t}     & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_0}(t)}. \\
+      \vth{i_1}{t}{t - 1} & = \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^1 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
+      \vth{i_2}{t}{t - 2} & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^2 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
+      \vth{i_3}{t}{t - 3} & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^3 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}.
     \end{align*} \tag{2}\label{2}
   \]
+
+.. dropdown:: 推導 :math:`\eqref{2}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \vth{i_0}{t}{t}     & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_0}(t)}. \\
+        \vth{i_1}{t}{t - 1} & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_1}(t - 1)} \\
+                            & = \sum_{i_0 = 1}^\dout \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_0}(t)} \cdot \dv{\vz_{i_0}(t)}{\vy_{i_1}(t - 1)} \cdot \dv{\vy_{i_1}(t - 1)}{\vz_{i_1}(t - 1)} \\
+                            & = \sum_{i_0 = 1}^\dout \vth{i_0}{t}{t} \cdot \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \\
+                            & = \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vth{i_0}{t}{t} \\
+                            & = \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^1 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
+        \vth{i_2}{t}{t - 2} & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_2}(t - 2)} \\
+                            & = \sum_{i_1 = 1}^\dout \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_1}(t - 1)} \cdot \dv{\vz_{i_1}(t - 1)}{\vy_{i_2}(t - 2)} \cdot \dv{\vy_{i_2}(t - 2)}{\vz_{i_2}(t - 2)} \\
+                            & = \sum_{i_1 = 1}^\dout \vth{i_1}{t}{t - 1} \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \\
+                            & = \sum_{i_1 = 1}^\dout \qty(\sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vth{i_0}{t}{t}) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \\
+                            & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \vth{i_0}{t}{t} \\
+                            & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^2 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
+        \vth{i_3}{t}{t - 3} & = \sum_{i_2 = 1}^\dout \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_2}(t - 2)} \cdot \dv{\vz_{i_2}(t - 2)}{y_{i_3}(t - 3)} \cdot \dv{y_{i_3}(t - 3)}{\vz_{i_3}(t - 3)} \\
+                            & = \sum_{i_2 = 1}^\dout \vth{i_2}{t}{t - 2} \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_3}(t - 3)) \\
+                            & = \sum_{i_2 = 1}^\dout \qty(\sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \vth{i_0}{t}{t}]) \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_3}(t - 3)) \\
+                            & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_3}(t - 3)) \cdot \vth{i_0}{t}{t} \\
+                            & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^3 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}.
+      \end{align*}
+    \]
 
 由 :math:`\eqref{2}` 我們可以歸納得出當 :math:`n \geq 1` 時，:math:`\vth{i_n}{t}{t - n}` 的公式：
 
@@ -387,7 +405,7 @@ Long Short-Term Memory
   :nowrap:
 
   \[
-    \vth{i_n}{t}{t - n} = \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_0 = 1}^\dout \qty[\qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}]. \tag{3}\label{3}
+    \vth{i_n}{t}{t - n} = \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \tag{3}\label{3}
   \]
 
 由 :math:`\eqref{3}` 我們可以看出對於任意 :math:`n \geq 1`，:math:`\vth{i_n}{t}{t - n}` 都與 :math:`\vth{i_0}{t}{t}` 相關。
@@ -401,21 +419,18 @@ Long Short-Term Memory
 
   \[
     \dv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} = \begin{dcases}
-      \vW_{i_0^\star, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) & \text{if } n = 1; \\
+      \vW_{i_0^\star, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) & \text{if } n = 1. \\
       \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_1 = 1}^\dout \sum_{i_0 \in \Set{i_0^\star}} \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] & \text{if } n > 1.
     \end{dcases} \tag{4}\label{4}
   \]
 
+觀察可以發現式子 :math:`\eqref{4}` 內共有 :math:`\dout^{n - 1}` 個連乘積項進行加總。
+單看 :math:`\eqref{4}` 無法得出梯度爆炸/消失的結論，理由是每個連乘積項可能正負號不同，經過加法後可以互相抵銷。
+因此後續的討論將會專注在單一連乘積項的影響力。
+
 .. note::
 
   :math:`\eqref{4}` 中的 :math:`n = 1` 就是論文中的（3.1）式，:math:`n > 1` 就是論文中的（3.2）式。
-
-.. math::
-  :nowrap:
-
-  \[
-    \dv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} = \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_1 = 1}^\dout \sum_{i_0 \in \Set{i_0^\star}} \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \tag{5}\label{5}
-  \]
 
 .. error::
 
@@ -428,46 +443,53 @@ Long Short-Term Memory
       \pdv{\vartheta_v(t - q)}{\vartheta_u(t)} = \sum_{l_1 = 1}^n \cdots \sum_{l_{q - 1} = 1}^n \prod_{m = 1}^q f'_{l_m}\qty(\opnet_{l_m}(t - m)) w_{l_{m - 1} l_m}.
     \]
 
+接著討論梯度爆炸/消失的成因。
+假設 :math:`\eqref{4}` 存在一個連乘積項滿足任意 :math:`i_{q - 1}` 與 :math:`i_q` 都達成以下條件：
+
+.. math::
+  :nowrap:
+
+  \[
+    \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))} > 1.0 \tag{5}\label{5}
+  \]
+
+則\ **微分變化率** :math:`\eqref{4}` 中的連乘積項將隨著 :math:`n` 成指數增長，直接導致\ **梯度爆炸**，參數值會在學習過程中\ **劇烈的振盪**，無法進行順利更新。
+而如果對於任意的 :math:`i_{q - 1}` 與 :math:`i_q` 都滿足：
+
+.. math::
+  :nowrap:
+
+  \[
+    \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))} < 1.0 \tag{6}\label{6}
+  \]
+
+則\ **微分變化率** :math:`\eqref{4}` 中的連乘積項將隨著 :math:`n` 成指數縮小，直接導致\ **梯度消失**，參數值的\ **收斂速度**\會變得\ **非常緩慢**。
+
+從 :math:`\eqref{7}` 我們知道 :math:`\sigma'` 最大值為 :math:`0.25`
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+    \sigma(x) & = \frac{1}{1 + e^{-x}} \\
+    \sigma'(x) & = \frac{e^{-x}}{(1 + e^{-x})^2} = \frac{1}{1 + e^{-x}} \cdot \frac{e^{-x}}{1 + e^{-x}} \\
+    & = \frac{1}{1 + e^{-x}} \cdot \frac{1 + e^{-x} - 1}{1 + e^{-x}} = \sigma(x) \cdot \big(1 - \sigma(x)\big) \\
+    \sigma(\R) & = (0, 1) \\
+    \max_{x \in \R} \sigma'(x) & = \sigma(0) \times \qty(1 - \sigma(0)) = 0.5 \times 0.5 = 0.25
+    \end{align*} \tag{7}\label{7}
+  \]
+
 ..
-  因此根據 $\eqref{5}$，共有 $(\dout)^{n - 1}$ 個連乘積項次進行加總。
-
-  根據 $\eqref{4} \eqref{5}$，如果
-
-  $$
-  \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\pa{\vz_{i_q}(t - q)}} > 1.0 \quad \forall q = 1, \dots, n \tag{15}\label{15}
-  $$
-
-  則**梯度變化率**成指數 $n$ 增長，直接導致**梯度爆炸**，參數會進行**劇烈的振盪**，無法進行順利更新。
-
-  而如果
-
-  $$
-  \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\pa{\vz_{i_q}(t - q)}} < 1.0 \quad \forall q = 1, \dots, n \tag{16}\label{16}
-  $$
-
-  則**梯度變化率**成指數 $n$ 縮小，直接導致**梯度消失**，誤差**收斂速度**會變得**非常緩慢**。
-
-  從 $\eqref{17}$ 我們知道 $\sigma'$ 最大值為 $0.25$
-
-  $$
-  \begin{align*}
-  \sigma(x) & = \frac{1}{1 + e^{-x}} \\
-  \sigma'(x) & = \frac{e^{-x}}{(1 + e^{-x})^2} = \frac{1}{1 + e^{-x}} \cdot \frac{e^{-x}}{1 + e^{-x}} \\
-  & = \frac{1}{1 + e^{-x}} \cdot \frac{1 + e^{-x} - 1}{1 + e^{-x}} = \sigma(x) \cdot \big(1 - \sigma(x)\big) \\
-  \sigma(\R) & = (0, 1) \\
-  \max_{x \in \R} \sigma'(x) & = \sigma(0) \times \qty(1 - \sigma(0)) = 0.5 \times 0.5 = 0.25
-  \end{align*} \tag{17}\label{17}
-  $$
-
   因此當 $\abs{\vW_{i_{q - 1}, i_q}} < 4.0$ 時我們可以發現
 
   $$
   \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\pa{\vz_{i_q}(t - q)}} < 4.0 * 0.25 = 1.0 \tag{18}\label{18}
   $$
 
-  所以 $\eqref{18}$ 與 $\eqref{16}$ 的結論相輔相成：當 $\vW_{i_{q - 1}, i_q}$ 的絕對值小於 $4.0$ 會造成**梯度消失**。
+  所以 $\eqref{18}$ 與 $\eqref{6}$ 的結論相輔相成：當 $\vW_{i_{q - 1}, i_q}$ 的絕對值小於 $4.0$ 會造成**梯度消失**。
 
-  而 $\abs{\vW_{i_{q - 1}, i_q}} \to \infty$ 我們可以使用 $\eqref{17}$ 得到
+  而 $\abs{\vW_{i_{q - 1}, i_q}} \to \infty$ 我們可以使用 $\eqref{7}$ 得到
 
   $$
   \begin{align*}
@@ -551,7 +573,7 @@ Long Short-Term Memory
   \end{align*}
   $$
 
-  但公式的前提不對，理由是 $w_{l_{m} l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_{m}}$（同 $\eqref{5}$）。
+  但公式的前提不對，理由是 $w_{l_{m} l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_{m}}$（同 $\eqref{4}$）。
 
   接著我們可以計算 $t$ 時間點 $\dout$ 個**不同**節點 $\net{i_0^\star}{t}$ 對於**同一個** $t - n$ 時間點的 $\net{i_n}{t - n}$ 節點所貢獻的**梯度變化總和**：
 
@@ -585,8 +607,8 @@ Long Short-Term Memory
 
   透過 $\eqref{23}$ 的想法讓 $\eqref{3}$ 中梯度變化率的**連乘積項**為 $1.0$，因此
 
-  - 不會像 $\eqref{15}$ 導致梯度**爆炸**
-  - 不會像 $\eqref{16}$ 導致梯度**消失**
+  - 不會像 $\eqref{5}$ 導致梯度**爆炸**
+  - 不會像 $\eqref{6}$ 導致梯度**消失**
 
   如果 $\eqref{23}$ 能夠達成，則積分 $\eqref{23}$ 可以得到
 
