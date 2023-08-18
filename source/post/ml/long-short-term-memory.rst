@@ -120,6 +120,7 @@ Long Short-Term Memory
     % Operator names.
     \newcommand{\opin}{\operatorname{in}}
     \newcommand{\opout}{\operatorname{out}}
+    \newcommand{\opnet}{\operatorname{net}}
 
     % Dimensions.
     \newcommand{\din}{{d_{\opin}}}
@@ -390,32 +391,44 @@ Long Short-Term Memory
   \]
 
 由 :math:`\eqref{3}` 我們可以看出對於任意 :math:`n \geq 1`，:math:`\vth{i_n}{t}{t - n}` 都與 :math:`\vth{i_0}{t}{t}` 相關。
-因此當 :math:`\vth{i_0}{t}{t}` 變動時，:math:`\vth{i_n}{t}{t - n}` 也會跟著變動，這就是 :term:`back-propagation` 演算法的本質。
+因此當 :math:`\vth{i_0}{t}{t}` 變動時，:math:`\vth{i_n}{t}{t - n}` 也會\ **跟著變動**，這就是 :term:`back-propagation` 演算法的本質。
 
 接下來此論文將會以 :math:`\eqref{3}` 為出發點進行分析。
 首先我們固定 :math:`i_0^\star \in \Set{1, \dots, \dout}`，並計算 :math:`\vth{i_0^\star}{t}{t}` 對於 :math:`\vth{i_n}{t}{t - n}` 的微分，分析\ **微分結果**\在 back-propagation 過程中的\ **變化**：
 
-- 當 :math:`n = 1` 時，根據 :math:`\eqref{11}` 我們可以推得論文中的 (3.1) 式
+.. math::
+  :nowrap:
+
+  \[
+    \dv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} = \begin{dcases}
+      \vW_{i_0^\star, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) & \text{if } n = 1; \\
+      \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_1 = 1}^\dout \sum_{i_0 \in \Set{i_0^\star}} \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] & \text{if } n > 1.
+    \end{dcases} \tag{4}\label{4}
+  \]
+
+.. note::
+
+  :math:`\eqref{4}` 中的 :math:`n = 1` 就是論文中的（3.1）式，:math:`n > 1` 就是論文中的（3.2）式。
+
+.. math::
+  :nowrap:
+
+  \[
+    \dv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} = \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_1 = 1}^\dout \sum_{i_0 \in \Set{i_0^\star}} \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \tag{5}\label{5}
+  \]
+
+.. error::
+
+  論文中（3.2）式最後乘法項次 :math:`w_{l_m l_{m - 1}}` 正確應為 :math:`w_{l_{m - 1} l_m}`，因此（3.2）應改成
 
   .. math::
     :nowrap:
 
     \[
-      \dv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} = \vW_{i_0^\star, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)). \tag{4}\label{4}
-    \]
-
-- 當 :math:`n > 1` 時，根據 :math:`\eqref{3}` 我們可以推得論文中的 (3.2) 式
-
-  .. math::
-    :nowrap:
-
-    \[
-      \dv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} = \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_1 = 1}^\dout \sum_{i_0 \in \Set{i_0^\star}} \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \tag{5}\label{5}
+      \pdv{\vartheta_v(t - q)}{\vartheta_u(t)} = \sum_{l_1 = 1}^n \cdots \sum_{l_{q - 1} = 1}^n \prod_{m = 1}^q f'_{l_m}\qty(\opnet_{l_m}(t - m)) w_{l_{m - 1} l_m}.
     \]
 
 ..
-  **注意錯誤**：論文中的 (3.2) 式不小心把 $w_{l_{m - 1} l_{m}}$ 寫成 $w_{l_{m} l_{m - 1}}$。
-
   因此根據 $\eqref{5}$，共有 $(\dout)^{n - 1}$ 個連乘積項次進行加總。
 
   根據 $\eqref{4} \eqref{5}$，如果
