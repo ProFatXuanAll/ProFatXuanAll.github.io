@@ -157,9 +157,9 @@ RNN 計算定義
 
 - 定義 :math:`f` 為 RNN 模型的 :term:`activation function`
 
-  - 定義 :math:`f_i` 為 :math:`f` 的第 :math:`i` 個 real valued function，:math:`i \in \Set{1, \dots, \dout}`
-  - :math:`f` 必須要可以\ **微分**，每個 :math:`f_i` 所使用的 activation function 可以\ **不同**，但都只用 :math:`\vzi(t + 1)` 作為輸入
-  - 為了方便討論，以下所有 :math:`f_i` 都用 sigmoid 函數替代 :math:`\sigma(s) = \frac{1}{1 + e^{-s}}`
+  - 定義 :math:`f_i: \R \to \R` 為 :math:`f` 的第 :math:`i` 個 real valued function，:math:`i \in \Set{1, \dots, \dout}`
+  - :math:`f_i` 必須要可以\ **微分**
+  - 每個 :math:`f_i` 所使用的 activation function 可以\ **不同**，但都只用 :math:`\vzi(t + 1)` 作為輸入
 
 透過以上符號我們可以拆解矩陣乘法：
 
@@ -173,7 +173,7 @@ RNN 計算定義
       & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
       & \indent{2} \algoFor{i \in \Set{1, \dots, \dout}} \\
       & \indent{3} \vzi(t + 1) \algoEq \sum_{j = 1}^\din \vW_{i, j} \cdot \vx_j(t) + \sum_{j = \din + 1}^{\din + \dout} \vW_{i, j} \cdot \vyj(t) \\
-      & \indent{3} \vyi(t + 1) \algoEq \sigma(\vzi(t + 1)) \\
+      & \indent{3} \vyi(t + 1) \algoEq f_i(\vzi(t + 1)) \\
       & \indent{2} \algoEndFor \\
       & \indent{1} \algoEndFor \\
       & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
@@ -191,7 +191,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \cL(\vy(t + 1), \vyh(t + 1)) = \frac{1}{2} \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)]^2. \tag{1}\label{1}
+    \cL(\vy(t + 1), \vyh(t + 1)) = \frac{1}{2} \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)]^2.
+    \tag{1}\label{1}
   \]
 
 而目標函數（objective function）的定義如下
@@ -200,7 +201,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \sum_{t = 0}^{\cT - 1} \cL(\vy(t + 1), \vyh(t + 1)). \tag{2}\label{2}
+    \sum_{t = 0}^{\cT - 1} \cL(\vy(t + 1), \vyh(t + 1)).
+    \tag{2}\label{2}
   \]
 
 接下來的討論將會專注在單一時間點的誤差上。
@@ -223,7 +225,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)} = \vyi(t + 1) - \vyhi(t + 1). \tag{3}\label{3}
+    \dv{L(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)} = \vyi(t + 1) - \vyhi(t + 1).
+    \tag{3}\label{3}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{3}`
@@ -247,7 +250,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\vyi(t + 1)}{\vzi(t + 1)} = \sigma'\qty(\vzi(t + 1)). \tag{4}\label{4}
+    \dv{\vyi(t + 1)}{\vzi(t + 1)} = f_i'\qty(\vzi(t + 1)).
+    \tag{4}\label{4}
   \]
 
 透過 :math:`\eqref{4}` 我們可以推得 :math:`\vzi(t + 1)` 對 :math:`\cL(\vy(t + 1), \vyh(t + 1))` 的微分：
@@ -256,7 +260,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)} = \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)). \tag{5}\label{5}
+    \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)} = \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)).
+    \tag{5}\label{5}
   \]
 
 
@@ -269,7 +274,7 @@ RNN 計算定義
       \begin{align*}
         \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)}
         & = \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyi(t + 1)} \cdot \dv{\vyi(t + 1)}{\vzi(t + 1)} \\
-        & = \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)).
+        & = \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)).
       \end{align*}
     \]
 
@@ -284,7 +289,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\vzi(t + 1)}{\vyj(t)} = \vWij. \tag{6}\label{6}
+    \dv{\vzi(t + 1)}{\vyj(t)} = \vWij.
+    \tag{6}\label{6}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{6}`
@@ -307,7 +313,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyj(t)} = \sum_{i = 1}^\dout \qty[\qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \vWij]. \tag{7}\label{7}
+    \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyj(t)} = \sum_{i = 1}^\dout \qty[\qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)) \cdot \vWij].
+    \tag{7}\label{7}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{7}`
@@ -319,7 +326,7 @@ RNN 計算定義
       \begin{align*}
         & \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyj(t)} \\
         & = \sum_{i = 1}^\dout \qty[\dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)} \cdot \dv{\vzi(t + 1)}{\vyj(t)}] \\
-        & = \sum_{i = 1}^\dout \qty[\qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \vWij].
+        & = \sum_{i = 1}^\dout \qty[\qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)) \cdot \vWij].
       \end{align*}
     \]
 
@@ -329,7 +336,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzj(t)} = \qty(\sum_{i = 1}^\dout \qty[\qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \vWij]) \cdot \sigma'\qty(\vzj(t)). \tag{8}\label{8}
+    \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzj(t)} = \qty(\sum_{i = 1}^\dout \qty[\qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)) \cdot \vWij]) \cdot f_j'\qty(\vzj(t)).
+    \tag{8}\label{8}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{8}`
@@ -341,7 +349,7 @@ RNN 計算定義
       \begin{align*}
         & \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzj(t)} \\
         & = \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vyj(t)} \cdot \dv{\vyj(t)}{\vzj(t)} \\
-        & = \qty(\sum_{i = 1}^\dout \qty[\qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \vWij]) \cdot \sigma'\qty(\vzj(t)).
+        & = \qty(\sum_{i = 1}^\dout \qty[\qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)) \cdot \vWij]) \cdot f_j'\qty(\vzj(t)).
       \end{align*}
     \]
 
@@ -355,7 +363,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\vzi(1)}{\vWkj} = \delta_{i, k} \cdot \mqty[\vx(0) \\ \vy(0)]_j. \tag{9}\label{9}
+    \dv{\vzi(1)}{\vWkj} = \delta_{i, k} \cdot \mqty[\vx(0) \\ \vy(0)]_j.
+    \tag{9}\label{9}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{9}`
@@ -379,7 +388,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\vzi(t + 1)}{\vWkj} = \delta_{i, k} \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \sigma'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}. \tag{10}\label{10}
+    \dv{\vzi(t + 1)}{\vWkj} = \delta_{i, k} \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot f_\ell'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}.
+    \tag{10}\label{10}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{10}`
@@ -394,7 +404,7 @@ RNN 計算定義
         & = \sum_{\ell = 1}^{\din + \dout} \dv{\vWil \cdot \mqty[\vx(t) \\ \vy(t)]_\ell}{\vWkj} \\
         & = \sum_{\ell = 1}^{\din + \dout} \qty(\dv{\vWil}{\vWkj} \cdot \mqty[\vx(t) \\ \vy(t)]_\ell + \vWil \cdot \dv{\mqty[\vx(t) \\ \vy(t)]_\ell}{\vWkj}) \\
         & = \sum_{\ell = 1}^{\din + \dout} \qty(\delta_{i, k} \cdot \delta_{\ell, j} \cdot \mqty[\vx(t) \\ \vy(t)]_\ell + \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \dv{\vyl(t)}{\vzl(t)} \cdot \dv{\vzl(t)}{\vWkj}) \\
-        & = \delta_{i, k} \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \sigma'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}.
+        & = \delta_{i, k} \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot f_\ell'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}.
       \end{align*}
     \]
 
@@ -404,7 +414,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vWkj} = \qty[\vyk(t + 1) - \vyhk(t + 1)] \cdot \sigma'\qty(\vzk(t + 1)) \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \qty[\sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \sigma'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}]. \tag{11}\label{11}
+    \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vWkj} = \qty[\vyk(t + 1) - \vyhk(t + 1)] \cdot f_k'\qty(\vzk(t + 1)) \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)) \cdot \qty[\sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot f_\ell'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}].
+    \tag{11}\label{11}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{11}`
@@ -416,8 +427,8 @@ RNN 計算定義
       \begin{align*}
         & \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vWkj} \\
         & = \sum_{i = 1}^\dout \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vzi(t + 1)} \cdot \dv{\vzi(t + 1)}{\vWkj} \\
-        & = \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \qty(\delta_{i, k} \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \sigma'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}) \\
-        & = \qty[\vyk(t + 1) - \vyhk(t + 1)] \cdot \sigma'\qty(\vzk(t + 1)) \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot \sigma'\qty(\vzi(t + 1)) \cdot \qty[\sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot \sigma'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}].
+        & = \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)) \cdot \qty(\delta_{i, k} \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot f_\ell'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}) \\
+        & = \qty[\vyk(t + 1) - \vyhk(t + 1)] \cdot f_k'\qty(\vzk(t + 1)) \cdot \mqty[\vx(t) \\ \vy(t)]_j + \sum_{i = 1}^\dout \qty[\vyi(t + 1) - \vyhi(t + 1)] \cdot f_i'\qty(\vzi(t + 1)) \cdot \qty[\sum_{\ell = 1}^{\din + \dout} \vWil \cdot \mathbb{1}\qty(\mqty[\vx(t) \\ \vy(t)]_\ell = \vy_\ell(t)) \cdot f_\ell'(\vzl(t)) \cdot \dv{\vzl(t)}{\vWkj}].
       \end{align*}
     \]
 
@@ -434,7 +445,8 @@ RNN 計算定義
   :nowrap:
 
   \[
-    \dv{\sum_{t = 0}^{\cT - 1} \cL(\vy(t + 1), \vyh(t + 1))}{\vWkj} = \sum_{t = 0}^{\cT - 1} \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vWkj}. \tag{12}\label{12}
+    \dv{\sum_{t = 0}^{\cT - 1} \cL(\vy(t + 1), \vyh(t + 1))}{\vWkj} = \sum_{t = 0}^{\cT - 1} \dv{\cL(\vy(t + 1), \vyh(t + 1))}{\vWkj}.
+    \tag{12}\label{12}
   \]
 
 若 :math:`\alpha` 為 :term:`learning rate`，則使用 BPTT 更新 RNN 參數 :math:`\vW` 的方法如下：

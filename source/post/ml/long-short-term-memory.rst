@@ -350,7 +350,8 @@ Long Short-Term Memory
   :nowrap:
 
   \[
-    \vth{i}{t_2}{t_1} = \dv{\cL(\vy(t_2), \vyh(t_2))}{\vzi(t_1)}. \tag{1}\label{1}
+    \vth{i}{t_2}{t_1} = \dv{\cL(\vy(t_2), \vyh(t_2))}{\vzi(t_1)}.
+    \tag{1}\label{1}
   \]
 
 意思是 net input :math:`\vzi(t_1)` 對於 :math:`\cL(\vy(t_2), \vyh(t_2))` 計算所得之\ **微分**。
@@ -366,10 +367,11 @@ Long Short-Term Memory
   \[
     \begin{align*}
       \vth{i_0}{t}{t}     & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_0}(t)}. \\
-      \vth{i_1}{t}{t - 1} & = \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^1 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
-      \vth{i_2}{t}{t - 2} & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^2 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
-      \vth{i_3}{t}{t - 3} & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^3 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}.
-    \end{align*} \tag{2}\label{2}
+      \vth{i_1}{t}{t - 1} & = \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^1 \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
+      \vth{i_2}{t}{t - 2} & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^2 \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
+      \vth{i_3}{t}{t - 3} & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^3 \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}.
+    \end{align*}
+    \tag{2}\label{2}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{2}`
@@ -382,20 +384,20 @@ Long Short-Term Memory
         \vth{i_0}{t}{t}     & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_0}(t)}. \\
         \vth{i_1}{t}{t - 1} & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_1}(t - 1)} \\
                             & = \sum_{i_0 = 1}^\dout \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_0}(t)} \cdot \dv{\vz_{i_0}(t)}{\vy_{i_1}(t - 1)} \cdot \dv{\vy_{i_1}(t - 1)}{\vz_{i_1}(t - 1)} \\
-                            & = \sum_{i_0 = 1}^\dout \vth{i_0}{t}{t} \cdot \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \\
-                            & = \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vth{i_0}{t}{t} \\
-                            & = \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^1 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
+                            & = \sum_{i_0 = 1}^\dout \vth{i_0}{t}{t} \cdot \vW_{i_0, i_1} \cdot f_{i_1}'\qty(\vz_{i_1}(t - 1)) \\
+                            & = \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot f_{i_1}'\qty(\vz_{i_1}(t - 1)) \cdot \vth{i_0}{t}{t} \\
+                            & = \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^1 \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
         \vth{i_2}{t}{t - 2} & = \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_2}(t - 2)} \\
                             & = \sum_{i_1 = 1}^\dout \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_1}(t - 1)} \cdot \dv{\vz_{i_1}(t - 1)}{\vy_{i_2}(t - 2)} \cdot \dv{\vy_{i_2}(t - 2)}{\vz_{i_2}(t - 2)} \\
-                            & = \sum_{i_1 = 1}^\dout \vth{i_1}{t}{t - 1} \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \\
-                            & = \sum_{i_1 = 1}^\dout \qty(\sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vth{i_0}{t}{t}) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \\
-                            & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \vth{i_0}{t}{t} \\
-                            & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^2 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
+                            & = \sum_{i_1 = 1}^\dout \vth{i_1}{t}{t - 1} \cdot \vW_{i_1, i_2} \cdot f_{i_2}'\qty(\vz_{i_2}(t - 2)) \\
+                            & = \sum_{i_1 = 1}^\dout \qty(\sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot f_{i_1}'\qty(\vz_{i_1}(t - 1)) \cdot \vth{i_0}{t}{t}) \cdot \vW_{i_1, i_2} \cdot f_{i_2}'\qty(\vz_{i_2}(t - 2)) \\
+                            & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot f_{i_1}'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot f_{i_2}'\qty(\vz_{i_2}(t - 2)) \cdot \vth{i_0}{t}{t} \\
+                            & = \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^2 \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \\
         \vth{i_3}{t}{t - 3} & = \sum_{i_2 = 1}^\dout \dv{\cL(\vy(t), \vyh(t))}{\vz_{i_2}(t - 2)} \cdot \dv{\vz_{i_2}(t - 2)}{y_{i_3}(t - 3)} \cdot \dv{y_{i_3}(t - 3)}{\vz_{i_3}(t - 3)} \\
-                            & = \sum_{i_2 = 1}^\dout \vth{i_2}{t}{t - 2} \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_3}(t - 3)) \\
-                            & = \sum_{i_2 = 1}^\dout \qty(\sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \vth{i_0}{t}{t}]) \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_3}(t - 3)) \\
-                            & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot \sigma'\qty(\vz_{i_2}(t - 2)) \cdot \vW_{i_2, i_3} \cdot \sigma'\qty(\vz_{i_3}(t - 3)) \cdot \vth{i_0}{t}{t} \\
-                            & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^3 \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}.
+                            & = \sum_{i_2 = 1}^\dout \vth{i_2}{t}{t - 2} \cdot \vW_{i_2, i_3} \cdot f_{i_3}'\qty(\vz_{i_3}(t - 3)) \\
+                            & = \sum_{i_2 = 1}^\dout \qty(\sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\vW_{i_0, i_1} \cdot f_{i_1}'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot f_{i_2}'\qty(\vz_{i_2}(t - 2)) \cdot \vth{i_0}{t}{t}]) \cdot \vW_{i_2, i_3} \cdot f_{i_3}'\qty(\vz_{i_3}(t - 3)) \\
+                            & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \vW_{i_0, i_1} \cdot f_{i_1}'\qty(\vz_{i_1}(t - 1)) \cdot \vW_{i_1, i_2} \cdot f_{i_2}'\qty(\vz_{i_2}(t - 2)) \cdot \vW_{i_2, i_3} \cdot f_{i_3}'\qty(\vz_{i_3}(t - 3)) \cdot \vth{i_0}{t}{t} \\
+                            & = \sum_{i_2 = 1}^\dout \sum_{i_1 = 1}^\dout \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^3 \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}.
       \end{align*}
     \]
 
@@ -405,28 +407,35 @@ Long Short-Term Memory
   :nowrap:
 
   \[
-    \vth{i_n}{t}{t - n} = \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}. \tag{3}\label{3}
+    \vth{i_n}{t}{t - n} = \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_0 = 1}^\dout \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))] \cdot \vth{i_0}{t}{t}.
+    \tag{3}\label{3}
   \]
 
 由 :math:`\eqref{3}` 我們可以看出對於任意 :math:`n \geq 1`，:math:`\vth{i_n}{t}{t - n}` 都與 :math:`\vth{i_0}{t}{t}` 相關。
 因此當 :math:`\vth{i_0}{t}{t}` 變動時，:math:`\vth{i_n}{t}{t - n}` 也會\ **跟著變動**，這就是 :term:`back-propagation` 演算法的本質。
 
+.. note::
+
+  式子 :math:`\eqref{3}` 就是論文中的（3.2）式。
+
 接下來此論文將會以 :math:`\eqref{3}` 為出發點進行分析。
-首先我們固定 :math:`i_0^\star \in \Set{1, \dots, \dout}`，並計算 :math:`\vth{i_0^\star}{t}{t}` 對於 :math:`\vth{i_n}{t}{t - n}` 的微分，分析\ **微分結果**\在 back-propagation 過程中的\ **變化**：
+首先我們固定 :math:`i_0^\star \in \Set{1, \dots, \dout}`，並計算 :math:`\vth{i_0^\star}{t}{t}` 對於 :math:`\vth{i_n}{t}{t - n}` 的微分，分析\ **微分結果**\在 back-propagation 過程中的\ **數值變化**：
 
 .. math::
   :nowrap:
 
   \[
     \dv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} = \begin{dcases}
-      \vW_{i_0^\star, i_1} \cdot \sigma'\qty(\vz_{i_1}(t - 1)) & \text{if } n = 1. \\
-      \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_1 = 1}^\dout \sum_{i_0 \in \Set{i_0^\star}} \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] & \text{if } n > 1.
-    \end{dcases} \tag{4}\label{4}
+      \vW_{i_0^\star, i_1} \cdot f_{i_1}'\qty(\vz_{i_1}(t - 1)) & \text{if } n = 1. \\
+      \sum_{i_{n - 1} = 1}^\dout \cdots \sum_{i_1 = 1}^\dout \sum_{i_0 \in \Set{i_0^\star}} \qty[\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))] & \text{if } n > 1.
+    \end{dcases}
+    \tag{4}\label{4}
   \]
 
-觀察可以發現式子 :math:`\eqref{4}` 內共有 :math:`\dout^{n - 1}` 個連乘積項進行加總。
-單看 :math:`\eqref{4}` 無法得出梯度爆炸/消失的結論，理由是每個連乘積項可能正負號不同，經過加法後可以互相抵銷。
-因此後續的討論將會專注在單一連乘積項的影響力。
+觀察可以發現，當 :math:`n > 1` 時，式子 :math:`\eqref{4}` 內共有 :math:`\dout^{n - 1}` 個連乘積項進行\ **加總**。
+直覺上式子 :math:`\eqref{4}` 告訴我們，在這麼多個項次加總的狀況下，RNN 在 back-propagation 的過程中遞迴次數越多（:math:`n` 越大），微分數值\ **變化**\越大。
+但其實該直覺不太正確，理由是每個連乘積項可能正負號不同，經過加法後可以互相抵銷。
+因此後續的討論將會進行一些假設，進而推導出與直覺相符的結論。
 
 .. note::
 
@@ -443,110 +452,138 @@ Long Short-Term Memory
       \pdv{\vartheta_v(t - q)}{\vartheta_u(t)} = \sum_{l_1 = 1}^n \cdots \sum_{l_{q - 1} = 1}^n \prod_{m = 1}^q f'_{l_m}\qty(\opnet_{l_m}(t - m)) w_{l_{m - 1} l_m}.
     \]
 
-接著討論梯度爆炸/消失的成因。
-假設 :math:`\eqref{4}` 存在一個連乘積項滿足任意 :math:`i_{q - 1}` 與 :math:`i_q` 都達成以下條件：
+假設式子 :math:`\eqref{4}` 中的 :math:`\dout^{n - 1}` 個加總項次中，**存在至少一個**\連乘積項 :math:`\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))` 滿足以下條件：
 
 .. math::
   :nowrap:
 
   \[
-    \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))} > 1.0 \tag{5}\label{5}
+    \forall q \in \Set{1, \dots, n}, \abs{\vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))} > 1.0.
+    \tag{5}\label{5}
   \]
 
-則\ **微分變化率** :math:`\eqref{4}` 中的連乘積項將隨著 :math:`n` 成指數增長，直接導致\ **梯度爆炸**，參數值會在學習過程中\ **劇烈的振盪**，無法進行順利更新。
-而如果對於任意的 :math:`i_{q - 1}` 與 :math:`i_q` 都滿足：
+則該連乘積項的\ **絕對值**\將隨著 :math:`n` 增加成\ **指數增長**，甚至數值可以大到 dominate 其他 :math:`\dout^{n - 1} - 1` 個連乘積項次。
+這代表 back-propagation 過程中 RNN 遞迴的次數越多（i.e., :math:`n` 越大），微分數值\ **變化**\越大。
+微分數值\ **變化大**\代表用來更新參數的微分值也\ **變大**\（以向量的角度來說，梯度的 norm 也變大），容易導致\ **梯度爆炸**，參數在使用 gradient descent 更新的過程中數值\ **劇烈振盪**，無法進行順利更新。
+論文認為上述假設是可能發生的，例如當 :math:`f_{i_q}` 為線性函數時。
+
+假設式子 :math:`\eqref{4}` 中的 :math:`\dout^{n - 1}` 個加總項次中，**所有**\連乘積項滿足以下條件：
 
 .. math::
   :nowrap:
 
   \[
-    \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))} < 1.0 \tag{6}\label{6}
+    \forall q \in \Set{1, \dots, n}, \abs{\vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))} < 1.0.
+    \tag{6}\label{6}
   \]
 
-則\ **微分變化率** :math:`\eqref{4}` 中的連乘積項將隨著 :math:`n` 成指數縮小，直接導致\ **梯度消失**，參數值的\ **收斂速度**\會變得\ **非常緩慢**。
+則該連乘積項的\ **絕對值**\將隨著 :math:`n` 增加成\ **指數縮小**，甚至數值可以小到幾乎變成 :math:`0`。
+這代表 back-propagation 過程中 RNN 遞迴的次數越多（i.e., :math:`n` 越大），微分數值\ **變化**\越小。
+微分數值\ **變化小**\代表用來更新參數的微分值\ **接近常數**\（準確的說，微分值 :math:`\vth{i_n}{t}{t - n}` 會接近 :math:`\vth{i_0}{t}{t}`），而從更新的角度來看該常數值只能逼近 :math:`0`，因為學習的過程會讓誤差遞減成 :math:`0`，即 :math:`\vth{i_0}{t}{t} \approx 0`。
+此假設可以得出\ **梯度消失**\的結論，參數在使用 gradient descent 更新的過程中數值變化\ **非常緩慢**，無法進行順利更新。
+論文認為上述假設是可能發生的，例如當 :math:`f_{i_q}` 為 sigmoid 函數 :math:`\sigma` 時。
 
-從 :math:`\eqref{7}` 我們知道 :math:`\sigma'` 最大值為 :math:`0.25`
+.. dropdown:: sigmoid 函數的特性
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \sigma(s)                  & = \frac{1}{1 + e^{-s}}. \\
+        \sigma(\R)                 & = (0, 1). \\
+        \sigma'(s)                 & = \frac{e^{-s}}{(1 + e^{-s})^2} \\
+                                   & = \frac{1}{1 + e^{-s}} \cdot \frac{e^{-s}}{1 + e^{-s}} \\
+                                   & = \frac{1}{1 + e^{-s}} \cdot \qty(\frac{1 + e^{-s}}{1 + e^{-s}} - \frac{1}{1 + e^{-s}}) \\
+                                   & = \sigma(s) \cdot \big(1 - \sigma(s)\big). \\
+        \max_{s \in \R} \sigma'(s) & = \sigma(0) \times \qty(1 - \sigma(0)) = 0.5 \times 0.5 = 0.25.
+      \end{align*}
+    \]
+
+我們知道 sigmoid 函數的微分 :math:`\sigma'` 最大值為 :math:`0.25`。
+因此當 :math:`f_{i_q} = \sigma` 且 :math:`\abs{\vW_{i_{q - 1}, i_q}} < 4.0` 時，我們可以發現
+
+.. math::
+  :nowrap:
+
+  \[
+    \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))} < 4.0 \cdot 0.25 = 1.0.
+    \tag{7}\label{7}
+  \]
+
+所以我們可以將 :math:`\eqref{6}` 的結論套用至 :math:`\eqref{7}` 的結果：當 :math:`f_{i_q} = \sigma` 且 :math:`\abs{\vW_{i_{q - 1}, i_q}} < 4.0` 會造成\ **梯度消失**。
+
+而當 :math:`\abs{\vW_{i_{q - 1}, i_q}} \to \infty` 時，我們可以透過 sigmoid 函數特性推得：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-    \sigma(x) & = \frac{1}{1 + e^{-x}} \\
-    \sigma'(x) & = \frac{e^{-x}}{(1 + e^{-x})^2} = \frac{1}{1 + e^{-x}} \cdot \frac{e^{-x}}{1 + e^{-x}} \\
-    & = \frac{1}{1 + e^{-x}} \cdot \frac{1 + e^{-x} - 1}{1 + e^{-x}} = \sigma(x) \cdot \big(1 - \sigma(x)\big) \\
-    \sigma(\R) & = (0, 1) \\
-    \max_{x \in \R} \sigma'(x) & = \sigma(0) \times \qty(1 - \sigma(0)) = 0.5 \times 0.5 = 0.25
-    \end{align*} \tag{7}\label{7}
+               & \abs{\vz_{i_{q - 1}}(t - q + 1)} \to \infty \\
+      \implies & \begin{dcases}
+                   \sigma\qty(\vz_{i_{q - 1}}(t - q + 1)) \to 1 & \text{if } \vz_{i_{q - 1}}(t - q + 1) \to \infty \\
+                   \sigma\qty(\vz_{i_{q - 1}}(t - q + 1)) \to 0 & \text{if } \vz_{i_{q - 1}}(t - q + 1) \to -\infty
+                 \end{dcases} \\
+      \implies & \abs{\sigma'\qty(\vz_{i_{q - 1}})(t - q + 1)} \to 0 \\
+      \implies & \abs{\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))} \\
+               & = \abs{\vW_{i_0, i_1} \cdot \prod_{q = 2}^n \qty[\sigma'\qty(\vz_{i_{q - 1}}(t - q + 1)) \cdot \vW_{i_{q - 1}, i_q}] \cdot \sigma'\qty(\vz_{i_n}(t - n))} \\
+               & \to 0
+    \end{align*}
+    \tag{8}\label{8}
   \]
 
+最後一個推論的原理是\ **指數函數的收斂速度比線性函數快**。
+
+.. error::
+
+  論文中的推論
+
+  .. math::
+    :nowrap:
+
+    \[
+      \abs{\vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))} \to 0
+    \]
+
+  是\ **錯誤**\的，理由是 :math:`\vW_{i_{q - 1}, i_q}` 無法對 :math:`\vz_{i_q}(t - q)` 造成影響，作者不小心把\ **時間順序寫反**\了，但是\ **最後的邏輯仍然正確**，理由如 :math:`\eqref{8}` 所示。
+
+.. error::
+
+  論文中進行了以下\ **函數最大值**\的推論
+
+  .. math::
+    :nowrap:
+
+    \begin{align*}
+      & f_{l_m}'\qty(\opnet_{l_m}(t - m)) \cdot w_{l_m l_{m - 1}} \\
+      & = \sigma\qty(\vz_{l_m}(t - m)) \cdot \qty(1 - \sigma\qty(\vz_{l_m}(t - m))) \cdot w_{l_m l_{m - l}}
+    \end{align*}
+
 ..
-  因此當 $\abs{\vW_{i_{q - 1}, i_q}} < 4.0$ 時我們可以發現
+  最大值發生於微分值為 $0$ 的點，即我們想求出滿足以下式子的 $w_{l_m l_{m - 1}}$
 
   $$
-  \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\pa{\vz_{i_q}(t - q)}} < 4.0 * 0.25 = 1.0 \tag{18}\label{18}
-  $$
-
-  所以 $\eqref{18}$ 與 $\eqref{6}$ 的結論相輔相成：當 $\vW_{i_{q - 1}, i_q}$ 的絕對值小於 $4.0$ 會造成**梯度消失**。
-
-  而 $\abs{\vW_{i_{q - 1}, i_q}} \to \infty$ 我們可以使用 $\eqref{7}$ 得到
-
-  $$
-  \begin{align*}
-  & \abs{\net{i_{q - 1}}{t - q + 1}} \to \infty \\
-  \implies & \begin{dcases}
-  \sigma\pa{\net{i_{q - 1}}{t - q + 1}} \to 1 & \text{if } \net{i_{q - 1}}{t - q + 1} \to \infty \\
-  \sigma\pa{\net{i_{q - 1}}{t - q + 1}} \to 0 & \text{if } \net{i_{q - 1}}{t - q + 1} \to -\infty
-  \end{dcases} \\
-  \implies & \abs{\sigma'\pa{\net{i_{q - 1}}{t - q + 1}}} \to 0 \\
-  \implies & \abs{\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\pa{\vz_{i_q}(t - q)}} \\
-  & = \abs{\vW_{i_0, i_1} \cdot \prod_{q = 2}^n \qty[\sigma'\pa{\net{i_{q - 1}}{t - q + 1}} \cdot \vW_{i_{q - 1}, i_q}] \cdot \sigma'\pa{\net{i_n}{t - n}}} \\
-  & \to 0
-  \end{align*} \tag{19}\label{19}
-  $$
-
-  最後一個推論的原理是**指數函數的收斂速度比線性函數快**。
-
-  **注意錯誤**：論文中的推論
-
-  $$
-  \abs{\vW_{i_{q - 1}, i_q} \cdot \dfnet{i_q}{t - q}} \to 0
-  $$
-
-  是**錯誤**的，理由是 $\vW_{i_{q - 1}, i_q}$ 無法對 $\vz_{i_q}(t - q)$ 造成影響，作者不小心把**時間順序寫反**了，但是**最後的邏輯仍然正確**，理由如 $\eqref{19}$ 所示。
-
-  **注意錯誤**：論文中進行了以下**函數最大值**的推論
-
-  $$
-  \begin{align*}
-  & \dfnet{l_{m}}{t - m}\big) \cdot w_{l_{m} l_{m - 1}} \\
-  & = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}
-  \end{align*}
-  $$
-
-  最大值發生於微分值為 $0$ 的點，即我們想求出滿足以下式子的 $w_{l_{m} l_{m - 1}}$
-
-  $$
-  \pdv{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} = 0
+  \pdv{\Big[\sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot w_{l_m l_{m - l}}\Big]}{w_{l_m l_{m - 1}}} = 0
   $$
 
   拆解微分式可得
 
   $$
   \begin{align*}
-  & \pdv{\Big[\sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}}\Big]}{w_{l_{m} l_{m - 1}}} \\
-  & = \pdv{\sigma\big(\net{l_{m}}{t - m}\big)}{\net{l_{m}}{t - m}} \cdot \pdv{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot w_{l_{m} l_{m - l}} \\
-  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \pdv{\Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)}{\net{l_{m}}{t - m}} \cdot \pdv{\net{l_{m}}{t - m}}{w_{l_{m} l_{m - 1}}} \cdot w_{l_{m} l_{m - l}} \\
-  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot \pdv{w_{l_{m} l_{m - 1}}}{w_{l_{m} l_{m - 1}}} \\
-  & = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
-  & \quad - \Big(\sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
-  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
-  & = \Big[2 \Big(\sigma\big(\net{l_{m}}{t - m}\big)\Big)^3 - 3 \Big(\sigma\big(\net{l_{m}}{t - m}\big)\Big)^2 + \sigma\big(\net{l_{m}}{t - m}\big)\Big] \cdot \\
-  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
-  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
-  & = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(2 \sigma\big(\net{l_{m}}{t - m}\big) - 1\Big) \cdot \Big(\sigma\big(\net{l_{m}}{t - m}\big) - 1\Big) \cdot \\
-  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} \\
-  & \quad + \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
+  & \pdv{\Big[\sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot w_{l_m l_{m - l}}\Big]}{w_{l_m l_{m - 1}}} \\
+  & = \pdv{\sigma\big(\vz_{l_m}{t - m}\big)}{\vz_{l_m}{t - m}} \cdot \pdv{\vz_{l_m}{t - m}}{w_{l_m l_{m - 1}}} \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot w_{l_m l_{m - l}} \\
+  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \pdv{\Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big)}{\vz_{l_m}{t - m}} \cdot \pdv{\vz_{l_m}{t - m}}{w_{l_m l_{m - 1}}} \cdot w_{l_m l_{m - l}} \\
+  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot \pdv{w_{l_m l_{m - 1}}}{w_{l_m l_{m - 1}}} \\
+  & = \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big)^2 \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} \\
+  & \quad - \Big(\sigma\big(\vz_{l_m}{t - m}\big)\Big)^2 \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} \\
+  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \\
+  & = \Big[2 \Big(\sigma\big(\vz_{l_m}{t - m}\big)\Big)^3 - 3 \Big(\sigma\big(\vz_{l_m}{t - m}\big)\Big)^2 + \sigma\big(\vz_{l_m}{t - m}\big)\Big] \cdot \\
+  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} \\
+  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \\
+  & = \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(2 \sigma\big(\vz_{l_m}{t - m}\big) - 1\Big) \cdot \Big(\sigma\big(\vz_{l_m}{t - m}\big) - 1\Big) \cdot \\
+  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} \\
+  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \\
   & = 0
   \end{align*}
   $$
@@ -555,11 +592,11 @@ Long Short-Term Memory
 
   $$
   \begin{align*}
-  & \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(2 \sigma\big(\net{l_{m}}{t - m}\big) - 1\Big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \cdot \\
-  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} = \sigma\big(\net{l_{m}}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_{m}}{t - m}\big)\Big) \\
-  \implies & \Big(2 \sigma\big(\net{l_{m}}{t - m}\big) - 1\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_{m} l_{m - 1}} = 1 \\
-  \implies & w_{l_{m} l_{m - 1}} = \frac{1}{y_{l_{m - 1}}(t - m - 1)} \cdot \frac{1}{2 \sigma\big(\net{l_{m}}{t - m}\big) - 1} \\
-  \implies & w_{l_{m} l_{m - 1}} = \frac{1}{y_{l_{m - 1}}(t - m - 1)} \cdot \coth\bigg(\frac{\net{l_{m}}{t - m}}{2}\bigg)
+  & \sigma\big(\net{l_m}{t - m}\big) \cdot \Big(2 \sigma\big(\net{l_m}{t - m}\big) - 1\Big) \cdot \Big(1 - \sigma\big(\net{l_m}{t - m}\big)\Big) \cdot \\
+  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} = \sigma\big(\net{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_m}{t - m}\big)\Big) \\
+  \implies & \Big(2 \sigma\big(\net{l_m}{t - m}\big) - 1\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} = 1 \\
+  \implies & w_{l_m l_{m - 1}} = \frac{1}{y_{l_{m - 1}}(t - m - 1)} \cdot \frac{1}{2 \sigma\big(\net{l_m}{t - m}\big) - 1} \\
+  \implies & w_{l_m l_{m - 1}} = \frac{1}{y_{l_{m - 1}}(t - m - 1)} \cdot \coth\bigg(\frac{\net{l_m}{t - m}}{2}\bigg)
   \end{align*}
   $$
 
@@ -573,7 +610,7 @@ Long Short-Term Memory
   \end{align*}
   $$
 
-  但公式的前提不對，理由是 $w_{l_{m} l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_{m}}$（同 $\eqref{4}$）。
+  但公式的前提不對，理由是 $w_{l_m l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_m}$（同 $\eqref{4}$）。
 
   接著我們可以計算 $t$ 時間點 $\dout$ 個**不同**節點 $\net{i_0^\star}{t}$ 對於**同一個** $t - n$ 時間點的 $\net{i_n}{t - n}$ 節點所貢獻的**梯度變化總和**：
 
