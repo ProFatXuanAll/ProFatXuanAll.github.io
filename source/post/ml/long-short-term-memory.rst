@@ -483,57 +483,50 @@ Long Short-Term Memory
 此假設可以得出\ **梯度消失**\的結論，參數在使用 gradient descent 更新的過程中數值變化\ **非常緩慢**，無法進行順利更新。
 論文認為上述假設是可能發生的，例如當 :math:`f_{i_q}` 為 sigmoid 函數 :math:`\sigma` 時。
 
-.. dropdown:: sigmoid 函數的特性
+我們知道 sigmoid 函數的微分 :math:`\sigma'` 最大值為 :math:`0.25`\（見 :doc:`sigmoid 函數特性 </post/math/sigmoid>`）。
+因此當某些 :math:`q^\star` 滿足 :math:`f_{i_{q^\star}} = \sigma` 且 :math:`\abs{\vW_{i_{q^\star - 1}, i_{q^\star}}} < 4.0` 時，我們可以發現
+
+.. math::
+  :nowrap:
+
+  \[
+    \abs{\vW_{i_{q^\star - 1}, i_{q^\star}} \cdot \sigma'\qty(\vz_{i_{q^\star}}(t - q^\star))} < 4.0 \cdot 0.25 = 1.0.
+    \tag{7}\label{7}
+  \]
+
+所以我們可以將 :math:`\eqref{6}` 的結論套用至 :math:`\eqref{7}` 的結果：當\ **所有** :math:`q` 都滿足 :math:`f_{i_q} = \sigma` 且 :math:`\abs{\vW_{i_{q - 1}, i_q}} < 4.0` 時會造成\ **梯度消失**。
+
+而當某些 :math:`q^\star` 滿足 :math:`\abs{\vW_{i_{q^\star - 1}, i_{q^\star}}} \to \infty` 時，我們可以透過 sigmoid 函數特性推得：
+
+.. math::
+  :nowrap:
+
+  \[
+    \qty[\prod_{q = 1, q \neq q^\star}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vW_{i_{q^\star - 1}, i_{q^\star}} \cdot \sigma'\qty(\vz_{i_{q^\star}}(t - q^\star)) \to 0.
+    \tag{8}\label{8}
+  \]
+
+.. dropdown:: 推導 :math:`\eqref{8}`
+  :open:
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \sigma(s)                  & = \frac{1}{1 + e^{-s}}. \\
-        \sigma(\R)                 & = (0, 1). \\
-        \sigma'(s)                 & = \frac{e^{-s}}{(1 + e^{-s})^2} \\
-                                   & = \frac{1}{1 + e^{-s}} \cdot \frac{e^{-s}}{1 + e^{-s}} \\
-                                   & = \frac{1}{1 + e^{-s}} \cdot \qty(\frac{1 + e^{-s}}{1 + e^{-s}} - \frac{1}{1 + e^{-s}}) \\
-                                   & = \sigma(s) \cdot \big(1 - \sigma(s)\big). \\
-        \max_{s \in \R} \sigma'(s) & = \sigma(0) \times \qty(1 - \sigma(0)) = 0.5 \times 0.5 = 0.25.
+                & \abs{\vW_{i_{q^\star - 1}, i_{q^\star}} \cdot \mqty[\vx(t - q^\star) \\ \vy(t - q^\star)]_{i_{q^\star}}} \to \infty \\
+        \implies & \abs{\vz_{i_{q^\star - 1}}(t - q^\star + 1)} \to \infty \\
+        \implies & \begin{dcases}
+                    \sigma\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1)) \to 1 & \text{if } \vz_{i_{q^\star - 1}}(t - q^\star + 1) \to \infty \\
+                    \sigma\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1)) \to 0 & \text{if } \vz_{i_{q^\star - 1}}(t - q^\star + 1) \to -\infty
+                  \end{dcases} \\
+        \implies & \sigma\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1)) \cdot \qty[1 - \sigma\qty(\vz_{i_{{q^\star} - 1}}(t - q^\star + 1))] \to 0 \\
+        \implies & \sigma'\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1)) \to 0 \\
+        \implies & \qty[\prod_{q = 1, q \neq q^\star}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vW_{i_{q^\star - 1}, i_{q^\star}} \cdot \sigma'\qty(\vz_{i_{q^\star}}(t - q^\star)) \to 0.
       \end{align*}
     \]
 
-我們知道 sigmoid 函數的微分 :math:`\sigma'` 最大值為 :math:`0.25`。
-因此當 :math:`f_{i_q} = \sigma` 且 :math:`\abs{\vW_{i_{q - 1}, i_q}} < 4.0` 時，我們可以發現
-
-.. math::
-  :nowrap:
-
-  \[
-    \abs{\vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))} < 4.0 \cdot 0.25 = 1.0.
-    \tag{7}\label{7}
-  \]
-
-所以我們可以將 :math:`\eqref{6}` 的結論套用至 :math:`\eqref{7}` 的結果：當 :math:`f_{i_q} = \sigma` 且 :math:`\abs{\vW_{i_{q - 1}, i_q}} < 4.0` 會造成\ **梯度消失**。
-
-而當 :math:`\abs{\vW_{i_{q - 1}, i_q}} \to \infty` 時，我們可以透過 sigmoid 函數特性推得：
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-               & \abs{\vz_{i_{q - 1}}(t - q + 1)} \to \infty \\
-      \implies & \begin{dcases}
-                   \sigma\qty(\vz_{i_{q - 1}}(t - q + 1)) \to 1 & \text{if } \vz_{i_{q - 1}}(t - q + 1) \to \infty \\
-                   \sigma\qty(\vz_{i_{q - 1}}(t - q + 1)) \to 0 & \text{if } \vz_{i_{q - 1}}(t - q + 1) \to -\infty
-                 \end{dcases} \\
-      \implies & \abs{\sigma'\qty(\vz_{i_{q - 1}})(t - q + 1)} \to 0 \\
-      \implies & \abs{\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))} \\
-               & = \abs{\vW_{i_0, i_1} \cdot \prod_{q = 2}^n \qty[\sigma'\qty(\vz_{i_{q - 1}}(t - q + 1)) \cdot \vW_{i_{q - 1}, i_q}] \cdot \sigma'\qty(\vz_{i_n}(t - n))} \\
-               & \to 0
-    \end{align*}
-    \tag{8}\label{8}
-  \]
-
-最後一個推論的原理是\ **指數函數的收斂速度比線性函數快**。
+  最後一個推論的原理是 :math:`\sigma'\qty(\vz_{i_{q^\star}}(t - q^\star))` 因為指數函數，**收斂速度**\比線性函數 :math:`\vW_{i_{q^\star - 1}, i_{q^\star}}` \ **快**。
 
 .. error::
 
