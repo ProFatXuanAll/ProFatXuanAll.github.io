@@ -495,19 +495,21 @@ Long Short-Term Memory
   \]
 
 所以我們可以將 :math:`\eqref{6}` 的結論套用至 :math:`\eqref{7}` 的結果：當\ **所有** :math:`q` 都滿足 :math:`f_{i_q} = \sigma` 且 :math:`\abs{\vW_{i_{q - 1}, i_q}} < 4.0` 時會造成\ **梯度消失**。
+而由於 sigmoid 常作為 activation function of RNN，並且訓練初期通常會將參數初始化至數值小於 :math:`1` 的狀態，因此梯度消失常見於 RNN 訓練過程。
 
-而當某些 :math:`q^\star` 滿足 :math:`\abs{\vW_{i_{q^\star - 1}, i_{q^\star}}} \to \infty` 時，我們可以透過 sigmoid 函數特性推得：
+根據上述討論，直覺上應該將參數初始值加大，但以下推論將會告訴我們加大參數初始值仍然會遇到梯度消失的問題。
+假設某些 :math:`q^\star` 滿足 :math:`\abs{\vW_{i_{q^\star - 1}, i_{q^\star}}} \to \infty`。
+我們可以透過 sigmoid 函數特性推得：
 
 .. math::
   :nowrap:
 
   \[
-    \qty[\prod_{q = 1, q \neq q^\star}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vW_{i_{q^\star - 1}, i_{q^\star}} \cdot \sigma'\qty(\vz_{i_{q^\star}}(t - q^\star)) \to 0.
+    \abs{\vW_{i_{q^\star - 2}, i_{q^\star - 1}} \cdot \sigma'\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1))} \to 0.
     \tag{8}\label{8}
   \]
 
 .. dropdown:: 推導 :math:`\eqref{8}`
-  :open:
 
   .. math::
     :nowrap:
@@ -522,93 +524,125 @@ Long Short-Term Memory
                   \end{dcases} \\
         \implies & \sigma\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1)) \cdot \qty[1 - \sigma\qty(\vz_{i_{{q^\star} - 1}}(t - q^\star + 1))] \to 0 \\
         \implies & \sigma'\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1)) \to 0 \\
-        \implies & \qty[\prod_{q = 1, q \neq q^\star}^n \vW_{i_{q - 1}, i_q} \cdot \sigma'\qty(\vz_{i_q}(t - q))] \cdot \vW_{i_{q^\star - 1}, i_{q^\star}} \cdot \sigma'\qty(\vz_{i_{q^\star}}(t - q^\star)) \to 0.
+        \implies & \vW_{i_{q^\star - 2}, i_{q^\star - 1}} \cdot \sigma'\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1)) \to 0 \\
+        \implies & \abs{\vW_{i_{q^\star - 2}, i_{q^\star - 1}} \cdot \sigma'\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1))} \to 0.
       \end{align*}
     \]
 
-  最後一個推論的原理是 :math:`\sigma'\qty(\vz_{i_{q^\star}}(t - q^\star))` 因為指數函數，**收斂速度**\比線性函數 :math:`\vW_{i_{q^\star - 1}, i_{q^\star}}` \ **快**。
+  最後一個推論的原理是 :math:`\sigma'\qty(\vz_{i_{q^\star - 1}}(t - q^\star + 1))` 因為指數函數，**收斂速度**\比線性函數 :math:`\vW_{i_{q^\star - 2}, i_{q^\star - 1}}` \ **快**。
+
+因此我們可以再一次將 :math:`\eqref{6}` 的結論套用至 :math:`\eqref{8}` 的結果：
+當部份參數初始值過大時，我們會遇到梯度消失的問題。
 
 .. error::
 
-  論文中的推論
+  論文中關於 3.1.3 節最後一個段落的推論出發點
 
   .. math::
     :nowrap:
 
     \[
-      \abs{\vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))} \to 0
+      \abs{f_{l_m}'\qty(\opnet_{l_m}) w_{l_m l_{m - 1}}}
     \]
 
-  是\ **錯誤**\的，理由是 :math:`\vW_{i_{q - 1}, i_q}` 無法對 :math:`\vz_{i_q}(t - q)` 造成影響，作者不小心把\ **時間順序寫反**\了，但是\ **最後的邏輯仍然正確**，理由如 :math:`\eqref{8}` 所示。
+  有幾點錯誤：
 
-.. error::
+  - 作者少寫了時間參數，所以 :math:`\opnet_{l_m}` 應改為 :math:`\opnet_{l_m}(t - m)`
+  - 作者不小心把時間先後順序寫反了，所以 :math:`w_{l_m l_{m - 1}}` 應改為 :math:`w_{l_{m - 1} l_m}`
+  - 後續分析其實是基於 :math:`w_{l_m l_{m + 1}}`，所以 :math:`w_{l_{m - 1} l_m}` 應改為 :math:`w_{l_m l_{m + 1}}`
 
-  論文中進行了以下\ **函數最大值**\的推論
+  全部更正後的寫法應為
 
   .. math::
     :nowrap:
 
-    \begin{align*}
-      & f_{l_m}'\qty(\opnet_{l_m}(t - m)) \cdot w_{l_m l_{m - 1}} \\
-      & = \sigma\qty(\vz_{l_m}(t - m)) \cdot \qty(1 - \sigma\qty(\vz_{l_m}(t - m))) \cdot w_{l_m l_{m - l}}
-    \end{align*}
+    \[
+      \abs{f_{l_m}'\qty(\opnet_{l_m}(t - m)) w_{l_m l_{m + 1}}}.
+    \]
+
+.. note::
+
+  論文中進行了以下\ **函數最大值**\的推論：
+
+  .. math::
+    :nowrap:
+
+    \[
+      f_{l_m}'\qty(\opnet_{l_m}(t - m)) \cdot w_{l_m l_{m + 1}}.
+    \]
+
+  當 :math:`y^{l_{m + 1}}(t - m - 1)` 為非負常數時，前述函數最大值發生於
+
+  .. math::
+    :nowrap:
+
+    \[
+      w_{l_m l_{m + 1}} = \frac{1}{y^{l_{m + 1}}(t - m - 1)} \cdot \coth(\frac{1}{2} \opnet_{l_m}(t - m)).
+    \]
+
+  注意我已將前述錯誤修正，否則後續討論無意義。
+
+  .. dropdown:: 推導最大值
+
+    最大值發生於微分值為 :math:`0` 的點，即我們想求出滿足以下式子的 :math:`w_{l_m l_{m + 1}}`
+
+    .. math::
+      :nowrap:
+
+      \[
+        \dv{f_{l_m}'\qty(\opnet_{l_m}(t - m)) \cdot w_{l_m l_{m + 1}}}{w_{l_m l_{m + 1}}} = 0
+      \]
+
+    拆解微分式可得
+
+    .. math::
+      :nowrap:
+
+      \[
+        \begin{align*}
+          & \dv{f_{l_m}'\qty(\opnet_{l_m}(t - m)) \cdot w_{l_m l_{m + 1}}}{w_{l_m l_{m + 1}}} \\
+          & = \dv{f_{l_m}'\qty(\opnet_{l_m}(t - m))}{w_{l_m l_{m + 1}}} \cdot w_{l_m l_{m + 1}} + f_{l_m}'\qty(\opnet_{l_m}(t - m)) \cdot \dv{w_{l_m l_{m + 1}}}{w_{l_m l_{m + 1}}} \\
+          & = \dv{f_{l_m}'\qty(\opnet_{l_m}(t - m))}{\opnet_{l_m}(t - m)} \cdot \dv{\opnet_{l_m}(t - m)}{w_{l_m l_{m + 1}}} \cdot w_{l_m l_{m + 1}} + f_{l_m}'\qty(\opnet_{l_m}(t - m)) \\
+          & = f_{l_m}''\qty(\opnet_{l_m}(t - m)) \cdot y^{l_{m + 1}}(t - m - 1) \cdot w_{l_m l_{m + 1}} + f_{l_m}'\qty(\opnet_{l_m}(t - m)) \\
+          & = \sigma''\qty(\opnet_{l_m}(t - m)) \cdot y^{l_{m + 1}}(t - m - 1) \cdot w_{l_m l_{m + 1}} + \sigma'\qty(\opnet_{l_m}(t - m)) \\
+          & = \sigma\qty(\opnet_{l_m}(t - m)) \cdot \qty[1 - \sigma\qty(\opnet_{l_m}(t - m))] \cdot \qty[1 - 2\sigma\qty(\opnet_{l_m}(t - m))] \cdot y^{l_{m + 1}}(t - m - 1) \cdot w_{l_m l_{m + 1}} \\
+          & \quad + \sigma\qty(\opnet_{l_m}(t - m)) \cdot \qty[1 - \sigma\qty(\opnet_{l_m}(t - m))].
+        \end{align*}
+      \]
+
+    令上式等於 :math:`0` 後我們可以進行移項得到以下內容：
+
+    .. math::
+      :nowrap:
+
+      \[
+        \begin{align*}
+                   & \sigma\qty(\opnet_{l_m}(t - m)) \cdot \qty[1 - \sigma\qty(\opnet_{l_m}(t - m))] \cdot \qty[1 - 2\sigma\qty(\opnet_{l_m}(t - m))] \cdot y^{l_{m + 1}}(t - m - 1) \cdot w_{l_m l_{m + 1}} \\
+                   & \quad = -\sigma\qty(\opnet_{l_m}(t - m)) \cdot \qty[1 - \sigma\qty(\opnet_{l_m}(t - m))] \\
+          \implies & \qty[1 - 2\sigma\qty(\opnet_{l_m}(t - m))] \cdot y^{l_{m + 1}}(t - m - 1) \cdot w_{l_m l_{m + 1}} = -1 \\
+          \implies & w_{l_m l_{m + 1}} = \frac{1}{y^{l_{m + 1}}(t - m - 1)} \cdot \frac{1}{2\sigma\qty(\opnet_{l_m}(t - m)) - 1} \\
+                   & = \frac{1}{y_{l_{m + 1}}(t - m - 1)} \cdot \coth(\frac{\opnet_{l_m}(t - m)}{2}).
+        \end{align*}
+      \]
+
+    最後一段推論使用了以下公式
+
+    .. math::
+      :nowrap:
+
+      \[
+        \begin{align*}
+          \tanh(x)           & = 2 \sigma(2x) - 1. \\
+          \tanh(\frac{x}{2}) & = 2 \sigma(x) - 1. \\
+          \coth(\frac{x}{2}) & = \frac{1}{\tanh(\frac{x}{2})} = \frac{1}{2 \sigma(x) - 1}.
+        \end{align*}
+      \]
 
 ..
-  最大值發生於微分值為 $0$ 的點，即我們想求出滿足以下式子的 $w_{l_m l_{m - 1}}$
-
-  $$
-  \pdv{\Big[\sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot w_{l_m l_{m - l}}\Big]}{w_{l_m l_{m - 1}}} = 0
-  $$
-
-  拆解微分式可得
-
-  $$
-  \begin{align*}
-  & \pdv{\Big[\sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot w_{l_m l_{m - l}}\Big]}{w_{l_m l_{m - 1}}} \\
-  & = \pdv{\sigma\big(\vz_{l_m}{t - m}\big)}{\vz_{l_m}{t - m}} \cdot \pdv{\vz_{l_m}{t - m}}{w_{l_m l_{m - 1}}} \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot w_{l_m l_{m - l}} \\
-  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \pdv{\Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big)}{\vz_{l_m}{t - m}} \cdot \pdv{\vz_{l_m}{t - m}}{w_{l_m l_{m - 1}}} \cdot w_{l_m l_{m - l}} \\
-  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot \pdv{w_{l_m l_{m - 1}}}{w_{l_m l_{m - 1}}} \\
-  & = \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big)^2 \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} \\
-  & \quad - \Big(\sigma\big(\vz_{l_m}{t - m}\big)\Big)^2 \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} \\
-  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \\
-  & = \Big[2 \Big(\sigma\big(\vz_{l_m}{t - m}\big)\Big)^3 - 3 \Big(\sigma\big(\vz_{l_m}{t - m}\big)\Big)^2 + \sigma\big(\vz_{l_m}{t - m}\big)\Big] \cdot \\
-  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} \\
-  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \\
-  & = \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(2 \sigma\big(\vz_{l_m}{t - m}\big) - 1\Big) \cdot \Big(\sigma\big(\vz_{l_m}{t - m}\big) - 1\Big) \cdot \\
-  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} \\
-  & \quad + \sigma\big(\vz_{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\vz_{l_m}{t - m}\big)\Big) \\
-  & = 0
-  \end{align*}
-  $$
-
-  移項後可以得到
-
-  $$
-  \begin{align*}
-  & \sigma\big(\net{l_m}{t - m}\big) \cdot \Big(2 \sigma\big(\net{l_m}{t - m}\big) - 1\Big) \cdot \Big(1 - \sigma\big(\net{l_m}{t - m}\big)\Big) \cdot \\
-  & \quad \quad y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} = \sigma\big(\net{l_m}{t - m}\big) \cdot \Big(1 - \sigma\big(\net{l_m}{t - m}\big)\Big) \\
-  \implies & \Big(2 \sigma\big(\net{l_m}{t - m}\big) - 1\Big) \cdot y_{l_{m - 1}}(t - m - 1) \cdot w_{l_m l_{m - 1}} = 1 \\
-  \implies & w_{l_m l_{m - 1}} = \frac{1}{y_{l_{m - 1}}(t - m - 1)} \cdot \frac{1}{2 \sigma\big(\net{l_m}{t - m}\big) - 1} \\
-  \implies & w_{l_m l_{m - 1}} = \frac{1}{y_{l_{m - 1}}(t - m - 1)} \cdot \coth\bigg(\frac{\net{l_m}{t - m}}{2}\bigg)
-  \end{align*}
-  $$
-
-  註：推論中使用了以下公式
-
-  $$
-  \begin{align*}
-  \tanh(x) & = 2 \sigma(2x) - 1 \\
-  \tanh(\frac{x}{2}) & = 2 \sigma(x) - 1 \\
-  \coth(\frac{x}{2}) & = \frac{1}{\tanh(\frac{x}{2})} = \frac{1}{2 \sigma(x) - 1}
-  \end{align*}
-  $$
-
-  但公式的前提不對，理由是 $w_{l_m l_{m - 1}}$ 根本不存在，應該改為 $w_{l_{m - 1} l_m}$（同 $\eqref{4}$）。
-
   接著我們可以計算 $t$ 時間點 $\dout$ 個**不同**節點 $\net{i_0^\star}{t}$ 對於**同一個** $t - n$ 時間點的 $\net{i_n}{t - n}$ 節點所貢獻的**梯度變化總和**：
 
   $$
-  \sum_{i_0^\star = 1}^\dout \pdv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} \tag{20}\label{20}
+  \sum_{i_0^\star = 1}^\dout \dv{\vth{i_n}{t}{t - n}}{\vth{i_0^\star}{t}{t}} \tag{20}\label{20}
   $$
 
   由於**每個項次**都能遭遇**梯度消失**，因此**總和**也會遭遇**梯度消失**。
