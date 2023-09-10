@@ -105,10 +105,11 @@ Long Short-Term Memory
     \newcommand{\vzl}{{\vz_\ell}}
 
     % Matrixs with subscripts.
-    \newcommand{\vWiC}{{\v\vW_{i, :}}}
-    \newcommand{\vWij}{{\v\vW_{i, j}}}
-    \newcommand{\vWik}{{\v\vW_{i, k}}}
-    \newcommand{\vWil}{{\v\vW_{i, \ell}}}
+    \newcommand{\vWiC}{{\vW_{i, :}}}
+    \newcommand{\vWii}{{\vW_{i, i}}}
+    \newcommand{\vWij}{{\vW_{i, j}}}
+    \newcommand{\vWik}{{\vW_{i, k}}}
+    \newcommand{\vWil}{{\vW_{i, \ell}}}
     \newcommand{\vWRj}{{\vW_{:, j}}}
     \newcommand{\vWkj}{{\vW_{k, j}}}
     \newcommand{\vWlj}{{\vW_{\ell, j}}}
@@ -670,63 +671,78 @@ Long Short-Term Memory
 
     由於\ **每個項次** :math:`\dv{\vth{i_n, t - n}{i_0, t}}{\vth{i_0, t}{i_0, t}}` 都會遭遇梯度消失，因此\ **總和**\也會遭遇\ **梯度消失**。
 
+解決梯度爆炸 / 消失的關鍵
+=========================
+
+觀察 1：自連接參數
+------------------
+
+首先我們針對式子 :math:`\eqref{3}` 中透過自連接參數所得的微分值（即 :math:`i_{q - 1} = i_q`），下標改以 :math:`i` 表示。
+要如何避免透過自連接參數獲得的微分導致梯度爆炸 / 消失？
+根據前述討論，我們不能擁有以下條件：
+
+.. math::
+  :nowrap:
+
+  \[
+    \forall q \in \Set{1, \dots, n}, \begin{dcases}
+      \abs{\vWii \cdot f_i'\qty(\vzi(t - q))} > 1.0 \\
+      \abs{\vWii \cdot f_i'\qty(\vzi(t - q))} < 1.0
+    \end{dcases}.
+  \]
+
+這代表我們必須滿足：
+
+.. math::
+  :nowrap:
+
+  \[
+    \forall q \in \Set{1, \dots, n}, \abs{\vWii \cdot f_i'\qty(\vzi(t - q))} = 1.0. \tag{9}\label{9}
+  \]
+
+對式子 :math:`\eqref{9}` 左右兩側積分並移項，我們可以得到：
+
+.. math::
+  :nowrap:
+
+  \[
+    \forall q \in \Set{1, \dots, n}, f_i\qty(\vzi(t - q)) = \pm \frac{\vzi(t - q)}{\vWii}. \tag{10}\label{10}
+  \]
+
+式子 :math:`\eqref{10}` 告訴我們 :math:`f_i` 是一個線性函數。
+
+.. dropdown:: 推導 :math:`\eqref{10}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+                 & \abs{\vWii \cdot f_i'\qty(\vzi(t - q))} = \abs{\vWii \cdot \dv{f_i\qty(\vzi(t - q))}{\vzi(t - q)}} = 1.0 \\
+        \implies & \vWii \cdot \dv{f_i\qty(\vzi(t - q))}{\vzi(t - q)} = \pm 1.0 \\
+        \implies & \int \vWii \cdot \dv{f_i\qty(\vzi(t - q))}{\vzi(t - q)} \; d \vzi(t - q) = \pm \int 1.0 \; d \vzi(t - q) \\
+        \implies & \vWii \cdot f_i\qty(\vzi(t - q)) = \pm \vzi(t - q) \\
+        \implies & f_i\qty(\vzi(t - q)) = \pm \frac{\vzi(t - q)}{\vWii}.
+      \end{align*}
+    \]
+
+如果我們進一步簡化模型，假設所有節點只會跟自己連接（即 :math:`\vzi(t + 1) = \vWii \cdot \vyi(t)`），則根據式子 :math:`\eqref{10}` 我們可以得出以下結論：
+
+.. math::
+  :nowrap:
+
+  \[
+    \vyi(t + 1) = f_i\qty(\vzi(t + 1)) = f_i\qty(\vWii \cdot \vyi(t)) = \pm \vyi(t). \tag{11}\label{11}
+  \]
+
+在不考慮負號的情況下，我們可以將 :math:`f_i` 設成 identity function 且設定 :math:`\vWii = 1.0` 從而滿足上述等式。
+此論文認為，雖然模型並非只存在自連接節點，但若要讓自連接節點成功運作，可以透過 :math:`\eqref{11}` 推導得出 activation function 必須為 identity function，且 :math:`\vWii` 必須為 :math:`1.0` 的結論。
+此論文將該結論稱為 **constant error carousel**\（**CEC**），並將 CEC 納入 LSTM 的核心設計。
+
 ..
-  ## 問題觀察
-
-  ### 情境 1：模型輸出與內部節點 1-1 對應
-
-  假設模型沒有任何輸入，啟發函數 $f_j$ 為未知且 $t - 1$ 時間點的輸出節點 $y_j(t - 1)$ 只與 $\net{j}{t}$ 相連，即
-
-  $$
-  \net{j}{t} = w_{j, j} \cdot y_j(t - 1) \tag{21}\label{21}
-  $$
-
-  則根據式子 $\eqref{11}$ 我們可以推得
-
-  $$
-  \vth{j}{t}{t - 1} = w_{j, j} \cdot \dfnet{j}{t - 1} \cdot \vth{j}{t}{t} \tag{22}\label{22}
-  $$
-
-  為了不讓梯度 $\vth{j}{t}{t}$ 在傳遞的過程消失，作者認為需要強制達成**梯度常數（Constant Error Flow）**
-
-  $$
-  w_{j, j} \cdot \dfnet{j}{t - 1} = 1.0 \tag{23}\label{23}
-  $$
-
-  透過 $\eqref{23}$ 的想法讓 $\eqref{3}$ 中梯度變化率的**連乘積項**為 $1.0$，因此
-
-  - 不會像 $\eqref{5}$ 導致梯度**爆炸**
-  - 不會像 $\eqref{6}$ 導致梯度**消失**
-
-  如果 $\eqref{23}$ 能夠達成，則積分 $\eqref{23}$ 可以得到
-
-  $$
-  \begin{align*}
-  & \int w_{j, j} \cdot \dfnet{j}{t - 1} \; d \big[\net{j}{t - 1}\big] = \int 1.0 \; d \big[\net{j}{t - 1}\big] \\
-  \iff & w_{j, j} \cdot \fnet{j}{t - 1} = \net{j}{t - 1} \\
-  \iff & y_j(t - 1) = \fnet{j}{t - 1} = \frac{\net{j}{t - 1}}{w_{j, j}}
-  \end{align*} \tag{24}\label{24}
-  $$
-
-  觀察 $\eqref{24}$ 我們可以發現
-
-  - 輸入 $\net{j}{t - 1}$ 與輸出 $\fnet{j}{t - 1}$ 之間的關係是乘上一個常數項 $w_{j, j}$
-  - 代表函數 $f_j$ 其實是一個**線性函數**
-
-  若採用 $\eqref{24}$ 的架構設計，我們可以發現**每個時間點**的**輸出**必須**完全相同**
-
-  $$
-  \begin{align*}
-  y_j(t) & = \fnet{j}{t} = f_j\big(w_{j, j} \cdot y_j(t - 1)\big) \\
-  & = f_j\big(w_{j, j} \cdot \frac{\net{j}{t - 1}}{w_{j, j}}\big) = \fnet{j}{t - 1} = y_j(t - 1) \tag{25}\label{25}
-  \end{align*}
-  $$
-
-  這個現象稱為 **Constant Error Carousel**（簡稱 **CEC**），而作者設計的 LSTM 架構會完全基於 CEC 進行設計，但我覺得概念比較像 ResNet 的 residual connection。
-
   ### 情境 2：增加外部輸入
 
-  將 $\eqref{21}$ 的假設改成每個模型內部節點可以額外接收**外部輸入**
+  將 $\eqref{9}$ 的假設改成每個模型內部節點可以額外接收**外部輸入**
 
   $$
   \net{j}{t} = w_{j, j} \cdot y_j(t - 1) + \sum_{i = 1}^{\din} w_{j, i} \cdot x_{i}(t - 1) \tag{26}\label{26}
@@ -744,7 +760,7 @@ Long Short-Term Memory
 
   ### 情境 3：輸出回饋到多個節點
 
-  將 $\eqref{21} \eqref{26}$ 的假設改回正常的模型架構
+  將 $\eqref{9} \eqref{26}$ 的假設改回正常的模型架構
 
   $$
   \net{j}{t} = \sum_{i = 1}^\dout w_{j, i} \cdot y_i(t - 1) + \sum_{i = 1}^{\din} w_{j, \dout + i} \cdot x_{i}(t - 1) \tag{27}\label{27}
