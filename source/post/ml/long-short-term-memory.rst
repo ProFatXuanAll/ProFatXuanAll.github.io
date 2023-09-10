@@ -763,31 +763,34 @@ Long Short-Term Memory
 因此\ **無法只靠一個** :math:`\vWij` 決定\ **過去輸出**\的影響，必須有\ **額外**\能夠\ **理解當前內容**\（**context-sensitive**）的功能模組幫忙決定是否\ **讀取** :math:`\vyj(t)`。
 這便是此論文提出\ **輸出閘門**\（**output gate**）機制的原因。
 
-..
-  ## LSTM 架構
+LSTM 架構
+=========
 
-  <a name="paper-fig-1"></a>
+.. figure:: https://i.imgur.com/uhS4AgH.png
+  :alt: 記憶細胞（memory cell）內部架構
+  :name: paper-fig-1
 
-  圖 1：記憶細胞內部架構。
+  圖 1：記憶細胞（memory cell）內部架構。
+
   符號對應請見下個小節。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`hochreiter-etal-1997-long`。
 
-  ![圖 1](https://i.imgur.com/uhS4AgH.png)
-
-  <a name="paper-fig-2"></a>
+.. figure:: https://i.imgur.com/UQ5LAu8.png
+  :alt: LSTM 全連接架構範例
+  :name: paper-fig-2
 
   圖 2：LSTM 全連接架構範例。
+
   線條真的多到讓人看不懂，看我整理過的公式比較好理解。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`hochreiter-etal-1997-long`。
 
-  ![圖 2](https://i.imgur.com/UQ5LAu8.png)
+為了解決梯度爆炸 / 消失問題，作者基於前述討論的結果，提出三個主要的機制，並將這些機制的合體稱為\ **記憶細胞區域**\（**memory cell blocks**）：
 
-  為了解決**梯度爆炸 / 消失**問題，作者決定以 Constant Error Carousel 為出發點（見 $\eqref{25}$），提出 **3** 個主要的機制，並將這些機制的合體稱為**記憶細胞區域（memory cell blocks）**（見[圖 1](#paper-fig-1)）：
+- **乘法輸入閘門**\（**multiplicative input gate**）：用於決定是否\ **更新**\記憶細胞的\ **內部狀態**
+- **乘法輸出閘門**\（**multiplicative output gate**）：用於決定是否\ **輸出**\記憶細胞的\ **計算結果**
+- **自連接線性單元**\（**central linear unit with fixed self-connection**）：概念來自於 CEC（見 :math:`\eqref{11}`），藉此保障\ **梯度不會消失**
 
-  - **乘法輸入閘門（Multiplicative Input Gate）**：用於決定是否**更新**記憶細胞的**內部狀態**
-  - **乘法輸出閘門（Multiplicative Output Gate）**：用於決定是否**輸出**記憶細胞的**計算結果**
-  - **自連接線性單元（Central Linear Unit with Fixed Self-connection）**：概念來自於 CEC（見 $\eqref{25}$），藉此保障**梯度不會消失**
-
+..
   ### 初始狀態
 
   我們將 $\eqref{1}$ 中的計算重新定義，並新增幾個符號：
