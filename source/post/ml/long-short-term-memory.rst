@@ -78,6 +78,7 @@ Long Short-Term Memory
   \[
     % Vectors' notations.
     \newcommand{\vh}{\mathbf{h}}
+    \newcommand{\vs}{\mathbf{s}}
     \newcommand{\vw}{\mathbf{w}}
     \newcommand{\vx}{\mathbf{x}}
     \newcommand{\vy}{\mathbf{y}}
@@ -118,24 +119,27 @@ Long Short-Term Memory
     \newcommand{\vWkjn}{\vW_{k, j}^{\operatorname{new}}}
     \newcommand{\vWkjo}{\vW_{k, j}^{\operatorname{old}}}
 
-    % Operator names.
-    \newcommand{\opin}{\operatorname{in}}
-    \newcommand{\opout}{\operatorname{out}}
-    \newcommand{\opnet}{\operatorname{net}}
+    % Operators.
+    \newcommand{\opblk}{\operatorname{blk}}
+    \newcommand{\ophid}{\operatorname{hid}}
+    \newcommand{\opig}{\operatorname{ig}}
+    \newcommand{\opog}{\operatorname{og}}
 
     % Dimensions.
-    \newcommand{\din}{{d_{\opin}}}
-    \newcommand{\dout}{{d_{\opout}}}
+    \newcommand{\din}{{d_{\operatorname{in}}}}
+    \newcommand{\dout}{{d_{\operatorname{out}}}}
+    \newcommand{\dhid}{{d_\ophid}}
+    \newcommand{\dblk}{{d_\opblk}}
+    \newcommand{\nblk}{{n_\opblk}}
 
     % Derivative of loss(#2) with respect to net input #1 at time #3.
     \newcommand{\vth}[2]{{\vartheta_{#1}^{#2}}}
+
+    % Memory cell blocks.
+    \newcommand{\blk}[1]{{\opblk^{#1}}}
   \]
 
 ..
-  <!-- Operator hid. -->
-  $\providecommand{\ophid}{}$
-  $\renewcommand{\ophid}{\operatorname{hid}}$
-  <!-- Operator cell block. -->
   $\providecommand{\opblk}{}$
   $\renewcommand{\opblk}{\operatorname{block}}$
   <!-- Operator cell multiplicative input gate. -->
@@ -790,44 +794,65 @@ LSTM 架構
 - **乘法輸出閘門**\（**multiplicative output gate**）：用於決定是否\ **輸出**\記憶細胞的\ **計算結果**
 - **自連接線性單元**\（**central linear unit with fixed self-connection**）：概念來自於 CEC（見 :math:`\eqref{11}`），藉此保障\ **梯度不會消失**
 
+初始狀態
+--------
+
+我們定義新的符號：
+
++---------------+---------------------------------------------------+--------------+
+| Symbol        | Meaning                                           | Value Range  |
++===============+===================================================+==============+
+| :math:`\dhid` | Number of hidden units.                           | :math:`\N`   |
++---------------+---------------------------------------------------+--------------+
+| :math:`\dblk` | Number of memory cells in each memory cell block. | :math:`\Z^+` |
++---------------+---------------------------------------------------+--------------+
+| :math:`\nblk` | Number of memory cell blocks.                     | :math:`\Z^+` |
++---------------+---------------------------------------------------+--------------+
+
+- 因為論文 4.3 節有提到可以完全沒有\ **隱藏單元**，因此允許 :math:`\dhid = 0`
+
+  - 此論文的後續研究似乎都沒有使用隱藏單元
+  - 例如更新 LSTM 架構的主要研究 LSTM-2000 :footcite:`gers-etal-2000-learning` 與 LSTM-2002 :footcite:`gers-etal-2002-learning` 都沒有使用隱藏單元
+
+- 根據論文 4.4 節，可以\ **同時**\擁有 :math:`\nblk` 個不同的\ **記憶細胞區域**，因此允許 :math:`\nblk \geq 1`
+
+接著我們定義 :math:`t` 時間點的模型計算狀態：
+
+
++------------------------+--------------------------------------------------------+------------------+
+| Symbol                 | Meaning                                                | Value Range      |
++========================+========================================================+==================+
+| :math:`\vy^\ophid(t)`  | Hidden units.                                          | :math:`\R^\dhid` |
++------------------------+--------------------------------------------------------+------------------+
+| :math:`\vy^\opig(t)`   | Input gate units.                                      | :math:`\R^\nblk` |
++------------------------+--------------------------------------------------------+------------------+
+| :math:`\vy^\opog(t)`   | Output gate units.                                     | :math:`\R^\nblk` |
++------------------------+--------------------------------------------------------+------------------+
+| :math:`\vy^\blk{k}(t)` | Output of the :math:`k`-th memory cell block.          | :math:`\R^\dblk` |
++------------------------+--------------------------------------------------------+------------------+
+| :math:`\vs^\blk{k}(t)` | Internal states of the :math:`k`-th memory cell block. | :math:`\R^\dblk` |
++------------------------+--------------------------------------------------------+------------------+
+| :math:`\vy(t)`         | LSTM output.                                           | :math:`\R^\dout` |
++------------------------+--------------------------------------------------------+------------------+
+
+- 以上所有向量全部都\ **初始化**\成各自維度的\ **零向量**，也就是 :math:`t = 0` 時模型\ **所有節點**\（除了\ **輸入**）都是 :math:`0`
+- 根據論文 4.4 節，可以\ **同時**\擁有 :math:`\nblk` 個不同的\ **記憶細胞區域**
+
+  - :ref:`paper-fig-2` 模型共有 :math:`2` 個不同的記憶細胞
+  - **記憶細胞區域**\上標 :math:`k` 的數值範圍為 :math:`k \in \Set{1, \dots, \nblk}`
+
+- **同一個**\ 記憶細胞區域\ **共享閘門單元**，因此 :math:`\vy^\opig(t), \vy^\opog(t)` 的維度為 :math:`\nblk`
+- 根據論文 4.3 節，\ **記憶細胞**、\ **閘門單元**\與\ **隱藏單元**\都算是 **hidden layer** 的一部份
+
+  - **輸入**\會與\ **hidden layer** 直接連接
+  - **輸入**\也會與 **輸出**\直接連接
+  - **Hidden layer** 會與\ **輸出**\連接（但\ **閘門**\不會）
+
+.. pull-quote::
+
+  **All units** (except for gate units) in all layers have **directed** connections (serve as input) to **all units** in the **layer above** (or to **all higher layers**; see experiments 2a and 2b)
+
 ..
-  ### 初始狀態
-
-  我們將 $\eqref{1}$ 中的計算重新定義，並新增幾個符號：
-
-  |符號|意義|數值範圍|
-  |-|-|-|
-  |$\dhid$|**隱藏單元**的個數|$\N$|
-  |$\dblk$|每個記憶細胞區域中**記憶細胞**的個數|$\Z^+$|
-  |$\nblk$|**記憶細胞區域**的個數|$\Z^+$|
-
-  - 因為論文 4.3 節有提到可以完全沒有**隱藏單元**，因此允許 $\dhid = 0$
-    - 此論文的後續研究似乎都沒有使用隱藏單元
-    - 例如更新 LSTM 架構的主要研究 [LSTM-2000][LSTM2000] 與 [LSTM-2002][LSTM2002] 都沒有使用隱藏單元
-  - 根據論文 4.4 節，可以**同時**擁有 $\nblk$ 個不同的**記憶細胞區域**，因此允許 $\nblk \geq 1$
-
-  接著我們定義 $t$ 時間點的模型計算狀態：
-
-  |符號|意義|數值範圍|
-  |-|-|-|
-  |$y^{\ophid}(t)$|**隱藏單元（Hidden Units）**|$\R^{\dhid}$|
-  |$y^{\opig}(t)$|**輸入閘門單元（Input Gate Units）**|$\R^{\nblk}$|
-  |$y^{\opog}(t)$|**輸出閘門單元（Output Gate Units）**|$\R^{\nblk}$|
-  |$y^{\blk{k}}(t)$|**記憶細胞區域** $k$ 的**輸出**|$\R^{\dblk}$|
-  |$s^{\blk{k}}(t)$|**記憶細胞區域** $k$ 的**內部狀態**|$\R^{\dblk}$|
-  |$\vy(t)$|**模型總輸出**|$\R^\dout$|
-
-  - 以上所有向量全部都**初始化**成各自維度的**零向量**，也就是 $t = 0$ 時模型**所有節點**（除了**輸入**）都是 $0$
-  - 根據論文 4.4 節，可以**同時**擁有 $\nblk$ 個不同的**記憶細胞**
-    - [圖 2](#paper-fig-2) 模型共有 $2$ 個不同的記憶細胞
-    - **記憶細胞區域**上標 $k$ 的數值範圍為 $k \in \Set{1, \dots, \nblk}$
-  - **同一個**記憶細胞區域**共享閘門單元**，因此 $y^{\opig}(t), y^{\opog}(t)$ 的維度為 $\nblk$
-  - 根據論文 4.3 節，**記憶細胞**、**閘門單元**與**隱藏單元**都算是**隱藏層（Hidden Layer）**的一部份
-    - **外部輸入**會與**隱藏層**和**總輸出**連接
-    - **隱藏層**會與**總輸出**連接（但**閘門**不會）
-
-  > **All units** (except for gate units) in all layers have **directed** connections (serve as input) to **all units** in the **layer above** (or to **all higher layers**; see experiments 2a and 2b)
-
   ### 計算定義
 
   當我們得到 $t$ 時間點的外部輸入 $\vx(t)$ 時，我們可以進行以下計算得到 $t + 1$ 時間點的總輸出 $y(t + 1)$
