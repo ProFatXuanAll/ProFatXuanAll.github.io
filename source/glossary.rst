@@ -45,7 +45,9 @@
     Eventually, no parameters can be updated, and it causes optimization to fail.
 
   Hyperparameter
+  Hyperparameters
   hyperparameter
+  hyperparameters
     Hyperparameters are parameters used to control machine learning processes.
     Hyperparameters determine the values of model parameters that a learning algorithm ends up learning.
 

@@ -76,17 +76,42 @@ Long Short-Term Memory
   :nowrap:
 
   \[
+    % Operators.
+    \newcommand{\opblk}{\operatorname{block}}
+    \newcommand{\opig}{\operatorname{ig}}
+    \newcommand{\opin}{\operatorname{in}}
+    \newcommand{\oplen}{\operatorname{len}}
+    \newcommand{\opnet}{\operatorname{net}}
+    \newcommand{\opog}{\operatorname{og}}
+    \newcommand{\opout}{\operatorname{out}}
+
+    % Memory cell blocks.
+    \newcommand{\blk}[1]{{\opblk^{#1}}}
+
     % Vectors' notations.
     \newcommand{\vh}{\mathbf{h}}
     \newcommand{\vs}{\mathbf{s}}
+    \newcommand{\vsopblk}[1]{\vs^\blk{#1}}
     \newcommand{\vw}{\mathbf{w}}
     \newcommand{\vx}{\mathbf{x}}
+    \newcommand{\vxt}{\tilde{\vx}}
     \newcommand{\vy}{\mathbf{y}}
-    \newcommand{\vyh}{\hat{\mathbf{y}}}
+    \newcommand{\vyh}{\hat{\vy}}
+    \newcommand{\vyopblk}[1]{\vy^\blk{#1}}
+    \newcommand{\vyopig}{\vy^\opig}
+    \newcommand{\vyopog}{\vy^\opog}
     \newcommand{\vz}{\mathbf{z}}
+    \newcommand{\vzopblk}[1]{\vz^\blk{#1}}
+    \newcommand{\vzopig}{\vz^\opig}
+    \newcommand{\vzopog}{\vz^\opog}
+    \newcommand{\vzopout}{\vz^\opout}
 
     % Matrixs' notation.
     \newcommand{\vW}{\mathbf{W}}
+    \newcommand{\vWopblk}[1]{\vW^\blk{#1}}
+    \newcommand{\vWopig}{\vW^\opig}
+    \newcommand{\vWopog}{\vW^\opog}
+    \newcommand{\vWopout}{\vW^\opout}
 
     % Symbols in mathcal.
     \newcommand{\cL}{\mathcal{L}}
@@ -119,78 +144,23 @@ Long Short-Term Memory
     \newcommand{\vWkjn}{\vW_{k, j}^{\operatorname{new}}}
     \newcommand{\vWkjo}{\vW_{k, j}^{\operatorname{old}}}
 
-    % Operators.
-    \newcommand{\opblk}{\operatorname{blk}}
-    \newcommand{\ophid}{\operatorname{hid}}
-    \newcommand{\opig}{\operatorname{ig}}
-    \newcommand{\opog}{\operatorname{og}}
-
     % Dimensions.
-    \newcommand{\din}{{d_{\operatorname{in}}}}
-    \newcommand{\dout}{{d_{\operatorname{out}}}}
-    \newcommand{\dhid}{{d_\ophid}}
+    \newcommand{\din}{{d_\opin}}
+    \newcommand{\dout}{{d_\opout}}
     \newcommand{\dblk}{{d_\opblk}}
     \newcommand{\nblk}{{n_\opblk}}
 
     % Derivative of loss(#2) with respect to net input #1 at time #3.
     \newcommand{\vth}[2]{{\vartheta_{#1}^{#2}}}
-
-    % Memory cell blocks.
-    \newcommand{\blk}[1]{{\opblk^{#1}}}
   \]
 
 ..
-  $\providecommand{\opblk}{}$
-  $\renewcommand{\opblk}{\operatorname{block}}$
-  <!-- Operator cell multiplicative input gate. -->
-  $\providecommand{\opig}{}$
-  $\renewcommand{\opig}{\operatorname{ig}}$
-  <!-- Operator cell multiplicative output gate. -->
-  $\providecommand{\opog}{}$
-  $\renewcommand{\opog}{\operatorname{og}}$
-  <!-- Operator sequence. -->
   $\providecommand{\opseq}{}$
   $\renewcommand{\opseq}{\operatorname{seq}}$
 
   <!-- Derivative of f with respect to net input. -->
   $\providecommand{\dfnet}{}$
   $\renewcommand{\dfnet}[2]{f_{#1}'\big(\net{#1}{#2}\big)}$
-
-  <!-- Input dimension. -->
-  $\providecommand{\din}{}$
-  $\renewcommand{\din}{d_{\opin}}$
-  <!-- Output dimension. -->
-  $\providecommand{\dout}{}$
-  $\renewcommand{\dout}{d_{\opout}}$
-  <!-- Hidden dimension. -->
-  $\providecommand{\dhid}{}$
-  $\renewcommand{\dhid}{d_{\ophid}}$
-  <!-- Cell block dimension. -->
-  $\providecommand{\dblk}{}$
-  $\renewcommand{\dblk}{d_{\opblk}}$
-  <!-- Number of cell blocks. -->
-  $\providecommand{\nblk}{}$
-  $\renewcommand{\nblk}{n_{\opblk}}$
-
-  <!-- Cell block k. -->
-  $\providecommand{\blk}{}$
-  $\renewcommand{\blk}[1]{\opblk^{#1}}$
-
-  <!-- Weight of multiplicative input gate. -->
-  $\providecommand{\wig}{}$
-  $\renewcommand{\wig}{w^{\opig}}$
-  <!-- Weight of multiplicative output gate. -->
-  $\providecommand{\wog}{}$
-  $\renewcommand{\wog}{w^{\opog}}$
-  <!-- Weight of hidden units. -->
-  $\providecommand{\whid}{}$
-  $\renewcommand{\whid}{w^{\ophid}}$
-  <!-- Weight of cell block units. -->
-  $\providecommand{\wblk}{}$
-  $\renewcommand{\wblk}[1]{w^{\blk{#1}}}$
-  <!-- Weight of output units. -->
-  $\providecommand{\wout}{}$
-  $\renewcommand{\wout}{w^{\opout}}$
 
   <!-- Net input of multiplicative input gate. -->
   $\providecommand{\netig}{}$
@@ -210,15 +180,6 @@ Long Short-Term Memory
   <!-- Derivative of f with respect to net input of output gate. -->
   $\providecommand{\dfnetog}{}$
   $\renewcommand{\dfnetog}[2]{f_{#1}^{\opog}{'}\big(\netog{#1}{#2}\big)}$
-  <!-- Net input of hidden unit. -->
-  $\providecommand{\nethid}{}$
-  $\renewcommand{\nethid}[2]{\vz_{#1}^{\ophid}(#2)}$
-  <!-- Net input of hidden unit with activatiton f. -->
-  $\providecommand{\fnethid}{}$
-  $\renewcommand{\fnethid}[2]{f_{#1}^{\ophid}\big(\nethid{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input of hidden units. -->
-  $\providecommand{\dfnethid}{}$
-  $\renewcommand{\dfnethid}[2]{f_{#1}^{\ophid}{'}\big(\nethid{#1}{#2}\big)}$
   <!-- Net input of output units. -->
   $\providecommand{\netout}{}$
   $\renewcommand{\netout}[2]{\vz_{#1}^{\opout}(#2)}$
@@ -324,7 +285,7 @@ Long Short-Term Memory
 - 隨著時間改變輸入（time-varying inputs）
 - 不隨時間改變輸入（stationary inputs）
 
-此論文討論的主要對象為隨著時間改變輸入的 RNN。
+此論文討論的主要對象為隨著時間改變輸入的 RNN，計算定義請見 :doc:`BPTT </post/math/bptt>` 介紹，此篇筆記採用相同符號。
 
 過往 RNN 模型的問題
 -------------------
@@ -339,11 +300,6 @@ Long Short-Term Memory
   - 已知的模型解決方案會隨著時間差越長導致模型所需參數越多
   - 已知的最佳化解決方案時間複雜度過高
   - 部份已知的測試任務可能過於簡單，甚至可依靠隨機參數猜測（random weight guessing）解決
-
-計算定義
---------
-
-見 :doc:`BPTT </post/math/bptt>` 介紹，此篇筆記採用相同符號。
 
 梯度爆炸 / 消失
 ---------------
@@ -780,168 +736,238 @@ LSTM 架構
   圖片來源：:footcite:`hochreiter-etal-1997-long`。
 
 .. figure:: https://i.imgur.com/UQ5LAu8.png
-  :alt: LSTM 全連接架構範例
+  :alt: LSTM 連接架構範例
   :name: paper-fig-2
 
-  圖 2：LSTM 全連接架構範例。
+  圖 2：LSTM 連接架構範例。
 
   線條真的多到讓人看不懂，看我整理過的公式比較好理解。
   圖片來源：:footcite:`hochreiter-etal-1997-long`。
 
-為了解決梯度爆炸 / 消失問題，作者基於前述討論的結果，提出三個主要的機制，並將這些機制的合體稱為\ **記憶細胞區域**\（**memory cell blocks**）：
+為了解決梯度爆炸 / 消失問題，作者基於前述討論的結果，提出三個主要的機制，並將這些機制的合體稱為 **memory cell blocks**：
 
-- **乘法輸入閘門**\（**multiplicative input gate**）：用於決定是否\ **更新**\記憶細胞的\ **內部狀態**
-- **乘法輸出閘門**\（**multiplicative output gate**）：用於決定是否\ **輸出**\記憶細胞的\ **計算結果**
-- **自連接線性單元**\（**central linear unit with fixed self-connection**）：概念來自於 CEC（見 :math:`\eqref{11}`），藉此保障\ **梯度不會消失**
+- **Input gate units**：用於決定是否\ **更新** memory cell internal states
+- **Output gate units**：用於決定是否\ **輸出** memory cell block activations
+- **Central linear unit with fixed self-connection**：概念來自於 CEC（見 :math:`\eqref{11}`），藉此保障\ **梯度不會消失**
 
-初始狀態
+符號定義
 --------
 
-我們定義新的符號：
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| Symbol                 | Meaning                                                                       | Value Range          |
++========================+===============================================================================+======================+
+| :math:`\dblk`          | Number of memory cells in each memory cell block at time step :math:`t`.      | :math:`\Z^+`         |
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| :math:`\nblk`          | Number of memory cell blocks at time step :math:`t`.                          | :math:`\Z^+`         |
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| :math:`\vx(t)`         | LSTM input at time step :math:`t`.                                            | :math:`\R^\din`      |
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| :math:`\vyopig(t)`     | Input gate units at time step :math:`t`.                                      | :math:`[0, 1]^\nblk` |
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| :math:`\vyopog(t)`     | Output gate units at time step :math:`t`.                                     | :math:`[0, 1]^\nblk` |
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| :math:`\vyopblk{k}(t)` | Output of the :math:`k`-th memory cell block at time step :math:`t`.          | :math:`\R^\dblk`     |
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| :math:`\vsopblk{k}(t)` | Internal states of the :math:`k`-th memory cell block at time step :math:`t`. | :math:`\R^\dblk`     |
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| :math:`\vy(t)`         | LSTM output at time step :math:`t`.                                           | :math:`\R^\dout`     |
++------------------------+-------------------------------------------------------------------------------+----------------------+
 
-+---------------+---------------------------------------------------+--------------+
-| Symbol        | Meaning                                           | Value Range  |
-+===============+===================================================+==============+
-| :math:`\dhid` | Number of hidden units.                           | :math:`\N`   |
-+---------------+---------------------------------------------------+--------------+
-| :math:`\dblk` | Number of memory cells in each memory cell block. | :math:`\Z^+` |
-+---------------+---------------------------------------------------+--------------+
-| :math:`\nblk` | Number of memory cell blocks.                     | :math:`\Z^+` |
-+---------------+---------------------------------------------------+--------------+
+計算定義
+--------
 
-- 因為論文 4.3 節有提到可以完全沒有\ **隱藏單元**，因此允許 :math:`\dhid = 0`
+以下就是 LSTM（1997 版本）的計算流程。
 
-  - 此論文的後續研究似乎都沒有使用隱藏單元
-  - 例如更新 LSTM 架構的主要研究 LSTM-2000 :footcite:`gers-etal-2000-learning` 與 LSTM-2002 :footcite:`gers-etal-2002-learning` 都沒有使用隱藏單元
+.. math::
+  :nowrap:
 
-- 根據論文 4.4 節，可以\ **同時**\擁有 :math:`\nblk` 個不同的\ **記憶細胞區域**，因此允許 :math:`\nblk \geq 1`
+  \[
+    \begin{align*}
+      & \algoProc{\operatorname{LSTM1997}}(\vx, \vWopig, \vWopog, \vWopblk{1}, \dots, \vWopblk{\nblk}, \vWopout) \\
+      & \indent{1} \algoCmt{Initialize activations with zeros.} \\
+      & \indent{1} \cT \algoEq \oplen(\vx) \\
+      & \indent{1} \vyopig(0) \algoEq \zv \\
+      & \indent{1} \vyopog(0) \algoEq \zv \\
+      & \indent{1} \algoFor{k \in \Set{1, \dots, \nblk}} \\
+      & \indent{2}   \vyopblk{k}(0) \algoEq \zv \\
+      & \indent{1} \algoEndFor \\
+      & \indent{1} \algoCmt{Do forward pass.} \\
+      & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
+      & \indent{2}   \algoCmt{Concatenate input units with activations.} \\
+      & \indent{2}   \vxt(t) \algoEq \begin{pmatrix}
+                       \vx(t) \\
+                       \vyopig(t) \\
+                       \vyopog(t) \\
+                       \vyopblk{1}(t) \\
+                       \vdots \\
+                       \vyopblk{\nblk}(t)
+                     \end{pmatrix} \\
+      & \indent{2}   \algoCmt{Compute input gate units' activations.} \\
+      & \indent{2}   \vzopig(t + 1) \algoEq \vWopig \cdot \vxt(t) \\
+      & \indent{2}   \vyopig(t + 1) \algoEq f^\opig\qty(\vzopig(t + 1)) \\
+      & \indent{2}   \algoCmt{Compute output gate units' activations.} \\
+      & \indent{2}   \vzopog(t + 1) \algoEq \vWopog \cdot \vxt(t) \\
+      & \indent{2}   \vyopog(t + 1) \algoEq f^\opog\qty(\vzopog(t + 1)) \\
+      & \indent{2}   \algoCmt{Compute the k-th memory cell block's activations.} \\
+      & \indent{2}   \algoFor{k \in \Set{1, \dots, \nblk}} \\
+      & \indent{3}     \vzopblk{k}(t + 1) \algoEq \vWopblk{k} \cdot \vxt(t) \\
+      & \indent{3}     \vsopblk{k}(t + 1) \algoEq \vsopblk{k}(t) + \vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1)) \\
+      & \indent{3}     \vyopblk{k}(t + 1) \algoEq \vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1)) \\
+      & \indent{2}   \algoEndFor \\
+      & \indent{2}   \algoCmt{Compute outputs.} \\
+      & \indent{2}   \vzopout(t + 1) \algoEq \vWopout \cdot \begin{pmatrix}
+                       \vx(t) \\
+                       \vyopblk{1}(t + 1) \\
+                       \vdots \\
+                       \vyopblk{\nblk}(t + 1) \\
+                     \end{pmatrix} \\
+      & \indent{2}   \vy(t + 1) \algoEq f^\opout\qty(\vzopout(t + 1)) \\
+      & \indent{1} \algoEndFor \\
+      & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
+      & \algoEndProc
+    \end{align*}
+  \]
 
-接著我們定義 :math:`t` 時間點的模型計算狀態：
+Memory Cell Blocks and Memory Cells
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Memory cells 的主要功能為記憶過去的輸入資訊。
 
-+------------------------+--------------------------------------------------------+------------------+
-| Symbol                 | Meaning                                                | Value Range      |
-+========================+========================================================+==================+
-| :math:`\vy^\ophid(t)`  | Hidden units.                                          | :math:`\R^\dhid` |
-+------------------------+--------------------------------------------------------+------------------+
-| :math:`\vy^\opig(t)`   | Input gate units.                                      | :math:`\R^\nblk` |
-+------------------------+--------------------------------------------------------+------------------+
-| :math:`\vy^\opog(t)`   | Output gate units.                                     | :math:`\R^\nblk` |
-+------------------------+--------------------------------------------------------+------------------+
-| :math:`\vy^\blk{k}(t)` | Output of the :math:`k`-th memory cell block.          | :math:`\R^\dblk` |
-+------------------------+--------------------------------------------------------+------------------+
-| :math:`\vs^\blk{k}(t)` | Internal states of the :math:`k`-th memory cell block. | :math:`\R^\dblk` |
-+------------------------+--------------------------------------------------------+------------------+
-| :math:`\vy(t)`         | LSTM output.                                           | :math:`\R^\dout` |
-+------------------------+--------------------------------------------------------+------------------+
+- 在 :math:`t` 時間點時，一個 LSTM 模型有 :math:`\nblk` 個 memory cell blocks :math:`\vyopblk{1}(t), \dots, \vyopblk{\nblk}(t)`
+- 在 :math:`t` 時間點時，第 :math:`k` 個 memory cell block :math:`\vyopblk{k}(t)` 內有 :math:`\dblk` 個 memory cells :math:`\vyopblk{k}_1(t), \dots, \vyopblk{k}_\dblk(t)`
+- 例如：:ref:`paper-fig-2`
 
-- 以上所有向量全部都\ **初始化**\成各自維度的\ **零向量**，也就是 :math:`t = 0` 時模型\ **所有節點**\（除了\ **輸入**）都是 :math:`0`
-- 根據論文 4.4 節，可以\ **同時**\擁有 :math:`\nblk` 個不同的\ **記憶細胞區域**
+  - 共有 :math:`2` 個不同的 memory cell blocks
+  - 每個 memory cell block 中包含 :math:`2` 個 memory cells
 
-  - :ref:`paper-fig-2` 模型共有 :math:`2` 個不同的記憶細胞
-  - **記憶細胞區域**\上標 :math:`k` 的數值範圍為 :math:`k \in \Set{1, \dots, \nblk}`
+Input Gate Units
+~~~~~~~~~~~~~~~~
 
-- **同一個**\ 記憶細胞區域\ **共享閘門單元**，因此 :math:`\vy^\opig(t), \vy^\opog(t)` 的維度為 :math:`\nblk`
-- 根據論文 4.3 節，\ **記憶細胞**、\ **閘門單元**\與\ **隱藏單元**\都算是 **hidden layer** 的一部份
+Input gate units 決定與控制計算資訊是否需要流入 memory cells，LSTM 以此設計避免因輸入訊號衝突造成的參數更新矛盾。
 
-  - **輸入**\會與\ **hidden layer** 直接連接
-  - **輸入**\也會與 **輸出**\直接連接
-  - **Hidden layer** 會與\ **輸出**\連接（但\ **閘門**\不會）
+- Input gate units :math:`\vyopig(t + 1)` 是以\ **乘法**\參與計算，因此稱為 **multiplicative gate units**
+
+  - Memory cells in the same memory cell block **share** the same input gate unit
+  - 因此 :math:`\vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1))` 中的乘法是\ **純量乘上向量**
+
+- 當模型認為 :math:`t` 時間點的計算資訊 :math:`\vxt(t)` **不重要**\時，模型應該要\ **關閉 input gate units**
+
+  - 更準確的說，當模型認為 :math:`g\qty(\vzopblk{k}(t))` 對第 :math:`k` 個 memory cell block 來說不重要時，模型應該要關閉第 :math:`k` 個 input gate unit，即 :math:`\vyopig_k(t + 1) \approx 0`
+  - 關閉 input gate units 代表丟棄當前輸入訊號，只以\ **過去資訊**\進行決策
+  - 在此狀態下 memory cell internal states :math:`\vsopblk{k}(t + 1)` 與 :math:`\vsopblk{k}(t)` 時間點\ **完全相同**，達成 CEC（見 :math:`\eqref{11}`），藉此保障\ **梯度不會消失**
+  - 不論 :math:`g\qty(\vzopblk{k}(t + 1))` 的大小，只要 :math:`\vyopig_k(t + 1) \approx 0`，則計算資訊 :math:`\vxt(t)` **完全無法影響**\接下來的所有計算
+
+- 當模型認為 :math:`t` 時間點的計算資訊 :math:`\vxt(t)` **重要**\時，模型應該要\ **開啟 input gate units**
+
+  - 更準確的說，當模型認為 :math:`g\qty(\vzopblk{k}(t))` 對第 :math:`k` 個 memory cell block 來說重要時，模型應該要開啟第 :math:`k` 個 input gate unit，即 :math:`\vyopig_k(t + 1) \approx 1`
+
+- 我的 :math:`\vyopig_j(t + 1)` 是對應到論文中的 :math:`y^{\opin_j}(t + 1)`，見論文 4.1 節
+- 例如：:ref:`paper-fig-2`
+
+  - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 1`` 共享 input gate unit ``in 1``
+  - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 2`` 共享 input gate unit ``in 2``
+
+Memory Cell Internal States
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+將 CEC 融入 LSTM 的主要機制。
+
+- 有時簡稱 memory cell internal states 為 internal states
+- 更新 internal states 的唯一管道是計算資訊 :math:`\vxt(t)`
+- 更新 internal states 的決策取決於 input gate units :math:`\vyopig(t + 1)`
+- 由於第 :math:`k` 個 memory cell blocks 中的 internal states :math:`\vsopblk{k}(t + 1)` 主要只與第 :math:`k` 個 internal states :math:`\vsopblk{k}(t)` 連接，因此稱為 **fixed self-connection**
+- 由於第 :math:`k` 個 memory cell blocks 中的 internal states :math:`\vsopblk{k}(t + 1)` 是透過加法與 :math:`\vsopblk{k}(t)` 結合，因此稱為 central **linear** unit
+- 我的 :math:`\vsopblk{k}_j(t + 1)` 是對應到論文中的 :math:`s_{c_j}(t + 1)`，見論文 4.1 節
+
+Output Gate Units
+~~~~~~~~~~~~~~~~~
+
+Output gate units 決定與控制 memory cell block activations 是否需要用於當前輸出與未來資訊的計算，LSTM 以此設計避免因輸出訊號衝突造成的參數更新矛盾。
+
+- Output gate units :math:`\vyopog(t + 1)` 是以\ **乘法**\參與計算，因此稱為 **multiplicative gate units**
+
+  - Memory cells in the same memory cell block **share** the same output gate unit
+  - 因此 :math:`\vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1))` 中的乘法是\ **純量乘上向量**
+
+- 當模型認為 :math:`t + 1` 時間點的 internal state activations 會導致\ **當前計算錯誤**\時，模型應該\ **關閉 output gate units**
+
+  - 更準確的說，當模型認為 :math:`h\qty(\vsopblk{k}(t + 1))` 對後續計算來說不重要時，模型應該要關閉第 :math:`k` 個 output gate unit，即 :math:`\vyopog_k(t + 1) \approx 0`
+  - 在 **input gate units 開啟**\的狀況下，**關閉 output gate units** 代表不讓\ **現在**\時間點的資訊影響當前計算
+  - 在 **input gate units 關閉**\的狀況下，**關閉 output gate units** 代表不讓\ **過去**\時間點的資訊影響當前計算
+  - 不論 :math:`h\qty(\vsopblk{k}(t + 1))` 的大小，只要 :math:`\vyopog_k(t + 1) \approx 0`，則 internal states :math:`\vsopblk{k}(t + 1)` **完全無法影響**\接下來的所有計算
+
+- 當模型認為 :math:`t + 1` 時間點的 internal state activations 包含\ **重要資訊**\時，模型應該\ **開啟 output gate units**
+
+  - 更準確的說，當模型認為 :math:`h\qty(\vsopblk{k}(t + 1))` 對後續計算來說很重要時，模型應該要開啟第 :math:`k` 個 output gate unit，即 :math:`\vyopog_k(t + 1) \approx 1`
+  - 在 **input gate units 開啟**\的狀況下，**開啟 output gate units** 代表讓\ **現在**\時間點的資訊影響當前計算
+  - 在 **input gate units 關閉**\的狀況下，**開啟 output gate units** 代表不讓\ **過去**\時間點的資訊影響當前計算
+
+- 我的 :math:`\vyopog_j(t + 1)` 是對應到論文中的 :math:`y^{\opout_j}(t + 1)`，見論文 4.1 節
+- `PyTorch 實作的 LSTM <Pytorch-LSTM_>`_ 中 :math:`h(t)` 表達的意思是 memory cell block activation :math:`\vyopblk{k}(t)`
+- 例如：:ref:`paper-fig-2`
+
+  - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 1`` 共享 output gate unit ``out 1``
+  - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 2`` 共享 output gate unit ``out 2``
+
+Activation Functions
+~~~~~~~~~~~~~~~~~~~~
+
+- :math:`f^\opig, f^\opog, f^\opout, g, h` 都是 differentiable element-wise activation function，大部份都是 sigmoid 或是 sigmoid 的變形
+- :math:`f^\opig, f^\opog` 的數值範圍（range）必須限制在 :math:`[0, 1]`，才能達成 multiplicative gate 的功能
+- :math:`f^\opout` 的數值範圍只跟任務有關
+- 論文並沒有給 :math:`g, h` 任何數值範圍的限制
+
+Hidden Units
+~~~~~~~~~~~~
+
+- 作者將此論文新定義的 input/output gate units 與 memory cells 稱為 hidden units（見論文 4.3 節）
+- Hidden layer 由 hidden units 組成
+- 此論文的後續研究都基於此論文 hidden layer 的設計進行改良，例如 LSTM-2000 :footcite:`gers-etal-2000-learning` 與 LSTM-2002 :footcite:`gers-etal-2002-learning`
+- Hidden units 的設計等同於\ **保留** 造成梯度爆炸 / 消失的架構，是個不好的設計，因此論文後續在\ **最佳化**\的過程中動了手腳
+- 所有 hidden units 全部\ **初始化**\成\ **零向量**，也就是 :math:`t = 0` 時模型\ **所有節點**\（除了輸入 :math:`\vx(0)`）都是 :math:`0`
+
+節點連接機制
+~~~~~~~~~~~~
+
+- Input layer 會與 hidden layer 直接連接
+- Input layer 也會與 output layer 直接連接
+- Hidden layer 會與 output layer 連接
+- 但 gate units 不會與 output layer 連接
 
 .. pull-quote::
 
-  **All units** (except for gate units) in all layers have **directed** connections (serve as input) to **all units** in the **layer above** (or to **all higher layers**; see experiments 2a and 2b)
+  ... **All units** (except for gate units) in all layers have **directed** connections (serve as input) to **all units** in the **layer above** ...
+
+.. error::
+
+  根據論文 A.7 式下方的描述
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \opnet_k(t) &= \sum_{u : u \text{ not a gate}} w_{ku} y^u(t - 1). \\
+        y^k(t)      & = f_k\qty(\opnet_k(t)).
+      \end{align*}
+    \]
+
+  代表 :math:`t + 1` 時間點的\ **輸出**\只與 :math:`t` 時間點的計算結果有關係，並\ **沒有**\包含 :math:`t + 1` 時間點的 memory cell block activations。
+  所以計算 :math:`t + 1` 時間點的 memory cell block activations 都只是在幫助 :math:`t + 2` 時間點的計算狀態\ **鋪陳**。
+  我不確定這是否為作者的筆誤，畢竟論文 appendix 中所有分析的數學式都寫的蠻正確的。
+  但我仍然認為這裡是筆誤，理由如下：
+
+  - 同個實驗室後續的研究（例如 :footcite:`gers-etal-2002-learning`）寫的式子不同
+  - Memory cell block activations 至少要傳播 :math:`2` 個時間點才能影響輸出，代表第 :math:`1` 個時間點的輸出完全無法利用到 memory cell 的資訊
+  - 後續的實驗架構設計中沒有將 input layer 連接到 output layer，代表第 :math:`1` 個時間點的輸出完全依賴模型的初始狀態（常數），非常不合理
+
+  因此我決定改用我認為是正確的版本撰寫後續的筆記，即 :math:`t + 1` 時間點的\ **輸出**\與 :math:`t` 時間點的 memory cell block activations **有關**。
+
+.. note::
+
+  注意在計算 input/output gate units 時並\ **沒有**\使用 **bias term**，但後續的分析會提到可以使用 bias term 進行\ **計算缺陷**\的修正。
 
 ..
-  ### 計算定義
-
-  當我們得到 $t$ 時間點的外部輸入 $\vx(t)$ 時，我們可以進行以下計算得到 $t + 1$ 時間點的總輸出 $y(t + 1)$
-
-  $$
-  \begin{align*}
-  D & = \din + \dhid + \nblk \cdot (2 + \dblk) \tag{28}\label{28} \\
-  \tilde{x}(t) & = \begin{pmatrix}
-  \vx(t) \\
-  y^{\ophid}(t) \\
-  y^{\opig}(t) \\
-  y^{\opog}(t) \\
-  y^{\blk{1}}(t) \\
-  \vdots \\
-  y^{\blk{\nblk}}(t)
-  \end{pmatrix} \in \R^D \tag{29}\label{29} \\
-  k & \in \Set{1, \dots, \nblk} \tag{30}\label{30} \\
-  y^{\ophid}(t + 1) & = f^{\ophid}\pa{\vz^{\ophid}(t + 1)} = f^{\ophid}\pa{\whid \cdot \tilde{x}(t)} \tag{31}\label{31} \\
-  y^{\opig}(t + 1) & = f^{\opig}\pa{\vz^{\opig}(t + 1)} = f^{\opig}\pa{\wig \cdot \tilde{x}(t)} \tag{32}\label{32} \\
-  y^{\opog}(t + 1) & = f^{\opog}\pa{\vz^{\opog}(t + 1)} = f^{\opog}\pa{\wog \cdot \tilde{x}(t)} \tag{33}\label{33} \\
-  s^{\blk{k}}(t + 1) & = s^{\blk{k}}(t) + y_k^{\opig}(t + 1) \cdot g\pa{\vz^{\blk{k}}(t + 1)} \tag{34}\label{34} \\
-  & = s^{\blk{k}}(t) + y_k^{\opig}(t + 1) \cdot g\pa{\wblk{k} \cdot \tilde{x}(t)} \\
-  y^{\blk{k}}(t + 1) & = y_k^{\opog}(t + 1) \cdot h\pa{s^{\blk{k}}(t + 1)} \tag{35}\label{35} \\
-  y(t + 1) & = f^{\opout}(\vz^{\opout}(t + 1)) = f^{\opout}\pa{\wout \cdot \begin{pmatrix}
-  \vx(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
-  \vdots \\
-  y^{\blk{\nblk}}(t + 1)
-  \end{pmatrix}} \tag{36}\label{36}
-  \end{align*}
-  $$
-
-  以上就是 LSTM（1997 版本）的計算流程。
-
-  - $f^{\ophid}, f^{\opig}, f^{\opog}, f^{\opout}, g, h$ 都是 differentiable element-wise activation function，大部份都是 sigmoid 或是 sigmoid 的變形
-  - $f^{\opig}, f^{\opog}$ 的數值範圍（range）必須限制在 $[0, 1]$，才能達成閘門的功能
-  - $f^{\opout}$ 的數值範圍只跟任務有關
-  - 論文並沒有給 $f^{\ophid}, g, h$ 任何數值範圍的限制
-
-  論文 4.3 節有提到可以完全沒有**隱藏單元**，而後續的研究（例如 [LSTM-2000][LSTM2000]、[LSTM-2002][LSTM2002]）也完全沒有使用隱藏單元，因此 $\eqref{31}$ 可以完全不存在。
-
-  - $\eqref{29}$ 中的 $y^{\ophid}(t)$ 必須去除
-  - $\eqref{36}$ 中的 $y^{\ophid}(t + 1)$ 必須去除
-  - 隱藏單元的設計等同於**保留** $\eqref{1} \eqref{2}$ 的架構，是個不好的設計，因此論文後續在**最佳化**的過程中動了手腳
-
-  根據 $\eqref{32} \eqref{34}$，在計算完 $t + 1$ 時間點的**輸入閘門** $y^{\opig}(t + 1)$ 後便可以更新 $t + 1$ 時間點的**記憶細胞內部狀態** $s^{\blk{k}}(t + 1)$。
-
-  - **記憶細胞淨輸入**會與**輸入閘門**進行**相乘**，因此稱為**乘法輸入閘門**
-  - 由於 $t + 1$ 時間點的資訊有加上 $t$ 時間點的資訊，因此稱為**自連接線性單元**
-  - 同一個記憶細胞區域會**共享**同一個輸入閘門，因此 $\eqref{34}$ 中的乘法是**純量乘上向量**，這也是 $y^{ig}(t + 1) \in \R^{\nblk}$ 的理由
-  - 當模型認為**輸入訊號不重要**時，模型應該要**關閉輸入閘門**，即 $y_k^{\opig}(t + 1) \approx 0$
-    - 丟棄**當前**輸入訊號，只以**過去資訊**進行決策
-    - 在此狀態下 $t + 1$ 時間點的**記憶細胞內部狀態**與 $t$ 時間點**完全相同**，達成 $\eqref{23} \eqref{25}$，藉此保障**梯度不會消失**
-  - 當模型認為**輸入訊號重要**時，模型應該要**開啟輸入閘門**，即 $y_k^{\opig}(t + 1) \approx 1$
-  - 不論**輸入訊號** $g\pa{\vz^{\blk{k}}(t + 1)}$ 的大小，只要 $y_k^{\opig}(t + 1) \approx 0$，則輸入訊號**完全無法影響**接下來的所有計算，LSTM 以此設計避免 $\eqref{26}$ 所遇到的困境
-
-  根據 $\eqref{33} \eqref{35}$，在計算完 $t + 1$ 時間點的**輸出閘門** $y^{\opog}(t + 1)$ 與**記憶細胞內部狀態** $s^{\blk{k}}(t + 1)$ 後便可以得到 $t + 1$ 時間點的**記憶細胞輸出** $y^{\blk{k}}(t + 1)$。
-
-  - **記憶細胞啟發值**會與**輸出閘門**進行**相乘**，因此稱為**乘法輸出閘門**
-  - 同一個記憶細胞區域會**共享**同一個輸出閘門，因此 $\eqref{35}$ 中的乘法是**純量乘上向量**，這也是 $y^{og}(t + 1) \in \R^{\nblk}$ 的理由
-  - 當模型認為**輸出訊號**會導致**當前計算錯誤**時，模型應該**關閉輸出閘門**，即 $y_k^{\opog}(t + 1) \approx 0$
-    - 在**輸入**閘門**開啟**的狀況下，**關閉輸出**閘門代表不讓**現在**時間點的資訊影響當前計算
-    - 在**輸入**閘門**關閉**的狀況下，**關閉輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
-  - 當模型認為**輸出訊號包含重要資訊**時，模型應該要開啟**輸出閘門**，即 $y_k^{\opog}(t + 1) \approx 1$
-    - 在**輸入**閘門**開啟**的狀況下，**開啟輸出**閘門代表讓**現在**時間點的資訊影響當前計算
-    - 在**輸入**閘門**關閉**的狀況下，**開啟輸出**閘門代表不讓**過去**時間點的資訊影響當前計算
-  - 不論**輸出訊號** $h\pa{s^{\blk{k}}(t + 1)}$ 的大小，只要 $y_k^{\opog}(t + 1) \approx 0$，則輸出訊號**完全無法影響**接下來的所有計算，LSTM 以此設計避免 $\eqref{26} \eqref{27}$ 所遇到的困境
-  - [PyTorch 實作的 LSTM][Pytorch-LSTM] 中 $h(t)$ 表達的意思是記憶細胞輸出 $y^{\blk{k}}(t)$
-
-  根據 $\eqref{36}$，得到 $t + 1$ 時間點的**記憶細胞輸出** $y^{\blk{k}}(t + 1)$ 後就可以計算 $t + 1$ 時間點的模型**總輸出** $y(t + 1)$。
-
-  - 注意在計算 $\eqref{36}$ 時並沒有使用閘門單元，與 $\eqref{29}$ 的計算不同
-  - 注意 $y(t + 1)$ 與 $y^{\opog}$ 不同
-    - $y(t + 1)$ 是**總輸出**，我的 $y(t + 1)$ 是論文中的 $y^k(t + 1)$
-    - $y^{\opog}(t + 1)$ 是**記憶細胞**的**輸出閘門**，我的 $y^{\opog}(t + 1)$ 是論文中的 $y^{\opout_i}(t + 1)$
-
-  根據論文 A.7 式下方的描述，$t + 1$ 時間點的**總輸出**只與 $t$ 時間點的**模型狀態**（**不含閘門與總輸出**）有關係，所以 $\eqref{31} \eqref{32} \eqref{33} \eqref{35}$ 的計算都只是在幫助 $t + 2$ 時間點的計算狀態**鋪陳**。
-
-  我不確定這是否為作者的筆誤，畢竟附錄中所有分析的數學式都寫的蠻正確的，我認為這裡是筆誤的理由如下：
-
-  - 同個實驗室後續的研究（例如 [LSTM-2002][LSTM2002]）寫的式子不同
-  - 至少要傳播兩個時間點才能得到輸出，代表第 $1$ 個時間點的輸出完全無法利用到記憶細胞的知識
-  - 後續的實驗架構設計中沒有將外部輸入連接到輸出，代表第 $1$ 個時間點的輸出完全依賴模型的初始狀態（常數），非常不合理
-
-  因此我決定改用我認為是正確的版本撰寫後續的筆記，即 $t + 1$ 時間點的**總輸出**與 $t$ 時間點的**外部輸入**和 $t + 1$ 時間點的**計算狀態**有關。
-
-  注意 $\eqref{32} \eqref{33}$ 沒有使用偏差項（bias term），但後續的分析會提到可以使用偏差項進行計算缺陷的修正。
-
   ### 參數結構
 
   |參數|意義|輸出維度|輸入維度|
@@ -983,14 +1009,14 @@ LSTM 架構
   b & \in \Set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
   \pdv{y_i^a(t + 1)}{y_j^b(t)} & = \pdv{y_i^a(t + 1)}{\vz_i^a(t + 1)} \cdot \cancelto{0}{\pdv{\vz_i^a(t + 1)}{y_j^b(t)}} \aptr 0 \\
   k & \in \Set{1, 2, \dots, \nblk} \\
-  \pdv{y_i^{\blk{k}}(t + 1)}{y_j^b(t)} & = \pdv{y_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pdv{y_k^{\opig}(t + 1)}{y_j^b(t)}} \\
+  \pdv{y_i^{\blk{k}}(t + 1)}{y_j^b(t)} & = \pdv{y_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopig_k(t + 1)}{y_j^b(t)}} \\
   & \quad + \pdv{y_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t + 1}}{y_j^b(t)}} \\
-  & \quad + \pdv{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pdv{y_k^{\opog}(t + 1)}{y_j^b(t)}} \\
+  & \quad + \pdv{y_i^{\blk{k}}(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopog_k(t + 1)}{y_j^b(t)}} \\
   & \aptr 0
   \end{align*} \tag{38}\label{38}
   $$
 
-  由於 $y^{\opig}(t + 1), y^{\opog}(t + 1), \vz^{\blk{k}}(t + 1)$ 並不是**直接**透過 $w^{\ophid}$ 產生，因此 $w^{\ophid}$ 只能透過參與 $t$ 時間點**以前**的計算**間接**對 $t + 1$ 時間點的計算造成影響（見 $\eqref{31}$），這也代表在 $\eqref{38}$ 作用的情況下 $w^{\ophid}$ **無法**從 $y^{\opig}(t + 1), y^{\opog}(t + 1), \vz^{\blk{k}}(t + 1)$ 收到任何的**梯度**：
+  由於 $\vyopig(t + 1), \vyopog(t + 1), \vz^{\blk{k}}(t + 1)$ 並不是**直接**透過 $w^{\ophid}$ 產生，因此 $w^{\ophid}$ 只能透過參與 $t$ 時間點**以前**的計算**間接**對 $t + 1$ 時間點的計算造成影響（見 $\eqref{31}$），這也代表在 $\eqref{38}$ 作用的情況下 $w^{\ophid}$ **無法**從 $\vyopig(t + 1), \vyopog(t + 1), \vz^{\blk{k}}(t + 1)$ 收到任何的**梯度**：
 
   $$
   \begin{align*}
@@ -1129,7 +1155,7 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}(t)
@@ -1148,7 +1174,7 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}(t)
@@ -1172,7 +1198,7 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}(t)
@@ -1191,31 +1217,31 @@ LSTM 架構
 
   #### 閘門單元參數
 
-  根據 $\eqref{37}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞輸出** $y^{\blk{k}}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{37}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞輸出** $\vyopblk{k}(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   i & \in \Set{1, \dots, \dblk} \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pdv{y_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \pdv{y_k^{\opog}(t + 1)}{\wog_{p, q}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \cancelto{0}{\pdv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}}} \\
-  & \aptr h_i\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pdv{y_k^{\opog}(t + 1)}{\wog_{k, q}} \tag{48}\label{48} \\
-  \pdv{y_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pdv{y_k^{\opog}(t + 1)}{\wig_{p, q}}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} \\
-  & \aptr y_k^{\opog}(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{k, q}} \tag{49}\label{49}
+  \pdv{y_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{\vyopog_k(t + 1)} \cdot \pdv{\vyopog_k(t + 1)}{\wog_{p, q}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \cancelto{0}{\pdv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}}} \\
+  & \aptr h_i\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pdv{\vyopog_k(t + 1)}{\wog_{k, q}} \tag{48}\label{48} \\
+  \pdv{y_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopog_k(t + 1)}{\wig_{p, q}}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} \\
+  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{k, q}} \tag{49}\label{49}
   \end{align*}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  同 $\eqref{49}$，使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^\star}$ 對於**記憶細胞輸出** $y^{\blk{k}}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^\star$ 可以**不等於** $k$）
+  同 $\eqref{49}$，使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^\star}$ 對於**記憶細胞輸出** $\vyopblk{k}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^\star$ 可以**不等於** $k$）
 
   $$
   \begin{align*}
   i, p & \in \Set{1, \dots, \dblk} \\
   k, k^\star & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pdv{y_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{y_k^{\opog}(t + 1)} \cdot \cancelto{0}{\pdv{y_k^{\opog}(t + 1)}{\wblk{k^\star}_{p, q}}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} \\
-  & \aptr y_k^{\opog}(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k}_{i, q}}
+  \pdv{y_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopog_k(t + 1)}{\wblk{k^\star}_{p, q}}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} \\
+  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k}_{i, q}}
   \end{align*} \tag{50}\label{50}
   $$
 
@@ -1227,7 +1253,7 @@ LSTM 架構
 
   #### 閘門單元參數
 
-  根據 $\eqref{37} \eqref{38}$ 我們可以得到**閘門單元參數** $\wig, \wog$ 對於**閘門單元** $y^{\opig}(t + 1), y^{\opog}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{37} \eqref{38}$ 我們可以得到**閘門單元參數** $\wig, \wog$ 對於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
@@ -1236,22 +1262,22 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}
   \end{pmatrix} \in \R^D \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{y_k^{\opig}(t + 1)}{[\wig ; \wog]_{p, q}} & = \pdv{y_k^{\opig}(t + 1)}{\netig{k}{t + 1}} \cdot \cancelto{\aptr}{\pdv{\netig{k}{t + 1}}{[\wig ; \wog]_{p, q}}} \\
+  \pdv{\vyopig_k(t + 1)}{[\wig ; \wog]_{p, q}} & = \pdv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \cancelto{\aptr}{\pdv{\netig{k}{t + 1}}{[\wig ; \wog]_{p, q}}} \\
   & \aptr \dfnetig{k}{t + 1} \cdot \delta_{k, p} \cdot \tilde{x}_q(t) \\
-  \pdv{y_k^{\opog}(t + 1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t + 1} \cdot \tilde{x}_q(t)
+  \pdv{\vyopog_k(t + 1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t + 1} \cdot \tilde{x}_q(t)
   \end{align*} \tag{51}\label{51}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  由於**閘門單元** $y^{\opig}(t + 1), y^{\opog}(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\opig}(t + 1), y^{\opog}(t + 1)$ **剩餘梯度**為 $0$
+  由於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $\vyopig(t + 1), \vyopog(t + 1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
@@ -1260,7 +1286,7 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}
@@ -1268,8 +1294,8 @@ LSTM 架構
   k & \in \Set{1, \dots, \nblk} \\
   p & \in \Set{1, \dots, \dblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{y_k^{\opig}(t + 1)}{\wblk{k}_{p, q}} & = \pdv{y_k^{\opig}(t + 1)}{\netig{k}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pdv{\netig{k}{t + 1}}{\tilde{x}_j(t)}} \cdot \pdv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
-  \pdv{y_k^{\opog}(t + 1)}{\wblk{k}_{p, q}} & \aptr 0
+  \pdv{\vyopig_k(t + 1)}{\wblk{k}_{p, q}} & = \pdv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pdv{\netig{k}{t + 1}}{\tilde{x}_j(t)}} \cdot \pdv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
+  \pdv{\vyopog_k(t + 1)}{\wblk{k}_{p, q}} & \aptr 0
   \end{align*} \tag{52}\label{52}
   $$
 
@@ -1279,7 +1305,7 @@ LSTM 架構
 
   #### 閘門單元參數
 
-  將 $\eqref{37}$ 結合 $\eqref{51}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞內部狀態** $s^{\blk{k}}(t + 1)$ 計算所得**剩餘梯度**
+  將 $\eqref{37}$ 結合 $\eqref{51}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞內部狀態** $\vsopblk{k}(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
@@ -1288,7 +1314,7 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}(t)
@@ -1296,19 +1322,19 @@ LSTM 架構
   i & \in \Set{1, \dots, \dblk} \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\pdv{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \pdv{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pdv{y_k^{\opig}(t + 1)}{\wog_{p, q}}} \\
+  \pdv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\pdv{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \pdv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopig_k(t + 1)}{\wog_{p, q}}} \\
   & \quad + \pdv{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t + 1}}{\wog_{p, q}}} \\
   & \aptr 0 \tag{53}\label{53} \\
-  \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pdv{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \pdv{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \pdv{y_k^{\opig}(t + 1)}{\wig_{p, q}} \\
+  \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pdv{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \pdv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \pdv{\vyopig_k(t + 1)}{\wig_{p, q}} \\
   & \quad + \pdv{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t + 1}}{\wig_{p, q}}} \\
-  & \aptr 1 \cdot \delta_{k, p} \cdot \pdv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\pdv{y_k^{\opig}(t + 1)}{\wig_{k, q}}} \\
+  & \aptr 1 \cdot \delta_{k, p} \cdot \pdv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\pdv{\vyopig_k(t + 1)}{\wig_{k, q}}} \\
   & \aptr \delta_{k, p} \cdot \br{\pdv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
   \end{align*}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^\star}$ 對於**記憶細胞內部狀態** $s^{\blk{k}}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^\star$ 可以**不等於** $k$）
+  使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^\star}$ 對於**記憶細胞內部狀態** $\vsopblk{k}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^\star$ 可以**不等於** $k$）
 
   $$
   \begin{align*}
@@ -1317,7 +1343,7 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}(t)
@@ -1325,11 +1351,11 @@ LSTM 架構
   i, p & \in \Set{1, \dots, \dblk} \\
   k, k^\star & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pdv{s_i^{\blk{k}}(t)}{\wblk{k^\star}_{p, q}} + \pdv{s_i^{\blk{k}}(t + 1)}{y_k^{\opig}(t + 1)} \cdot \cancelto{0}{\pdv{y_k^{\opig}(t + 1)}{\wblk{k^\star}_{p, q}}} \\
+  \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pdv{s_i^{\blk{k}}(t)}{\wblk{k^\star}_{p, q}} + \pdv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopig_k(t + 1)}{\wblk{k^\star}_{p, q}}} \\
   & \quad + \pdv{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \pdv{\netcell{i}{k}{t + 1}}{\wblk{k^\star}_{p, q}} \\
   & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot 1 \cdot \pdv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} \\
-  & \quad + \delta_{k, k^\star} \cdot \delta_{i, p} \cdot y_k^{\opig}(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t) \\
-  & = \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \br{\pdv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + y_k^{\opig}(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t)}
+  & \quad + \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \vyopig_k(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t) \\
+  & = \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \br{\pdv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t)}
   \end{align*} \tag{55}\label{55}
   $$
 
@@ -1392,16 +1418,16 @@ LSTM 架構
   & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}}\Bigg] \\
   & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{y_k^{\opog}(t + 1)}{\wog_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{\vyopog_k(t + 1)}{\wog_{k, q}}}\Bigg] \\
   & = \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \pdv{y_k^{\opog}(t + 1)}{\wog_{k, q}} \\
+  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \pdv{\vyopog_k(t + 1)}{\wog_{k, q}} \\
   & \aptr \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \\
   & \quad \quad \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}(t)
@@ -1419,7 +1445,7 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}(t)
@@ -1430,12 +1456,12 @@ LSTM 架構
   & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
   & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \vyopog_k(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
   & = \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot y_k^{\opog}(t + 1) \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot \vyopog_k(t + 1) \\
   & \aptr \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\pdv{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
-  & \quad \quad g_j\pa{\netcell{j}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot y_k^{\opog}(t + 1)
+  & \quad \quad g_j\pa{\netcell{j}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot \vyopog_k(t + 1)
   \end{align*} \tag{59}\label{59}
   $$
 
@@ -1449,7 +1475,7 @@ LSTM 架構
   \vx(t) \\
   y^{\ophid}(t) \\
   y^{\opig}(t) \\
-  y^{\opog}(t) \\
+  \vyopog(t) \\
   y^{\blk{1}}(t) \\
   \vdots \\
   y^{\blk{\nblk}}(t)
@@ -1459,14 +1485,14 @@ LSTM 架構
   & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
   & \pdv{\cL(t + 1)}{\wblk{k}_{p, q}} = \sum_{i = 1}^\dout \br{\pdv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wblk{k}_{p, q}}} \\
   & \aptr \sum_{i = 1}^\dout \bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pdv{y^{\blk{k}}_p(t + 1)}{\wblk{k}_{p, q}}\bigg] \\
+  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pdv{\vyopblk{k}_p(t + 1)}{\wblk{k}_{p, q}}\bigg] \\
   & = \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \pdv{y^{\blk{k}}_p(t + 1)}{\wblk{k}_{p, q}} \\
+  & \quad \quad \pdv{\vyopblk{k}_p(t + 1)}{\wblk{k}_{p, q}} \\
   & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad y_k^{\opog}(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \pdv{s_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}\Bigg] \\
+  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \pdv{s_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}\Bigg] \\
   & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad y_k^{\opog}(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\pdv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
-  & \quad \quad y_k^{\opig}(t + 1) \cdot g_p'\pa{\netcell{p}{k}{t + 1}} \cdot \tilde{x}_q(t)\Bigg]
+  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\pdv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
+  & \quad \quad \vyopig_k(t + 1) \cdot g_p'\pa{\netcell{p}{k}{t + 1}} \cdot \tilde{x}_q(t)\Bigg]
   \end{align*} \tag{60}\label{60}
   $$
 
@@ -1515,22 +1541,22 @@ LSTM 架構
   \begin{align*}
   i & \in \Set{1, \dots, \dblk} \\
   k & \in \Set{1, \dots, \nblk} \\
-  \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} & = \pdv{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\pdv{y_k^{\opig}(t + 1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\netcell{i}{k}{t + 1}} + \\
-  & \quad y_k^{\opig}(t + 1) \cdot \cancelto{0}{\pdv{g_i\pa{\netcell{i}{k}{t + 1}}}{s_i^{\blk{k}}(t)}} \\
+  \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} & = \pdv{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\pdv{\vyopig_k(t + 1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\netcell{i}{k}{t + 1}} + \\
+  & \quad \vyopig_k(t + 1) \cdot \cancelto{0}{\pdv{g_i\pa{\netcell{i}{k}{t + 1}}}{s_i^{\blk{k}}(t)}} \\
   & \aptr 1
   \end{align*} \tag{64}\label{64}
   $$
 
-  由於**丟棄部份梯度**的作用，$s^{\blk{k}}$ 的**梯度**是模型中**唯一**進行**遞迴**（跨過多個時間點）的計算節點。
+  由於**丟棄部份梯度**的作用，$\vsopblk{k}$ 的**梯度**是模型中**唯一**進行**遞迴**（跨過多個時間點）的計算節點。
   透過丟棄部份梯度我們從 $\eqref{64}$ 可以看出 LSTM 達成 $\eqref{23}$ 所設想的情況。
 
   ### 內部狀態偏差行為
 
   觀察 $\eqref{54} \eqref{59}$，當 $h$ 是 sigmoid 函數時，我們可以發現
 
-  - 如果 $s^{\blk{k}}(t + 1)$ 是一個**非常大**的**正數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 會變得**非常小**
-  - 如果 $s^{\blk{k}}(t + 1)$ 是一個**非常小**的**負數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 也會變得**非常小**
-  - 在 $s^{\blk{k}}(t + 1)$ 極正或極負的情況下，**輸入閘門參數** $\wig$ 的**梯度**會**消失**
+  - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常大**的**正數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 會變得**非常小**
+  - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常小**的**負數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 也會變得**非常小**
+  - 在 $\vsopblk{k}(t + 1)$ 極正或極負的情況下，**輸入閘門參數** $\wig$ 的**梯度**會**消失**
   - 此現象稱為**內部狀態偏差行為**（**Internal State Drift**）
   - 同樣的現象也會發生在**記憶細胞淨輸入參數** $\wblk{1}, \dots \wblk{\nblk}$ 身上，請見 $\eqref{60}$
   - 此分析就是論文的 A.39 式改寫而來
@@ -1553,7 +1579,7 @@ LSTM 架構
   \end{align*} \tag{65}\label{65}
   $$
 
-  根據 $\eqref{65}$ 我們就不會得到 $s^{\blk{k}}(t)$ 極正或極負的情況，也就不會出現 Internal State Drift。
+  根據 $\eqref{65}$ 我們就不會得到 $\vsopblk{k}(t)$ 極正或極負的情況，也就不會出現 Internal State Drift。
 
   雖然這種作法是種**模型偏差**（**Model Bias**）而且會導致 $y^{\opig}(\star)$ 與 $\dfnetig{k}\star$ **變小**，但作者認為這些影響比起 Internal State Drift 一點都不重要。
 
@@ -1569,7 +1595,7 @@ LSTM 架構
 
   在訓練的初期**誤差**通常比較**大**，導致**梯度**跟著變**大**，使得模型在訓練初期的參數劇烈振盪。
 
-  由於**輸出閘門**所使用的**啟發函數** $f^{\opog}$ 是 sigmoid，數值範圍是 $(0, 1)$，我們可以發現 $\eqref{59} \eqref{60}$ 的梯度乘積包含 $y^{\opog}$，可以避免**過大誤差**造成的**梯度變大**。
+  由於**輸出閘門**所使用的**啟發函數** $f^\opog$ 是 sigmoid，數值範圍是 $(0, 1)$，我們可以發現 $\eqref{59} \eqref{60}$ 的梯度乘積包含 $\vyopog$，可以避免**過大誤差**造成的**梯度變大**。
 
   但這些說法並沒有辦法真的保證一定會實現，算是這篇論文說服力比較薄弱的點。
 
@@ -1589,7 +1615,7 @@ LSTM 架構
     - 意思就是 batch size 為 1
     - 不要被 Online 這個字誤導
   - 使用 sigmoid 作為啟發函數
-    - 包含 $f^{\opout}, f^{\ophid}, f^{\opig}, f^{\opog}$
+    - 包含 $f^\opout, f^\ophid, f^\opig, f^\opog$
   - 資料隨機性
     - 資料生成為隨機
     - 訓練順序為隨機

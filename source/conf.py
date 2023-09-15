@@ -141,7 +141,7 @@ mathjax3_config = {
           # Operators.
           'Sim': r'\operatorname{sim}',
           # Algorithm.
-          'algoCmt': [r'\text{// #1}', 1],
+          'algoCmt': [r'{\color{ForestGreen} \texttt{// #1}}', 1],
           'algoElse': r'\textbf{else do}',
           'algoElseIf': [r'\textbf{else if } #1 \textbf{ do}', 1],
           'algoEndFor': r'\textbf{end for}',
