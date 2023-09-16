@@ -80,10 +80,12 @@ Long Short-Term Memory
     \newcommand{\opblk}{\operatorname{block}}
     \newcommand{\opig}{\operatorname{ig}}
     \newcommand{\opin}{\operatorname{in}}
+    \newcommand{\ophid}{\operatorname{hid}}
     \newcommand{\oplen}{\operatorname{len}}
     \newcommand{\opnet}{\operatorname{net}}
     \newcommand{\opog}{\operatorname{og}}
     \newcommand{\opout}{\operatorname{out}}
+    \newcommand{\opseq}{\operatorname{seq}}
 
     % Memory cell blocks.
     \newcommand{\blk}[1]{{\opblk^{#1}}}
@@ -99,10 +101,12 @@ Long Short-Term Memory
     \newcommand{\vyh}{\hat{\vy}}
     \newcommand{\vyopblk}[1]{\vy^\blk{#1}}
     \newcommand{\vyopig}{\vy^\opig}
+    \newcommand{\vyophid}{\vy^\ophid}
     \newcommand{\vyopog}{\vy^\opog}
     \newcommand{\vz}{\mathbf{z}}
     \newcommand{\vzopblk}[1]{\vz^\blk{#1}}
     \newcommand{\vzopig}{\vz^\opig}
+    \newcommand{\vzophid}{\vz^\ophid}
     \newcommand{\vzopog}{\vz^\opog}
     \newcommand{\vzopout}{\vz^\opout}
 
@@ -110,6 +114,7 @@ Long Short-Term Memory
     \newcommand{\vW}{\mathbf{W}}
     \newcommand{\vWopblk}[1]{\vW^\blk{#1}}
     \newcommand{\vWopig}{\vW^\opig}
+    \newcommand{\vWophid}{\vW^\ophid}
     \newcommand{\vWopog}{\vW^\opog}
     \newcommand{\vWopout}{\vW^\opout}
 
@@ -146,58 +151,17 @@ Long Short-Term Memory
 
     % Dimensions.
     \newcommand{\din}{{d_\opin}}
+    \newcommand{\dhid}{{d_\ophid}}
     \newcommand{\dout}{{d_\opout}}
     \newcommand{\dblk}{{d_\opblk}}
     \newcommand{\nblk}{{n_\opblk}}
 
     % Derivative of loss(#2) with respect to net input #1 at time #3.
     \newcommand{\vth}[2]{{\vartheta_{#1}^{#2}}}
+
+    % Gradient approximation by truncating gradient.
+    \newcommand{\aptr}{\approx_{\operatorname{tr}}}
   \]
-
-..
-  $\providecommand{\opseq}{}$
-  $\renewcommand{\opseq}{\operatorname{seq}}$
-
-  <!-- Derivative of f with respect to net input. -->
-  $\providecommand{\dfnet}{}$
-  $\renewcommand{\dfnet}[2]{f_{#1}'\big(\net{#1}{#2}\big)}$
-
-  <!-- Net input of multiplicative input gate. -->
-  $\providecommand{\netig}{}$
-  $\renewcommand{\netig}[2]{\vz_{#1}^{\opig}(#2)}$
-  <!-- Net input of multiplicative input gate with activatiton f. -->
-  $\providecommand{\fnetig}{}$
-  $\renewcommand{\fnetig}[2]{f_{#1}^{\opig}\big(\netig{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input of input gate. -->
-  $\providecommand{\dfnetig}{}$
-  $\renewcommand{\dfnetig}[2]{f_{#1}^{\opig}{'}\big(\netig{#1}{#2}\big)}$
-  <!-- Net input of multiplicative output gate. -->
-  $\providecommand{\netog}{}$
-  $\renewcommand{\netog}[2]{\vz_{#1}^{\opog}(#2)}$
-  <!-- Net input of multiplicative output gate with activatiton f. -->
-  $\providecommand{\fnetog}{}$
-  $\renewcommand{\fnetog}[2]{f_{#1}^{\opog}\big(\netog{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input of output gate. -->
-  $\providecommand{\dfnetog}{}$
-  $\renewcommand{\dfnetog}[2]{f_{#1}^{\opog}{'}\big(\netog{#1}{#2}\big)}$
-  <!-- Net input of output units. -->
-  $\providecommand{\netout}{}$
-  $\renewcommand{\netout}[2]{\vz_{#1}^{\opout}(#2)}$
-  <!-- Net input of output units with activatiton f. -->
-  $\providecommand{\fnetout}{}$
-  $\renewcommand{\fnetout}[2]{f_{#1}^{\opout}\big(\netout{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input of output units. -->
-  $\providecommand{\dfnetout}{}$
-  $\renewcommand{\dfnetout}[2]{f_{#1}^{\opout}{'}\big(\netout{#1}{#2}\big)}$
-
-  <!-- Net input of cell unit. -->
-  $\providecommand{\netcell}{}$
-  $\renewcommand{\netcell}[3]{\vz_{#1}^{\blk{#2}}(#3)}$
-
-  <!-- Gradient approximation by truncating gradient. -->
-  $\providecommand{\aptr}{}$
-  $\renewcommand{\aptr}{\approx_{\operatorname{tr}}}$
-
 
 重點
 ====
@@ -304,7 +268,7 @@ Long Short-Term Memory
 梯度爆炸 / 消失
 ---------------
 
-接下來我們將推導產生\ **梯度爆炸**\與\ **梯度消失**\的原因。
+接下來我們將推導 RNN 模型產生\ **梯度爆炸**\與\ **梯度消失**\的原因。
 為了方便討論，我們定義新的符號：
 
 .. math::
@@ -315,12 +279,13 @@ Long Short-Term Memory
     \tag{1}\label{1}
   \]
 
-意思是 net input :math:`\vzj(t_1)` 透過 :math:`\vyi(t_2)` 貢獻的誤差 :math:`\cL(\vy(t_2), \vyh(t_2))` 計算所得之\ **微分**。
+意思是節點 :math:`\vz_{i_1}(t_1)` 透過輸出 :math:`\vy_{i_2}(t_2)` 貢獻的誤差計算所得之\ **微分**。
 
 - 根據時間的限制我們有不等式 :math:`0 \leq t_1 \leq t_2 \leq \cT`
-- 下標 :math:`i_1, i_2` 的數值範圍為 :math:`i_1, i_2 \in \Set{1, \dots, \dout}`，見 RNN 計算定義
+- 下標 :math:`i_1, i_2` 的數值範圍為 :math:`i_1, i_2 \in \Set{1, \dots, \dout}`，見 :doc:`RNN 計算定義 </post/math/bptt>`
+- 式子 :math:`\eqref{1}` 採用 mean square error 作為誤差計算法，但其實可以採用任意的誤差計算法，不影響結論
 
-因此對於任意 :math:`i_0 \in \Set{1, \dots, \dout}`，我們有以下等式：
+對於任意 :math:`i_0 \in \Set{1, \dots, \dout}`，我們可以得出以下等式：
 
 .. math::
   :nowrap:
@@ -357,7 +322,7 @@ Long Short-Term Memory
       \end{align*}
     \]
 
-由 :math:`\eqref{2}` 我們可以歸納得出當 :math:`n \geq 1` 時，:math:`\vth{i_n, t - n}{i_0, t}` 的公式：
+觀察式子 :math:`\eqref{2}`，我們可以歸納得出當 :math:`n \geq 1` 時，:math:`\vth{i_n, t - n}{i_0, t}` 的公式：
 
 .. math::
   :nowrap:
@@ -405,7 +370,7 @@ Long Short-Term Memory
     :nowrap:
 
     \[
-      \pdv{\vartheta_v(t - q)}{\vartheta_u(t)} = \sum_{l_1 = 1}^n \cdots \sum_{l_{q - 1} = 1}^n \prod_{m = 1}^q f'_{l_m}\qty(\opnet_{l_m}(t - m)) w_{l_{m - 1} l_m}.
+      \dv{\vartheta_v(t - q)}{\vartheta_u(t)} = \sum_{l_1 = 1}^n \cdots \sum_{l_{q - 1} = 1}^n \prod_{m = 1}^q f'_{l_m}\qty(\opnet_{l_m}(t - m)) w_{l_{m - 1} l_m}.
     \]
 
 假設式子 :math:`\eqref{4}` 中的 :math:`\dout^{n - 1}` 個加總項次中，**存在至少一個**\連乘積項 :math:`\prod_{q = 1}^n \vW_{i_{q - 1}, i_q} \cdot f_{i_q}'\qty(\vz_{i_q}(t - q))` 滿足以下條件：
@@ -637,9 +602,9 @@ Long Short-Term Memory
 觀察 1：自連接參數
 ------------------
 
-首先我們針對式子 :math:`\eqref{3}` 中透過自連接參數所得的微分值（即 :math:`i_{q - 1} = i_q`），下標改以 :math:`i` 表示。
+首先我們針對式子 :math:`\eqref{3}` 中 RNN 模型透過自連接參數所得的微分值（即 :math:`i_{q - 1} = i_q`）進行探討，下標改以 :math:`i` 表示。
 要如何避免透過自連接參數獲得的微分導致梯度爆炸 / 消失？
-根據前述討論，我們不能擁有以下條件：
+根據前述討論，我們的模型不能擁有以下條件：
 
 .. math::
   :nowrap:
@@ -651,13 +616,14 @@ Long Short-Term Memory
     \end{dcases}.
   \]
 
-這代表我們必須滿足：
+這代表我們的模型必須滿足以下條件：
 
 .. math::
   :nowrap:
 
   \[
-    \forall q \in \Set{1, \dots, n}, \abs{\vWii \cdot f_i'\qty(\vzi(t - q))} = 1.0. \tag{9}\label{9}
+    \forall q \in \Set{1, \dots, n}, \abs{\vWii \cdot f_i'\qty(\vzi(t - q))} = 1.0.
+    \tag{9}\label{9}
   \]
 
 對式子 :math:`\eqref{9}` 左右兩側積分並移項，我們可以得到：
@@ -666,7 +632,8 @@ Long Short-Term Memory
   :nowrap:
 
   \[
-    \forall q \in \Set{1, \dots, n}, f_i\qty(\vzi(t - q)) = \pm \frac{\vzi(t - q)}{\vWii}. \tag{10}\label{10}
+    \forall q \in \Set{1, \dots, n}, f_i\qty(\vzi(t - q)) = \pm \frac{\vzi(t - q)}{\vWii}.
+    \tag{10}\label{10}
   \]
 
 式子 :math:`\eqref{10}` 告訴我們 :math:`f_i` 是一個線性函數。
@@ -692,7 +659,8 @@ Long Short-Term Memory
   :nowrap:
 
   \[
-    \vyi(t + 1) = f_i\qty(\vzi(t + 1)) = f_i\qty(\vWii \cdot \vyi(t)) = \pm \vyi(t). \tag{11}\label{11}
+    \vyi(t + 1) = f_i\qty(\vzi(t + 1)) = f_i\qty(\vWii \cdot \vyi(t)) = \pm \vyi(t).
+    \tag{11}\label{11}
   \]
 
 在不考慮負號的情況下，我們可以將 :math:`f_i` 設成 identity function 且設定 :math:`\vWii = 1.0` 從而滿足上述等式。
@@ -709,7 +677,7 @@ Long Short-Term Memory
 - **忽略當前輸入**：代表 :math:`\abs{\vWij} \approx 0`
 
 因此\ **無法只靠一個** :math:`\vWij` 決定\ **當前輸入**\的影響，必須有\ **額外**\能夠\ **理解當前內容**\（**context-sensitive**）的功能模組幫忙決定是否\ **寫入** :math:`\vxj(t)`。
-這便是此論文提出\ **輸入閘門**\（**input gate**）機制的原因。
+這便是此論文提出 **input gate units** 的原因。
 
 觀察 3：輸出回饋到多個節點
 --------------------------
@@ -721,16 +689,16 @@ Long Short-Term Memory
 - **忽略過去輸出**：代表 :math:`\abs{\vWij} \approx 0`
 
 因此\ **無法只靠一個** :math:`\vWij` 決定\ **過去輸出**\的影響，必須有\ **額外**\能夠\ **理解當前內容**\（**context-sensitive**）的功能模組幫忙決定是否\ **讀取** :math:`\vyj(t)`。
-這便是此論文提出\ **輸出閘門**\（**output gate**）機制的原因。
+這便是此論文提出 **output gate units** 的原因。
 
 LSTM 架構
 =========
 
 .. figure:: https://i.imgur.com/uhS4AgH.png
-  :alt: 記憶細胞（memory cell）內部架構
+  :alt: memory cell 內部架構
   :name: paper-fig-1
 
-  圖 1：記憶細胞（memory cell）內部架構。
+  圖 1：memory cell 內部架構。
 
   符號對應請見下個小節。
   圖片來源：:footcite:`hochreiter-etal-1997-long`。
@@ -744,7 +712,7 @@ LSTM 架構
   線條真的多到讓人看不懂，看我整理過的公式比較好理解。
   圖片來源：:footcite:`hochreiter-etal-1997-long`。
 
-為了解決梯度爆炸 / 消失問題，作者基於前述討論的結果，提出三個主要的機制，並將這些機制的合體稱為 **memory cell blocks**：
+為了解決梯度爆炸 / 消失問題，作者基於前述討論的結果，提出三個主要的機制，並將這些機制的合體稱為 **memory cells**：
 
 - **Input gate units**：用於決定是否\ **更新** memory cell internal states
 - **Output gate units**：用於決定是否\ **輸出** memory cell block activations
@@ -756,11 +724,15 @@ LSTM 架構
 +------------------------+-------------------------------------------------------------------------------+----------------------+
 | Symbol                 | Meaning                                                                       | Value Range          |
 +========================+===============================================================================+======================+
+| :math:`\dhid`          | Number of conventional hidden units at time step :math:`t`.                   | :math:`\N`           |
++------------------------+-------------------------------------------------------------------------------+----------------------+
 | :math:`\dblk`          | Number of memory cells in each memory cell block at time step :math:`t`.      | :math:`\Z^+`         |
 +------------------------+-------------------------------------------------------------------------------+----------------------+
 | :math:`\nblk`          | Number of memory cell blocks at time step :math:`t`.                          | :math:`\Z^+`         |
 +------------------------+-------------------------------------------------------------------------------+----------------------+
 | :math:`\vx(t)`         | LSTM input at time step :math:`t`.                                            | :math:`\R^\din`      |
++------------------------+-------------------------------------------------------------------------------+----------------------+
+| :math:`\vyophid(t)`    | Conventional hidden units at time step :math:`t`.                             | :math:`\R^\dhid`     |
 +------------------------+-------------------------------------------------------------------------------+----------------------+
 | :math:`\vyopig(t)`     | Input gate units at time step :math:`t`.                                      | :math:`[0, 1]^\nblk` |
 +------------------------+-------------------------------------------------------------------------------+----------------------+
@@ -783,9 +755,10 @@ LSTM 架構
 
   \[
     \begin{align*}
-      & \algoProc{\operatorname{LSTM1997}}(\vx, \vWopig, \vWopog, \vWopblk{1}, \dots, \vWopblk{\nblk}, \vWopout) \\
+      & \algoProc{\operatorname{LSTM1997}}(\vx, \vWophid, \vWopig, \vWopog, \vWopblk{1}, \dots, \vWopblk{\nblk}, \vWopout) \\
       & \indent{1} \algoCmt{Initialize activations with zeros.} \\
       & \indent{1} \cT \algoEq \oplen(\vx) \\
+      & \indent{1} \vyophid(0) \algoEq \zv \\
       & \indent{1} \vyopig(0) \algoEq \zv \\
       & \indent{1} \vyopog(0) \algoEq \zv \\
       & \indent{1} \algoFor{k \in \Set{1, \dots, \nblk}} \\
@@ -796,12 +769,16 @@ LSTM 架構
       & \indent{2}   \algoCmt{Concatenate input units with activations.} \\
       & \indent{2}   \vxt(t) \algoEq \begin{pmatrix}
                        \vx(t) \\
+                       \vyophid(t) \\
                        \vyopig(t) \\
                        \vyopog(t) \\
                        \vyopblk{1}(t) \\
                        \vdots \\
                        \vyopblk{\nblk}(t)
                      \end{pmatrix} \\
+      & \indent{2}   \algoCmt{Compute conventional hidden units' activations.} \\
+      & \indent{2}   \vzophid(t + 1) \algoEq \vWophid \cdot \vxt(t) \\
+      & \indent{2}   \vyophid(t + 1) \algoEq f^\ophid\qty(\vzophid(t + 1)) \\
       & \indent{2}   \algoCmt{Compute input gate units' activations.} \\
       & \indent{2}   \vzopig(t + 1) \algoEq \vWopig \cdot \vxt(t) \\
       & \indent{2}   \vyopig(t + 1) \algoEq f^\opig\qty(\vzopig(t + 1)) \\
@@ -817,6 +794,7 @@ LSTM 架構
       & \indent{2}   \algoCmt{Compute outputs.} \\
       & \indent{2}   \vzopout(t + 1) \algoEq \vWopout \cdot \begin{pmatrix}
                        \vx(t) \\
+                       \vyophid(t + 1) \\
                        \vyopblk{1}(t + 1) \\
                        \vdots \\
                        \vyopblk{\nblk}(t + 1) \\
@@ -912,15 +890,17 @@ Output gate units 決定與控制 memory cell block activations 是否需要用�
 Activation Functions
 ~~~~~~~~~~~~~~~~~~~~
 
-- :math:`f^\opig, f^\opog, f^\opout, g, h` 都是 differentiable element-wise activation function，大部份都是 sigmoid 或是 sigmoid 的變形
+- :math:`f^\ophid, f^\opig, f^\opog, f^\opout, g, h` 都是 differentiable element-wise activation function，大部份都是 sigmoid 或是 sigmoid 的變形
 - :math:`f^\opig, f^\opog` 的數值範圍（range）必須限制在 :math:`[0, 1]`，才能達成 multiplicative gate 的功能
 - :math:`f^\opout` 的數值範圍只跟任務有關
-- 論文並沒有給 :math:`g, h` 任何數值範圍的限制
+- 論文並沒有給 :math:`f^\ophid, g, h` 任何數值範圍的限制
 
 Hidden Units
 ~~~~~~~~~~~~
 
 - 作者將此論文新定義的 input/output gate units 與 memory cells 稱為 hidden units（見論文 4.3 節）
+- 作者將 :math:`\vyophid(t)` 稱為 conventional hidden units，因此當我說到 hidden units 時泛指 gate units、memory cells 與 conventional hidden units
+- 可以將 conventional hidden units 與 LSTM 視為平行的機制
 - Hidden layer 由 hidden units 組成
 - 此論文的後續研究都基於此論文 hidden layer 的設計進行改良，例如 LSTM-2000 :footcite:`gers-etal-2000-learning` 與 LSTM-2002 :footcite:`gers-etal-2002-learning`
 - Hidden units 的設計等同於\ **保留** 造成梯度爆炸 / 消失的架構，是個不好的設計，因此論文後續在\ **最佳化**\的過程中動了手腳
@@ -970,17 +950,19 @@ Hidden Units
 參數結構
 --------
 
-+---------------------+--------------------------------------------------------------+---------------------+----------------------------------------+
-| Parameter           | Meaning                                                      | Output Vector Shape | Input Vector Shape                     |
-+=====================+==============================================================+=====================+========================================+
-| :math:`\vWopig`     | Weight matrix connect to input gate units.                   | :math:`\nblk`       | :math:`\din + \nblk \cdot (2 + \dblk)` |
-+---------------------+--------------------------------------------------------------+---------------------+----------------------------------------+
-| :math:`\vWopog`     | Weight matrix connect to output gate units.                  | :math:`\nblk`       | :math:`\din + \nblk \cdot (2 + \dblk)` |
-+---------------------+--------------------------------------------------------------+---------------------+----------------------------------------+
-| :math:`\vWopblk{k}` | Weight matrix connect to the :math:`k`-th memory cell block. | :math:`\dblk`       | :math:`\din + \nblk \cdot (2 + \dblk)` |
-+---------------------+--------------------------------------------------------------+---------------------+----------------------------------------+
-| :math:`\vWopout`    | Weight matrix connect to output layer.                       | :math:`\dblk`       | :math:`\din + \nblk \cdot \dblk`       |
-+---------------------+--------------------------------------------------------------+---------------------+----------------------------------------+
++---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
+| Parameter           | Meaning                                                      | Output Vector Shape | Input Vector Shape                              |
++=====================+==============================================================+=====================+=================================================+
+| :math:`\vWophid`    | Weight matrix connect to conventional hidden units.          | :math:`\dhid`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
++---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
+| :math:`\vWopig`     | Weight matrix connect to input gate units.                   | :math:`\nblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
++---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
+| :math:`\vWopog`     | Weight matrix connect to output gate units.                  | :math:`\nblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
++---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
+| :math:`\vWopblk{k}` | Weight matrix connect to the :math:`k`-th memory cell block. | :math:`\dblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
++---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
+| :math:`\vWopout`    | Weight matrix connect to output layer.                       | :math:`\dblk`       | :math:`\din + \dhid + \nblk \times \dblk`       |
++---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
 
 LSTM 最佳化
 ===========
@@ -993,58 +975,228 @@ LSTM 最佳化
   - Internal states 透過遞迴過程傳遞的微分不會被放大或縮小
   - 因此不會造成梯度爆炸 / 消失
 
-- 使用的手段是要求 **back propagation** 的過程在經過 **memory cell block** 後便\ **停止**\計算微分
+- 使用的手段是要求 **back propagation** 的過程在經過 **hidden units** 後便\ **停止**\計算微分
 
+  - 微分會傳遞至產生 conventional hidden units 的參數 :math:`\vWophid`
+  - 微分不會傳遞至產生 conventional hidden units 的節點 :math:`\vxt(t)`
   - 微分會傳遞至產生 output gate units 的參數 :math:`\vWopog`
-  - 微分不會傳遞至產生 output gate units 的節點
+  - 微分不會傳遞至產生 output gate units 的節點 :math:`\vxt(t)`
   - Internal states 收到的微分會經由 output gate units 縮放
   - 微分會傳遞至產生 input gate units 的參數 :math:`\vWopig`
-  - 微分不會傳遞至產生 input gate units 的節點
+  - 微分不會傳遞至產生 input gate units 的節點 :math:`\vxt(t)`
   - 微分會傳遞至產生 internal states 的參數 :math:`\vWopblk{1}, \dots, \vWopblk{\nblk}`
-  - 微分不會傳遞至產生 internal states 的節點
+  - 微分不會傳遞至產生 internal states 的節點 :math:`\vxt(t)`
   - :math:`\vWopblk{1}, \dots, \vWopblk{\nblk}` 收到的微分會經由 input gate units 縮放
 
-- 停止 back propagation 導致在完成 :math:`t + 1` 時間點的 forward pass 後可以\ **即時計算**\參數對當前誤差計算所得微分（real time 的精神便是來自於此）
+- 停止 back propagation 導致在完成 :math:`t + 1` 時間點的 forward pass 後可以\ **即時計算**\參數對 :math:`t + 1` 時間點誤差計算所得微分（real time 的精神便是來自於此）
+
+首先我們定義新的符號 :math:`\aptr`，代表計算\ **微分**\的過程會有\ **部份微分**\故意被\ **丟棄**\（設定為 :math:`0`），並以丟棄結果\ **近似**\真正的\ **全微分**。
+此論文將所有與 **hidden units** 相連的節點 :math:`\vxt(t)` 產生的微分值一律\ **丟棄**。
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \dv{\vzophid_i(t + 1)}{\vxt_j(t)}    & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      i \in \Set{1, \dots, \dhid} \\
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}. \\
+      \dv{\vzopig_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}. \\
+      \dv{\vzopog_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}. \\
+      \dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      i \in \Set{1, \dots, \dblk} \\
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}. \\
+      \dv{\vsopblk{k}_i(t)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      i \in \Set{1, \dots, \dblk} \\
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}.
+    \end{align*}
+    \tag{12}\label{12}
+  \]
+
+.. note::
+
+  注意論文在 A.1.2 節的開頭只提到 **input gate units**、**output gate units**、**memory cells** 要\ **丟棄微分值**，但論文在 A.9 式描述可以將 **conventional hidden units** 的微分一起\ **丟棄**，害我白白推敲公式好幾天。
+
+  .. pull-quote::
+
+    ... Here it would be possible to use the full gradient without affecting constant error flow through internal states of memory cells. ...
+
+.. error::
+
+  論文中沒有描述到 :math:`\dv{\vsopblk{k}_i(t)}{\vxt_j(t)} \aptr 0`，但在 A.1.2 節卻使用了該項近似，才有辦法透過式子 :math:`\eqref{12}` 推出式子 :math:`\eqref{13}`。
+
+根據 :math:`\eqref{12}` 我們可以進一步推得
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \dv{\vyophid_i(t + 1)}{\vxt_j(t)}    & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      i \in \Set{1, \dots, \dhid} \\
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}. \\
+      \dv{\vyopig_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}. \\
+      \dv{\vyopog_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}. \\
+      \dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      i \in \Set{1, \dots, \dblk} \\
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}. \\
+      \dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                      i \in \Set{1, \dots, \dblk} \\
+                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                      t \in \Set{0, \dots, \cT - 1}
+                                                                    \end{dcases}.
+    \end{align*}
+    \tag{13}\label{13}
+  \]
+
+.. dropdown:: 推導 :math:`\eqref{13}`
+
+  首先根據式子 :math:`\eqref{12}` 的定義可以得到以下公式：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vyophid_i(t + 1)}{\vxt_j(t)} & = \dv{\vyophid_i(t + 1)}{\vzophid_i(t + 1)} \cdot \cancelto{0}{\dv{\vzophid_i(t + 1)}{\vxt_j(t)}} \\
+                                          & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                     i \in \Set{1, \dots, \dhid} \\
+                                                                     j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                     t \in \Set{0, \dots, \cT - 1}
+                                                                   \end{dcases}. \\
+        \dv{\vyopig_k(t + 1)}{\vxt_j(t)}  & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \cancelto{0}{\dv{\vzopig_k(t + 1)}{\vxt_j(t)}} \\
+                                          & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                     j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                     k \in \Set{1, \dots, \nblk} \\
+                                                                     t \in \Set{0, \dots, \cT - 1}
+                                                                   \end{dcases}. \\
+        \dv{\vyopog_k(t + 1)}{\vxt_j(t)}  & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \cancelto{0}{\dv{\vzopog_k(t + 1)}{\vxt_j(t)}} \\
+                                          & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                     j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                     k \in \Set{1, \dots, \nblk} \\
+                                                                     t \in \Set{0, \dots, \cT - 1}
+                                                                   \end{dcases}.
+      \end{align*}
+    \]
+
+  接著利用上述的結果結合 :math:`\eqref{12}` 推導出與 memory cells 相關的微分近似結果：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{0}{\dv{\vsopblk{k}_i(t)}{\vxt_j(t)}} + \cancelto{0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot g\qty(\vzopblk{k}_i(t + 1)) + \vyopig_k(t + 1) \cdot \dv{g\qty(\vzopblk{k}_i(t + 1))}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
+                                             & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                        i \in \Set{1, \dots, \dblk} \\
+                                                                        j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                        k \in \Set{1, \dots, \nblk} \\
+                                                                        t \in \Set{0, \dots, \cT - 1}
+                                                                      \end{dcases}. \\
+        \dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
+                                             & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                        i \in \Set{1, \dots, \dblk} \\
+                                                                        j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                        k \in \Set{1, \dots, \nblk} \\
+                                                                        t \in \Set{0, \dots, \cT - 1}
+                                                                      \end{dcases}.
+      \end{align*}
+    \]
+
+由於 :math:`\vyopig(t + 1), \vyopog(t + 1), \vzopblk{k}(t + 1)` 並不是\ **直接**\透過 :math:`\vWophid` 產生，因此 :math:`\vWophid` 只能透過參與 :math:`t` 時間點\ **以前**\的計算\ **間接**\對 :math:`t + 1` 時間點的計算造成影響。
+這也代表在 :math:`\eqref{13}` 作用的情況下 :math:`\vWophid` **無法**\從 :math:`\vyopig(t + 1), \vyopog(t + 1), \vyopblk{k}(t + 1)` 收到任何的\ **微分**：
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                            k \in \Set{1, \dots, \nblk} \\
+                                                                            p \in \Set{1, \dots, \dhid} \\
+                                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                            t \in \Set{0, \dots, \cT - 1}
+                                                                          \end{dcases}. \\
+      \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                            k \in \Set{1, \dots, \nblk} \\
+                                                                            p \in \Set{1, \dots, \dhid} \\
+                                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                            t \in \Set{0, \dots, \cT - 1}
+                                                                          \end{dcases}. \\
+      \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                            i \in \Set{1, \dots, \dblk} \\
+                                                                            k \in \Set{1, \dots, \nblk} \\
+                                                                            p \in \Set{1, \dots, \dhid} \\
+                                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                            t \in \Set{0, \dots, \cT - 1}
+                                                                          \end{dcases}.
+    \end{align*}
+    \tag{14}\label{14}
+  \]
+
+.. dropdown:: 推導式子 :math:`\eqref{14}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+                                                   & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                              k \in \Set{1, \dots, \nblk} \\
+                                                                              p \in \Set{1, \dots, \dhid} \\
+                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                            \end{dcases}. \\
+        \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+                                                   & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                              k \in \Set{1, \dots, \nblk} \\
+                                                                              p \in \Set{1, \dots, \dhid} \\
+                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                            \end{dcases}. \\
+        \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+                                                   & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                              i \in \Set{1, \dots, \dblk} \\
+                                                                              k \in \Set{1, \dots, \nblk} \\
+                                                                              p \in \Set{1, \dots, \dhid} \\
+                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                            \end{dcases}.
+      \end{align*}
+    \]
 
 ..
-  首先我們定義新的符號 $\aptr$，代表計算**梯度**的過程會有**部份梯度**故意被**丟棄**（設定為 $0$），並以丟棄結果**近似**真正的**全微分**。
-
-  $$
-  \pdv{\vz_i^a(t + 1)}{y_j^b(t)} \aptr 0 \quad \text{where } a, b \in \Set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \tag{37}\label{37}
-  $$
-
-  所有與**隱藏單元淨輸入** $\nethid{i}{t + 1}$、**輸入閘門淨輸入** $\netig{i}{t + 1}$、**輸出閘門淨輸入** $\netog{i}{t + 1}$、**記憶細胞淨輸入** $\netcell{i}{k}{t + 1}$ **直接相連**的 $t$ 時間點的**單元**，一律**丟棄梯度**
-
-  - 注意論文在 A.1.2 節的開頭只提到**輸入閘門**、**輸出閘門**、**記憶細胞**要**丟棄梯度**
-  - 但論文在 A.9 式描述可以將**隱藏單元**的梯度一起**丟棄**，害我白白推敲公式好幾天
-
-  > Here it would be possible to use the full gradient without affecting constant error flow through internal states of memory cells.
-
-  根據 $\eqref{37}$ 我們可以進一步推得
-
-  $$
-  \begin{align*}
-  a & \in \Set{\ophid, \opig, \opog} \\
-  b & \in \Set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
-  \pdv{y_i^a(t + 1)}{y_j^b(t)} & = \pdv{y_i^a(t + 1)}{\vz_i^a(t + 1)} \cdot \cancelto{0}{\pdv{\vz_i^a(t + 1)}{y_j^b(t)}} \aptr 0 \\
-  k & \in \Set{1, 2, \dots, \nblk} \\
-  \pdv{y_i^{\blk{k}}(t + 1)}{y_j^b(t)} & = \pdv{y_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopig_k(t + 1)}{y_j^b(t)}} \\
-  & \quad + \pdv{y_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t + 1}}{y_j^b(t)}} \\
-  & \quad + \pdv{y_i^{\blk{k}}(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopog_k(t + 1)}{y_j^b(t)}} \\
-  & \aptr 0
-  \end{align*} \tag{38}\label{38}
-  $$
-
-  由於 $\vyopig(t + 1), \vyopog(t + 1), \vz^{\blk{k}}(t + 1)$ 並不是**直接**透過 $w^{\ophid}$ 產生，因此 $w^{\ophid}$ 只能透過參與 $t$ 時間點**以前**的計算**間接**對 $t + 1$ 時間點的計算造成影響（見 $\eqref{31}$），這也代表在 $\eqref{38}$ 作用的情況下 $w^{\ophid}$ **無法**從 $\vyopig(t + 1), \vyopog(t + 1), \vz^{\blk{k}}(t + 1)$ 收到任何的**梯度**：
-
-  $$
-  \begin{align*}
-  a & \in \Set{\opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
-  b & \in \Set{\ophid, \opig, \opog, \blk{1}, \dots, \blk{\nblk}} \\
-  \pdv{y_i^a(t + 1)}{\whid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{0}{\pdv{y_i^a(t + 1)}{y_j^b(t)}} \cdot \pdv{y_j^b(t)}{\whid_{p, q}}] \aptr 0
-  \end{align*} \tag{39}\label{39}
-  $$
-
   ### 相對於總輸出所得剩餘梯度
 
   我們將論文的 A.8 式拆解成 $\eqref{41} \eqref{42} \eqref{43} \eqref{44}$。
@@ -1066,7 +1218,7 @@ LSTM 最佳化
   \begin{align*}
   i, p & \in \Set{1, \dots, \dout} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
-  \pdv{y_i(t + 1)}{\wout_{p, q}} & = \pdv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pdv{\netout{i}{t + 1}}{\wout_{p, q}} \\
+  \dv{y_i(t + 1)}{\wout_{p, q}} & = \dv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \dv{\netout{i}{t + 1}}{\wout_{p, q}} \\
   & = \dfnetout{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
   \vx(t) \\
   y^{\ophid}(t + 1) \\
@@ -1082,7 +1234,7 @@ LSTM 最佳化
 
   #### 隱藏單元參數
 
-  在 $\eqref{37} \eqref{38} \eqref{39}$ 的作用下，我們可以求得**隱藏單元參數** $\whid$ 在**丟棄**部份梯度後對於**總輸出** $y(t + 1)$ 計算所得的**剩餘梯度**
+  在 $\eqref{12} \eqref{13} \eqref{14}$ 的作用下，我們可以求得**隱藏單元參數** $\whid$ 在**丟棄**部份梯度後對於**總輸出** $y(t + 1)$ 計算所得的**剩餘梯度**
 
   $$
   \begin{align*}
@@ -1097,9 +1249,9 @@ LSTM 最佳化
   i & \in \Set{1, \dots, \dout} \\
   p & \in \Set{1, \dots, \dhid} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{y_i(t + 1)}{\whid_{p, q}} & = \pdv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pdv{\netout{i}{t + 1}}{\whid_{p, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pdv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pdv{\tilde{x}_j(t + 1)}{\whid_{p, q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pdv{y_p^{\ophid}(t + 1)}{\whid_{p, q}}
+  \dv{y_i(t + 1)}{\vWophid_{p, q}} & = \dv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \dv{\netout{i}{t + 1}}{\vWophid_{p, q}} \\
+  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\dv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\dv{\tilde{x}_j(t + 1)}{\vWophid_{p, q}}}} \\
+  & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \dv{y_p^{\ophid}(t + 1)}{\vWophid_{p, q}}
   \end{align*} \tag{42}\label{42}
   $$
 
@@ -1122,10 +1274,10 @@ LSTM 最佳化
   i & \in \Set{1, \dots, \dout} \\
   k & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pdv{y_i(t + 1)}{\wog_{k,q}} & = \pdv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pdv{\netout{i}{t + 1}}{\wog_{k,q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pdv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pdv{\tilde{x}_j(t + 1)}{\wog_{k,q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t + 1)}{\wog_{k,q}}} \\
-  \pdv{y_i(t + 1)}{\wig_{k,q}} & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}
+  \dv{y_i(t + 1)}{\wog_{k,q}} & = \dv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \dv{\netout{i}{t + 1}}{\wog_{k,q}} \\
+  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\dv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\dv{\tilde{x}_j(t + 1)}{\wog_{k,q}}}} \\
+  & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \dv{y_j^{\blk{k}}(t + 1)}{\wog_{k,q}}} \\
+  \dv{y_i(t + 1)}{\wig_{k,q}} & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \dv{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}
   \end{align*} \tag{43}\label{43}
   $$
 
@@ -1149,9 +1301,9 @@ LSTM 最佳化
   k & \in \Set{1, \dots, \nblk} \\
   p & \in \Set{1, \dots, \dblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pdv{y_i(t + 1)}{\wblk{k}_{p, q}} & = \pdv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \pdv{\netout{i}{t + 1}}{\wblk{k}_{p, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\pdv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\pdv{\tilde{x}_j(t + 1)}{\wblk{k}_{p, q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pdv{y_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}
+  \dv{y_i(t + 1)}{\wblk{k}_{p, q}} & = \dv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \dv{\netout{i}{t + 1}}{\wblk{k}_{p, q}} \\
+  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\dv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\dv{\tilde{x}_j(t + 1)}{\wblk{k}_{p, q}}}} \\
+  & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \dv{y_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}
   \end{align*} \tag{44}\label{44}
   $$
 
@@ -1163,13 +1315,13 @@ LSTM 最佳化
 
   #### 隱藏單元參數
 
-  根據 $\eqref{37} \eqref{38}$ 我們可以得到**隱藏單元參數** $\whid$ 對於**隱藏單元** $y^{\ophid}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{12} \eqref{13}$ 我們可以得到**隱藏單元參數** $\whid$ 對於**隱藏單元** $y^{\ophid}(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   i, p & \in \Set{1, \dots, \dhid} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pdv{y_i^{\ophid}(t + 1)}{\whid_{p, q}} & = \pdv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \cancelto{\aptr}{\pdv{\nethid{i}{t + 1}}{\whid_{p, q}}} \\
+  \dv{y_i^{\ophid}(t + 1)}{\vWophid_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \cancelto{\aptr}{\dv{\nethid{i}{t + 1}}{\vWophid_{p, q}}} \\
   & \aptr \dfnethid{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
   \vx(t) \\
   y^{\ophid}(t) \\
@@ -1184,7 +1336,7 @@ LSTM 最佳化
 
   #### 閘門單元參數
 
-  由於**隱藏單元** $y^{\ophid}(t + 1)$ 並不是**直接**透過**閘門參數** $\wig, \wog$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wig, \wog$ 對於 $y^{\ophid}(t + 1)$ **剩餘梯度**為 $0$
+  由於**隱藏單元** $y^{\ophid}(t + 1)$ 並不是**直接**透過**閘門參數** $\wig, \wog$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\wig, \wog$ 對於 $y^{\ophid}(t + 1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
@@ -1201,14 +1353,14 @@ LSTM 最佳化
   i & \in \Set{1, \dots, \dhid} \\
   p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{y_i^{\ophid}(t + 1)}{\wog_{p, q}} & = \pdv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pdv{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \pdv{\tilde{x}_j(t)}{\wog_{p, q}}} \aptr 0 \\
-  \pdv{y_i^{\ophid}(t + 1)}{\wig_{p, q}} & \aptr 0
+  \dv{y_i^{\ophid}(t + 1)}{\wog_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\wog_{p, q}}} \aptr 0 \\
+  \dv{y_i^{\ophid}(t + 1)}{\wig_{p, q}} & \aptr 0
   \end{align*} \tag{46}\label{46}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  同 $\eqref{46}$，由於**隱藏單元** $y^{\ophid}(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\ophid}(t + 1)$ **剩餘梯度**為 $0$
+  同 $\eqref{46}$，由於**隱藏單元** $y^{\ophid}(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\ophid}(t + 1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
@@ -1226,7 +1378,7 @@ LSTM 最佳化
   k & \in \Set{1, \dots, \nblk} \\
   p & \in \Set{1, \dots, \dblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{y_i^{\ophid}(t + 1)}{\wblk{k}_{p, q}} & = \pdv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pdv{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \pdv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0
+  \dv{y_i^{\ophid}(t + 1)}{\wblk{k}_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0
   \end{align*} \tag{47}\label{47}
   $$
 
@@ -1236,31 +1388,31 @@ LSTM 最佳化
 
   #### 閘門單元參數
 
-  根據 $\eqref{37}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞輸出** $\vyopblk{k}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{12}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞輸出** $\vyopblk{k}(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   i & \in \Set{1, \dots, \dblk} \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pdv{y_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{\vyopog_k(t + 1)} \cdot \pdv{\vyopog_k(t + 1)}{\wog_{p, q}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \cancelto{0}{\pdv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}}} \\
-  & \aptr h_i\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pdv{\vyopog_k(t + 1)}{\wog_{k, q}} \tag{48}\label{48} \\
-  \pdv{y_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopog_k(t + 1)}{\wig_{p, q}}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} \\
-  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{k, q}} \tag{49}\label{49}
+  \dv{\vyopblk{k}_i(t + 1)}{\wog_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \dv{\vyopog_k(t + 1)}{\wog_{p, q}} + \dv{\vyopblk{k}_i(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \cancelto{0}{\dv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}}} \\
+  & \aptr h_i\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \dv{\vyopog_k(t + 1)}{\wog_{k, q}} \tag{48}\label{48} \\
+  \dv{\vyopblk{k}_i(t + 1)}{\wig_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopog_k(t + 1)}{\wig_{p, q}}} + \dv{\vyopblk{k}_i(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} \\
+  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\wig_{k, q}} \tag{49}\label{49}
   \end{align*}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  同 $\eqref{49}$，使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^\star}$ 對於**記憶細胞輸出** $\vyopblk{k}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^\star$ 可以**不等於** $k$）
+  同 $\eqref{49}$，使用 $\eqref{12}$ 推得**記憶細胞淨輸入參數** $\wblk{k^\star}$ 對於**記憶細胞輸出** $\vyopblk{k}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^\star$ 可以**不等於** $k$）
 
   $$
   \begin{align*}
   i, p & \in \Set{1, \dots, \dblk} \\
   k, k^\star & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pdv{y_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} & = \pdv{y_i^{\blk{k}}(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopog_k(t + 1)}{\wblk{k^\star}_{p, q}}} + \pdv{y_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} \\
-  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k}_{i, q}}
+  \dv{\vyopblk{k}_i(t + 1)}{\wblk{k^\star}_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopog_k(t + 1)}{\wblk{k^\star}_{p, q}}} + \dv{\vyopblk{k}_i(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} \\
+  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\wblk{k}_{i, q}}
   \end{align*} \tag{50}\label{50}
   $$
 
@@ -1272,7 +1424,7 @@ LSTM 最佳化
 
   #### 閘門單元參數
 
-  根據 $\eqref{37} \eqref{38}$ 我們可以得到**閘門單元參數** $\wig, \wog$ 對於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{12} \eqref{13}$ 我們可以得到**閘門單元參數** $\wig, \wog$ 對於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
@@ -1288,15 +1440,15 @@ LSTM 最佳化
   \end{pmatrix} \in \R^D \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{\vyopig_k(t + 1)}{[\wig ; \wog]_{p, q}} & = \pdv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \cancelto{\aptr}{\pdv{\netig{k}{t + 1}}{[\wig ; \wog]_{p, q}}} \\
+  \dv{\vyopig_k(t + 1)}{[\wig ; \wog]_{p, q}} & = \dv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \cancelto{\aptr}{\dv{\netig{k}{t + 1}}{[\wig ; \wog]_{p, q}}} \\
   & \aptr \dfnetig{k}{t + 1} \cdot \delta_{k, p} \cdot \tilde{x}_q(t) \\
-  \pdv{\vyopog_k(t + 1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t + 1} \cdot \tilde{x}_q(t)
+  \dv{\vyopog_k(t + 1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t + 1} \cdot \tilde{x}_q(t)
   \end{align*} \tag{51}\label{51}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  由於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{37}$ 我們可以推得 $\wblk{k}$ 對於 $\vyopig(t + 1), \vyopog(t + 1)$ **剩餘梯度**為 $0$
+  由於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\wblk{k}$ 對於 $\vyopig(t + 1), \vyopog(t + 1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
@@ -1313,8 +1465,8 @@ LSTM 最佳化
   k & \in \Set{1, \dots, \nblk} \\
   p & \in \Set{1, \dots, \dblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{\vyopig_k(t + 1)}{\wblk{k}_{p, q}} & = \pdv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\pdv{\netig{k}{t + 1}}{\tilde{x}_j(t)}} \cdot \pdv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
-  \pdv{\vyopog_k(t + 1)}{\wblk{k}_{p, q}} & \aptr 0
+  \dv{\vyopig_k(t + 1)}{\wblk{k}_{p, q}} & = \dv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\netig{k}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
+  \dv{\vyopog_k(t + 1)}{\wblk{k}_{p, q}} & \aptr 0
   \end{align*} \tag{52}\label{52}
   $$
 
@@ -1324,7 +1476,7 @@ LSTM 最佳化
 
   #### 閘門單元參數
 
-  將 $\eqref{37}$ 結合 $\eqref{51}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞內部狀態** $\vsopblk{k}(t + 1)$ 計算所得**剩餘梯度**
+  將 $\eqref{12}$ 結合 $\eqref{51}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞內部狀態** $\vsopblk{k}(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
@@ -1341,19 +1493,19 @@ LSTM 最佳化
   i & \in \Set{1, \dots, \dblk} \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\pdv{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \pdv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopig_k(t + 1)}{\wog_{p, q}}} \\
-  & \quad + \pdv{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t + 1}}{\wog_{p, q}}} \\
+  \dv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\dv{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \dv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopig_k(t + 1)}{\wog_{p, q}}} \\
+  & \quad + \dv{s_i^{\blk{k}}(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vzopblk{k}_i(t + 1)}{\wog_{p, q}}} \\
   & \aptr 0 \tag{53}\label{53} \\
-  \pdv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pdv{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \pdv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \pdv{\vyopig_k(t + 1)}{\wig_{p, q}} \\
-  & \quad + \pdv{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \cancelto{0}{\pdv{\netcell{i}{k}{t + 1}}{\wig_{p, q}}} \\
-  & \aptr 1 \cdot \delta_{k, p} \cdot \pdv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\pdv{\vyopig_k(t + 1)}{\wig_{k, q}}} \\
-  & \aptr \delta_{k, p} \cdot \br{\pdv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\netcell{i}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
+  \dv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \dv{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \dv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \dv{\vyopig_k(t + 1)}{\wig_{p, q}} \\
+  & \quad + \dv{s_i^{\blk{k}}(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vzopblk{k}_i(t + 1)}{\wig_{p, q}}} \\
+  & \aptr 1 \cdot \delta_{k, p} \cdot \dv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\vzopblk{k}_i(t + 1)} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\dv{\vyopig_k(t + 1)}{\wig_{k, q}}} \\
+  & \aptr \delta_{k, p} \cdot \br{\dv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\vzopblk{k}_i(t + 1)} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
   \end{align*}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  使用 $\eqref{37}$ 推得**記憶細胞淨輸入參數** $\wblk{k^\star}$ 對於**記憶細胞內部狀態** $\vsopblk{k}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^\star$ 可以**不等於** $k$）
+  使用 $\eqref{12}$ 推得**記憶細胞淨輸入參數** $\wblk{k^\star}$ 對於**記憶細胞內部狀態** $\vsopblk{k}(t + 1)$ 計算所得**剩餘梯度**（注意 $k^\star$ 可以**不等於** $k$）
 
   $$
   \begin{align*}
@@ -1370,11 +1522,11 @@ LSTM 最佳化
   i, p & \in \Set{1, \dots, \dblk} \\
   k, k^\star & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \pdv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} & = \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \pdv{s_i^{\blk{k}}(t)}{\wblk{k^\star}_{p, q}} + \pdv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\pdv{\vyopig_k(t + 1)}{\wblk{k^\star}_{p, q}}} \\
-  & \quad + \pdv{s_i^{\blk{k}}(t + 1)}{\netcell{i}{k}{t + 1}} \cdot \pdv{\netcell{i}{k}{t + 1}}{\wblk{k^\star}_{p, q}} \\
-  & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot 1 \cdot \pdv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} \\
-  & \quad + \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \vyopig_k(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t) \\
-  & = \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \br{\pdv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g_i'\pa{\netcell{i}{k}{t + 1}} \cdot \tilde{x}_q(t)}
+  \dv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} & = \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \dv{s_i^{\blk{k}}(t)}{\wblk{k^\star}_{p, q}} + \dv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopig_k(t + 1)}{\wblk{k^\star}_{p, q}}} \\
+  & \quad + \dv{s_i^{\blk{k}}(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \dv{\vzopblk{k}_i(t + 1)}{\wblk{k^\star}_{p, q}} \\
+  & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot 1 \cdot \dv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} \\
+  & \quad + \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \vyopig_k(t + 1) \cdot g_i'\pa{\vzopblk{k}_i(t + 1)} \cdot \tilde{x}_q(t) \\
+  & = \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \br{\dv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g_i'\pa{\vzopblk{k}_i(t + 1)} \cdot \tilde{x}_q(t)}
   \end{align*} \tag{55}\label{55}
   $$
 
@@ -1397,23 +1549,23 @@ LSTM 最佳化
   \end{pmatrix} \\
   i & \in \Set{1, \dots, \dout} \\
   j & \in \Set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
-  \pdv{\cL(t + 1)}{\wout_{i, j}} & = \pdv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wout_{i, j}} \\
-  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \pdv{y_i(t + 1)}{\wout_{i, j}} \\
+  \dv{\cL(t + 1)}{\wout_{i, j}} & = \dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\wout_{i, j}} \\
+  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dv{y_i(t + 1)}{\wout_{i, j}} \\
   & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \tilde{x}_j(t + 1)
   \end{align*} \tag{56}\label{56}
   $$
 
   ### 隱藏單元參數
 
-  從 $\eqref{4} \eqref{39} \eqref{42} \eqref{45}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{14} \eqref{42} \eqref{45}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
   & p \in \Set{1, \dots, \dhid} \\
   & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pdv{\cL(t + 1)}{\whid_{p, q}} = \sum_{i = 1}^\dout \br{\pdv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\whid_{p, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \pdv{y_p^{\ophid}(t + 1)}{\whid_{p, q}}} \\
-  & = \sum_{i = 1}^\dout \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \pdv{y_p^{\ophid}(t + 1)}{\whid_{p, q}} \\
+  & \dv{\cL(t + 1)}{\vWophid_{p, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\vWophid_{p, q}}} \\
+  & \aptr \sum_{i = 1}^\dout \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \dv{y_p^{\ophid}(t + 1)}{\vWophid_{p, q}}} \\
+  & = \sum_{i = 1}^\dout \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \dv{y_p^{\ophid}(t + 1)}{\vWophid_{p, q}} \\
   & \aptr \sum_{i = 1}^\dout \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \\
   & \quad \quad \dfnethid{p}{t + 1} \cdot \begin{pmatrix}
   \vx(t) \\
@@ -1433,13 +1585,13 @@ LSTM 最佳化
   \begin{align*}
   k & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \pdv{\cL(t + 1)}{\wog_{k, q}} & = \sum_{i = 1}^\dout \br{\pdv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wog_{k, q}}} \\
+  \dv{\cL(t + 1)}{\wog_{k, q}} & = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\wog_{k, q}}} \\
   & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \dv{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}}\Bigg] \\
   & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{\vyopog_k(t + 1)}{\wog_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{\vyopog_k(t + 1)}{\wog_{k, q}}}\Bigg] \\
   & = \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \pdv{\vyopog_k(t + 1)}{\wog_{k, q}} \\
+  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \dv{\vyopog_k(t + 1)}{\wog_{k, q}} \\
   & \aptr \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \\
   & \quad \quad \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
@@ -1471,15 +1623,15 @@ LSTM 最佳化
   \end{pmatrix} \\
   & k \in \Set{1, \dots, \nblk} \\
   & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pdv{\cL(t + 1)}{\wig_{k, q}} = \sum_{i = 1}^\dout \br{\pdv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wig_{k, q}}} \\
+  & \dv{\cL(t + 1)}{\wig_{k, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\wig_{k, q}}} \\
   & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \pdv{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \dv{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
   & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \vyopog_k(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \vyopog_k(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
   & = \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \pdv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot \vyopog_k(t + 1) \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot \vyopog_k(t + 1) \\
   & \aptr \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\pdv{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\dv{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
   & \quad \quad g_j\pa{\netcell{j}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot \vyopog_k(t + 1)
   \end{align*} \tag{59}\label{59}
   $$
@@ -1502,15 +1654,15 @@ LSTM 最佳化
   & k \in \Set{1, \dots, \nblk} \\
   & p \in \Set{1, \dots, \dblk} \\
   & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \pdv{\cL(t + 1)}{\wblk{k}_{p, q}} = \sum_{i = 1}^\dout \br{\pdv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \pdv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \pdv{y_i(t + 1)}{\wblk{k}_{p, q}}} \\
+  & \dv{\cL(t + 1)}{\wblk{k}_{p, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\wblk{k}_{p, q}}} \\
   & \aptr \sum_{i = 1}^\dout \bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \pdv{\vyopblk{k}_p(t + 1)}{\wblk{k}_{p, q}}\bigg] \\
+  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \dv{\vyopblk{k}_p(t + 1)}{\wblk{k}_{p, q}}\bigg] \\
   & = \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \pdv{\vyopblk{k}_p(t + 1)}{\wblk{k}_{p, q}} \\
+  & \quad \quad \dv{\vyopblk{k}_p(t + 1)}{\wblk{k}_{p, q}} \\
   & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \pdv{s_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}\Bigg] \\
+  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \dv{s_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}\Bigg] \\
   & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\pdv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
+  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\dv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
   & \quad \quad \vyopig_k(t + 1) \cdot g_p'\pa{\netcell{p}{k}{t + 1}} \cdot \tilde{x}_q(t)\Bigg]
   \end{align*} \tag{60}\label{60}
   $$
@@ -1528,7 +1680,7 @@ LSTM 最佳化
   - $\eqref{61}$ 就是論文中的 A.27 式
   - 在 $t + 1$ 時間點**參數更新**需要考慮 $t$ 時間點的**計算狀態**，請見 $\eqref{57} \eqref{58} \eqref{59} \eqref{60}$
   - 沒有如同 $\eqref{14}$ 的**連乘積**項，因此不會有**梯度消失**問題
-  - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\pdv{s_j^{\blk{k}}(t)}{\wig_{k, q}}, \pdv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}}$
+  - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\dv{s_j^{\blk{k}}(t)}{\wig_{k, q}}, \dv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}}$
     - 紀錄讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
     - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
     - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
@@ -1554,14 +1706,14 @@ LSTM 最佳化
 
   ### 達成梯度常數
 
-  根據 $\eqref{37} \eqref{38}$ 我們可以推得
+  根據 $\eqref{12} \eqref{13}$ 我們可以推得
 
   $$
   \begin{align*}
   i & \in \Set{1, \dots, \dblk} \\
   k & \in \Set{1, \dots, \nblk} \\
-  \pdv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} & = \pdv{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\pdv{\vyopig_k(t + 1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\netcell{i}{k}{t + 1}} + \\
-  & \quad \vyopig_k(t + 1) \cdot \cancelto{0}{\pdv{g_i\pa{\netcell{i}{k}{t + 1}}}{s_i^{\blk{k}}(t)}} \\
+  \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} & = \dv{s_i^{\blk{k}}(t)}{s_i^{\blk{k}}(t)} + \cancelto{0}{\dv{\vyopig_k(t + 1)}{s_i^{\blk{k}}(t)}} \cdot g_i\pa{\vzopblk{k}_i(t + 1)} + \\
+  & \quad \vyopig_k(t + 1) \cdot \cancelto{0}{\dv{g_i\pa{\vzopblk{k}_i(t + 1)}}{s_i^{\blk{k}}(t)}} \\
   & \aptr 1
   \end{align*} \tag{64}\label{64}
   $$
@@ -2086,7 +2238,7 @@ LSTM 最佳化
 
   #### 任務定義
 
-  從 LSTM 的架構上來看實驗 4 的加法任務可以透過 $\eqref{39}$ 輕鬆完成，因此實驗 5 的目標是確認模型是否能夠從加法上延伸出乘法的概念，確保實驗 4 並不只是單純因模型架構而解決。
+  從 LSTM 的架構上來看實驗 4 的加法任務可以透過 $\eqref{14}$ 輕鬆完成，因此實驗 5 的目標是確認模型是否能夠從加法上延伸出乘法的概念，確保實驗 4 並不只是單純因模型架構而解決。
 
   概念與實驗 4 的任務幾乎相同，只做以下修改：
 
