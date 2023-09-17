@@ -96,6 +96,7 @@ Long Short-Term Memory
     \newcommand{\vsopblk}[1]{\vs^\blk{#1}}
     \newcommand{\vw}{\mathbf{w}}
     \newcommand{\vx}{\mathbf{x}}
+    \newcommand{\vxopout}{\vx^\opout}
     \newcommand{\vxt}{\tilde{\vx}}
     \newcommand{\vy}{\mathbf{y}}
     \newcommand{\vyh}{\hat{\vy}}
@@ -768,14 +769,14 @@ LSTM 架構
       & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
       & \indent{2}   \algoCmt{Concatenate input units with activations.} \\
       & \indent{2}   \vxt(t) \algoEq \begin{pmatrix}
-                       \vx(t) \\
-                       \vyophid(t) \\
-                       \vyopig(t) \\
-                       \vyopog(t) \\
-                       \vyopblk{1}(t) \\
-                       \vdots \\
-                       \vyopblk{\nblk}(t)
-                     \end{pmatrix} \\
+                                       \vx(t) \\
+                                       \vyophid(t) \\
+                                       \vyopig(t) \\
+                                       \vyopog(t) \\
+                                       \vyopblk{1}(t) \\
+                                       \vdots \\
+                                       \vyopblk{\nblk}(t)
+                                     \end{pmatrix} \\
       & \indent{2}   \algoCmt{Compute conventional hidden units' activations.} \\
       & \indent{2}   \vzophid(t + 1) \algoEq \vWophid \cdot \vxt(t) \\
       & \indent{2}   \vyophid(t + 1) \algoEq f^\ophid\qty(\vzophid(t + 1)) \\
@@ -792,13 +793,14 @@ LSTM 架構
       & \indent{3}     \vyopblk{k}(t + 1) \algoEq \vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1)) \\
       & \indent{2}   \algoEndFor \\
       & \indent{2}   \algoCmt{Compute outputs.} \\
-      & \indent{2}   \vzopout(t + 1) \algoEq \vWopout \cdot \begin{pmatrix}
-                       \vx(t) \\
-                       \vyophid(t + 1) \\
-                       \vyopblk{1}(t + 1) \\
-                       \vdots \\
-                       \vyopblk{\nblk}(t + 1) \\
-                     \end{pmatrix} \\
+      & \indent{2}   \vxopout(t + 1) \algoEq \begin{pmatrix}
+                                               \vx(t) \\
+                                               \vyophid(t + 1) \\
+                                               \vyopblk{1}(t + 1) \\
+                                               \vdots \\
+                                               \vyopblk{\nblk}(t + 1) \\
+                                             \end{pmatrix} \\
+      & \indent{2}   \vzopout(t + 1) \algoEq \vWopout \cdot \vxopout(t + 1) \\
       & \indent{2}   \vy(t + 1) \algoEq f^\opout\qty(\vzopout(t + 1)) \\
       & \indent{1} \algoEndFor \\
       & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
@@ -1171,21 +1173,21 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+        \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
                                                    & \aptr 0 \qqtext{where} \begin{dcases}
                                                                               k \in \Set{1, \dots, \nblk} \\
                                                                               p \in \Set{1, \dots, \dhid} \\
                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                               t \in \Set{0, \dots, \cT - 1}
                                                                             \end{dcases}. \\
-        \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+        \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
                                                    & \aptr 0 \qqtext{where} \begin{dcases}
                                                                               k \in \Set{1, \dots, \nblk} \\
                                                                               p \in \Set{1, \dots, \dhid} \\
                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                               t \in \Set{0, \dots, \cT - 1}
                                                                             \end{dcases}. \\
-        \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+        \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
                                                    & \aptr 0 \qqtext{where} \begin{dcases}
                                                                               i \in \Set{1, \dots, \dblk} \\
                                                                               k \in \Set{1, \dots, \nblk} \\
@@ -1196,189 +1198,278 @@ LSTM 最佳化
       \end{align*}
     \]
 
+相對於總輸出所得剩餘梯度
+------------------------
+
+我們將論文的 A.8 式拆解成 :math:`\eqref{15} \eqref{16} \eqref{17} \eqref{18}`。
+
+總輸出參數
+~~~~~~~~~~
+
+令 :math:`\delta_{a, b}` 為 **Kronecker delta**，i.e.，
+
+.. math::
+  :nowrap:
+
+  \[
+    \delta_{a, b} = \begin{dcases}
+                      1 & \qqtext*{if} a = b \\
+                      0 & \qqtext*{otherwise}
+                    \end{dcases}.
+  \]
+
+由於\ **總輸出** :math:`\vy(t + 1)` 不會像是傳統 RNN 的方式\ **回饋**\到模型的計算狀態中，因此\ **總輸出參數** :math:`\vWopout` 對\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **微分**\為
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+    \dv{\vy_i(t + 1)}{\vWopout_{p, q}} & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout(t + 1)_q \\
+                                       & \qqtext{where} \begin{dcases}
+                                                          i \in \Set{1, \dots, \dout} \\
+                                                          p \in \Set{1, \dots, \dout} \\
+                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                          t \in \Set{0, \dots, \cT - 1}
+                                                        \end{dcases}.
+    \end{align*}
+    \tag{15}\label{15}
+  \]
+
+.. dropdown:: 推導式子 :math:`\eqref{15}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+      \dv{\vy_i(t + 1)}{\vWopout_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
+                                         & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout(t + 1)_q \\
+                                         & \qqtext{where} \begin{dcases}
+                                                            i \in \Set{1, \dots, \dout} \\
+                                                            p \in \Set{1, \dots, \dout} \\
+                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                            t \in \Set{0, \dots, \cT - 1}
+                                                          \end{dcases}.
+      \end{align*}
+    \]
+
+- :math:`\eqref{15}` 就是論文中 A.8 式的第一個 case
+- 由於 :math:`p` 可以是\ **任意**\的輸出節點，因此在 :math:`i \neq p` 時 :math:`\vWopout_{p, q}` 對於 :math:`\vy_i(t + 1)` 的微分為 :math:`0`
+
+隱藏單元參數
+~~~~~~~~~~~~
+
+在 :math:`\eqref{12} \eqref{13} \eqref{14}` 的作用下，我們可以求得\ **隱藏單元參數** :math:`\vWophid` 在\ **丟棄**\部份微分後對於\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \dv{\vy_i(t + 1)}{\vWophid_{p, q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
+                                         & \qqtext{where} \begin{dcases}
+                                                            i \in \Set{1, \dots, \dout} \\
+                                                            p \in \Set{1, \dots, \dhid} \\
+                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                            t \in \Set{0, \dots, \cT - 1}
+                                                          \end{dcases}.
+    \end{align*}
+    \tag{16}\label{16}
+  \]
+
+.. dropdown:: 推導式子 :math:`\eqref{16}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vy_i(t + 1)}{\vWophid_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWophid_{p, q}} \\
+                                           & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWophid_{p, q}}}] \\
+                                           & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dout} \\
+                                                              p \in \Set{1, \dots, \dhid} \\
+                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
+      \end{align*}
+    \]
+
+:math:`\eqref{16}` 就是論文中 A.8 式的最後一個 case。
+
+閘門單元參數
+~~~~~~~~~~~~
+
+同 :math:`\eqref{16}`，我們可以計算\ **閘門單元參數** :math:`\vWopig, \vWopog` 對\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \dv{\vy_i(t + 1)}{\vWopog_{k,q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\dblk} \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopog_{k,q}}] \\
+                                       & \qqtext{where} \begin{dcases}
+                                                          i \in \Set{1, \dots, \dout} \\
+                                                          k \in \Set{1, \dots, \nblk} \\
+                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                          t \in \Set{0, \dots, \cT - 1}
+                                                        \end{dcases}. \\
+      \dv{\vy_i(t + 1)}{\vWopig_{k,q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\dblk} \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopig_{k, q}}] \\
+                                       & \qqtext{where} \begin{dcases}
+                                                          i \in \Set{1, \dots, \dout} \\
+                                                          k \in \Set{1, \dots, \nblk} \\
+                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                          t \in \Set{0, \dots, \cT - 1}
+                                                        \end{dcases}.
+    \end{align*}
+    \tag{17}\label{17}
+  \]
+
+.. dropdown:: 推導式子 :math:`\eqref{17}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vy_i(t + 1)}{\vWopog_{k,q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopog_{k,q}} \\
+                                         & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopog_{k,q}}}] \\
+                                         & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\dblk} \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopog_{k,q}}] \\
+                                         & \qqtext{where} \begin{dcases}
+                                                            i \in \Set{1, \dots, \dout} \\
+                                                            k \in \Set{1, \dots, \nblk} \\
+                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                            t \in \Set{0, \dots, \cT - 1}
+                                                          \end{dcases}. \\
+        \dv{\vy_i(t + 1)}{\vWopig_{k,q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\dblk} \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopig_{k, q}}] \\
+                                         & \qqtext{where} \begin{dcases}
+                                                            i \in \Set{1, \dots, \dout} \\
+                                                            k \in \Set{1, \dots, \nblk} \\
+                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                            t \in \Set{0, \dots, \cT - 1}
+                                                          \end{dcases}.
+      \end{align*}
+    \]
+
+:math:`\eqref{17}` 就是論文中 A.8 式的第三個 case。
+
+記憶細胞淨輸入參數
+~~~~~~~~~~~~~~~~~~
+
+**記憶細胞淨輸入參數** :math:`\vWopblk{k}` 對\ **總輸出** :math:`y(t + 1)` 計算所得的\ **剩餘梯度**\與 :math:`\eqref{17}` 幾乎\ **相同**
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \dv{\vy_i(t + 1)}{\vWopblk{k}_{p, q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \dv{\vyopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
+                                            & \qqtext{where} \begin{dcases}
+                                                                i \in \Set{1, \dots, \dout} \\
+                                                                k \in \Set{1, \dots, \nblk} \\
+                                                                p \in \Set{1, \dots, \dblk} \\
+                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                t \in \Set{0, \dots, \cT - 1}
+                                                              \end{dcases}.
+    \end{align*}
+    \tag{18}\label{18}
+  \]
+
+.. dropdown:: 推導式子 :math:`\eqref{17}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vy_i(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopblk{k}_{p, q}} \\
+                                              & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopblk{k}_{p, q}}}] \\
+                                              & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \dv{\vyopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
+                                              & \qqtext{where} \begin{dcases}
+                                                                 i \in \Set{1, \dots, \dout} \\
+                                                                 k \in \Set{1, \dots, \nblk} \\
+                                                                 p \in \Set{1, \dots, \dblk} \\
+                                                                 q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}.
+      \end{align*}
+    \]
+
+:math:`\eqref{18}` 就是論文中 A.8 式的第二個 case。
+
 ..
-  ### 相對於總輸出所得剩餘梯度
-
-  我們將論文的 A.8 式拆解成 $\eqref{41} \eqref{42} \eqref{43} \eqref{44}$。
-
-  #### 總輸出參數
-
-  令 $\delta_{a, b}$ 為 **Kronecker delta**，i.e.，
-
-  $$
-  \delta_{a, b} = \begin{dcases}
-  1 & \text{if } a = b \\
-  0 & \text{otherwise}
-  \end{dcases} \tag{40}\label{40}
-  $$
-
-  由於**總輸出** $y(t + 1)$ 不會像是 $\eqref{1} \eqref{2}$ 的方式**回饋**到模型的計算狀態中，因此**總輸出參數** $\wout$ 對**總輸出** $y(t + 1)$ 計算所得的**梯度**為
-
-  $$
-  \begin{align*}
-  i, p & \in \Set{1, \dots, \dout} \\
-  q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
-  \dv{y_i(t + 1)}{\wout_{p, q}} & = \dv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \dv{\netout{i}{t + 1}}{\wout_{p, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
-  \vx(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
-  \vdots \\
-  y^{\blk{\nblk}}(t + 1)
-  \end{pmatrix}_q
-  \end{align*} \tag{41}\label{41}
-  $$
-
-  - $\eqref{41}$ 就是論文中 A.8 式的第一個 case
-  - 由於 $p$ 可以是**任意**的輸出節點，因此在 $i \neq p$ 時 $\wout_{p, q}$ 對於 $y_i(t + 1)$ 的梯度為 $0$
-
-  #### 隱藏單元參數
-
-  在 $\eqref{12} \eqref{13} \eqref{14}$ 的作用下，我們可以求得**隱藏單元參數** $\whid$ 在**丟棄**部份梯度後對於**總輸出** $y(t + 1)$ 計算所得的**剩餘梯度**
-
-  $$
-  \begin{align*}
-  D & = \din + \dhid + \nblk \cdot \dblk \\
-  \tilde{x}(t + 1) & = \begin{pmatrix}
-  \vx(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
-  \vdots \\
-  y^{\blk{\nblk}}(t + 1)
-  \end{pmatrix} \in \R^D \\
-  i & \in \Set{1, \dots, \dout} \\
-  p & \in \Set{1, \dots, \dhid} \\
-  q & \in \Set{1, \dots, D} \\
-  \dv{y_i(t + 1)}{\vWophid_{p, q}} & = \dv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \dv{\netout{i}{t + 1}}{\vWophid_{p, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\dv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\dv{\tilde{x}_j(t + 1)}{\vWophid_{p, q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \dv{y_p^{\ophid}(t + 1)}{\vWophid_{p, q}}
-  \end{align*} \tag{42}\label{42}
-  $$
-
-  $\eqref{42}$ 就是論文中 A.8 式的最後一個 case。
-
-  #### 閘門單元參數
-
-  同 $\eqref{42}$，我們可以計算**閘門單元參數** $\wig, \wog$ 對**總輸出** $y(t + 1)$ 計算所得的**剩餘梯度**
-
-  $$
-  \begin{align*}
-  D & = \din + \dhid + \nblk \cdot \dblk \\
-  \tilde{x}(t + 1) & = \begin{pmatrix}
-  \vx(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
-  \vdots \\
-  y^{\blk{\nblk}}(t + 1)
-  \end{pmatrix} \in \R^D \\
-  i & \in \Set{1, \dots, \dout} \\
-  k & \in \Set{1, \dots, \nblk} \\
-  q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \dv{y_i(t + 1)}{\wog_{k,q}} & = \dv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \dv{\netout{i}{t + 1}}{\wog_{k,q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\dv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\dv{\tilde{x}_j(t + 1)}{\wog_{k,q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \dv{y_j^{\blk{k}}(t + 1)}{\wog_{k,q}}} \\
-  \dv{y_i(t + 1)}{\wig_{k,q}} & \aptr \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^{\dblk} \br{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \dv{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}
-  \end{align*} \tag{43}\label{43}
-  $$
-
-  $\eqref{43}$ 就是論文中 A.8 式的第三個 case。
-
-  #### 記憶細胞淨輸入參數
-
-  **記憶細胞淨輸入參數** $\wblk{k}$ 對**總輸出** $y(t + 1)$ 計算所得的**剩餘梯度**與 $\eqref{43}$ 幾乎**相同**
-
-  $$
-  \begin{align*}
-  D & = \din + \dhid + \nblk \cdot \dblk \\
-  \tilde{x}(t + 1) & = \begin{pmatrix}
-  \vx(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
-  \vdots \\
-  y^{\blk{\nblk}}(t + 1)
-  \end{pmatrix} \in \R^D \\
-  i & \in \Set{1, \dots, \dout} \\
-  k & \in \Set{1, \dots, \nblk} \\
-  p & \in \Set{1, \dots, \dblk} \\
-  q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \dv{y_i(t + 1)}{\wblk{k}_{p, q}} & = \dv{y_i(t + 1)}{\netout{i}{t + 1}} \cdot \dv{\netout{i}{t + 1}}{\wblk{k}_{p, q}} \\
-  & = \dfnetout{i}{t + 1} \cdot \sum_{j = 1}^D \br{\dv{\netout{i}{t + 1}}{\tilde{x}_j(t + 1)} \cdot \cancelto{\aptr}{\dv{\tilde{x}_j(t + 1)}{\wblk{k}_{p, q}}}} \\
-  & \aptr \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \dv{y_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}
-  \end{align*} \tag{44}\label{44}
-  $$
-
-  $\eqref{44}$ 就是論文中 A.8 式的第二個 case。
-
   ### 相對於隱藏單元所得剩餘梯度
 
   我們將論文的 A.9 式拆解成 $\eqref{45} \eqref{46} \eqref{47}$。
 
   #### 隱藏單元參數
 
-  根據 $\eqref{12} \eqref{13}$ 我們可以得到**隱藏單元參數** $\whid$ 對於**隱藏單元** $y^{\ophid}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{12} \eqref{13}$ 我們可以得到**隱藏單元參數** $\vWophid$ 對於**隱藏單元** $\vyophid(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   i, p & \in \Set{1, \dots, \dhid} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \dv{y_i^{\ophid}(t + 1)}{\vWophid_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \cancelto{\aptr}{\dv{\nethid{i}{t + 1}}{\vWophid_{p, q}}} \\
+  \dv{y_i^{\ophid}(t + 1)}{\vWophid_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \cancelto{\aptr 0}{\dv{\nethid{i}{t + 1}}{\vWophid_{p, q}}} \\
   & \aptr \dfnethid{i}{t + 1} \cdot \delta_{i, p} \cdot \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix}_q
   \end{align*} \tag{45}\label{45}
   $$
 
   #### 閘門單元參數
 
-  由於**隱藏單元** $y^{\ophid}(t + 1)$ 並不是**直接**透過**閘門參數** $\wig, \wog$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\wig, \wog$ 對於 $y^{\ophid}(t + 1)$ **剩餘梯度**為 $0$
+  由於**隱藏單元** $\vyophid(t + 1)$ 並不是**直接**透過**閘門參數** $\vWopig, \vWopog$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\vWopig, \vWopog$ 對於 $\vyophid(t + 1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix} \in \R^D \\
   i & \in \Set{1, \dots, \dhid} \\
   p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \dv{y_i^{\ophid}(t + 1)}{\wog_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\wog_{p, q}}} \aptr 0 \\
-  \dv{y_i^{\ophid}(t + 1)}{\wig_{p, q}} & \aptr 0
+  \dv{y_i^{\ophid}(t + 1)}{\vWopog_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\vWopog_{p, q}}} \aptr 0 \\
+  \dv{y_i^{\ophid}(t + 1)}{\vWopig_{p, q}} & \aptr 0
   \end{align*} \tag{46}\label{46}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  同 $\eqref{46}$，由於**隱藏單元** $y^{\ophid}(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\wblk{k}$ 對於 $y^{\ophid}(t + 1)$ **剩餘梯度**為 $0$
+  同 $\eqref{46}$，由於**隱藏單元** $\vyophid(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\vWopblk{k}$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\vWopblk{k}$ 對於 $\vyophid(t + 1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix} \in \R^D \\
   i & \in \Set{1, \dots, \dhid} \\
   k & \in \Set{1, \dots, \nblk} \\
   p & \in \Set{1, \dots, \dblk} \\
   q & \in \Set{1, \dots, D} \\
-  \dv{y_i^{\ophid}(t + 1)}{\wblk{k}_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0
+  \dv{y_i^{\ophid}(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{y_i^{\ophid}(t + 1)}{\nethid{i}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\nethid{i}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\vWopblk{k}_{p, q}}} \aptr 0
   \end{align*} \tag{47}\label{47}
   $$
 
@@ -1388,17 +1479,17 @@ LSTM 最佳化
 
   #### 閘門單元參數
 
-  根據 $\eqref{12}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞輸出** $\vyopblk{k}(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{12}$ 我們可以推得**閘門單元參數** $\vWopig, \vWopog$ 對於**記憶細胞輸出** $\vyopblk{k}(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   i & \in \Set{1, \dots, \dblk} \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \dv{\vyopblk{k}_i(t + 1)}{\wog_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \dv{\vyopog_k(t + 1)}{\wog_{p, q}} + \dv{\vyopblk{k}_i(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \cancelto{0}{\dv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}}} \\
-  & \aptr h_i\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \dv{\vyopog_k(t + 1)}{\wog_{k, q}} \tag{48}\label{48} \\
-  \dv{\vyopblk{k}_i(t + 1)}{\wig_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopog_k(t + 1)}{\wig_{p, q}}} + \dv{\vyopblk{k}_i(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} \\
-  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\wig_{k, q}} \tag{49}\label{49}
+  \dv{\vyopblk{k}_i(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} + \dv{\vyopblk{k}_i(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \cancelto{0}{\dv{s_i^{\blk{k}}(t + 1)}{\vWopog_{p, q}}} \\
+  & \aptr h_i\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \dv{\vyopog_k(t + 1)}{\vWopog_{k, q}} \tag{48}\label{48} \\
+  \dv{\vyopblk{k}_i(t + 1)}{\vWopig_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopog_k(t + 1)}{\vWopig_{p, q}}} + \dv{\vyopblk{k}_i(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\vWopig_{p, q}} \\
+  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, p} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\vWopig_{k, q}} \tag{49}\label{49}
   \end{align*}
   $$
 
@@ -1412,7 +1503,7 @@ LSTM 最佳化
   k, k^\star & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
   \dv{\vyopblk{k}_i(t + 1)}{\wblk{k^\star}_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopog_k(t + 1)}{\wblk{k^\star}_{p, q}}} + \dv{\vyopblk{k}_i(t + 1)}{s_i^{\blk{k}}(t + 1)} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} \\
-  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\wblk{k}_{i, q}}
+  & \aptr \vyopog_k(t + 1) \cdot h_i'\pa{s_i^{\blk{k}}(t + 1)} \cdot \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \dv{s_i^{\blk{k}}(t + 1)}{\vWopblk{k}_{i, q}}
   \end{align*} \tag{50}\label{50}
   $$
 
@@ -1424,49 +1515,49 @@ LSTM 最佳化
 
   #### 閘門單元參數
 
-  根據 $\eqref{12} \eqref{13}$ 我們可以得到**閘門單元參數** $\wig, \wog$ 對於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 計算所得**剩餘梯度**
+  根據 $\eqref{12} \eqref{13}$ 我們可以得到**閘門單元參數** $\vWopig, \vWopog$ 對於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}
+  \vyopblk{\nblk}
   \end{pmatrix} \in \R^D \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \dv{\vyopig_k(t + 1)}{[\wig ; \wog]_{p, q}} & = \dv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \cancelto{\aptr}{\dv{\netig{k}{t + 1}}{[\wig ; \wog]_{p, q}}} \\
+  \dv{\vyopig_k(t + 1)}{[\vWopig ; \vWopog]_{p, q}} & = \dv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \cancelto{\aptr 0}{\dv{\netig{k}{t + 1}}{[\vWopig ; \vWopog]_{p, q}}} \\
   & \aptr \dfnetig{k}{t + 1} \cdot \delta_{k, p} \cdot \tilde{x}_q(t) \\
-  \dv{\vyopog_k(t + 1)}{[\wig ; \wog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t + 1} \cdot \tilde{x}_q(t)
+  \dv{\vyopog_k(t + 1)}{[\vWopig ; \vWopog]_{p, q}} & \aptr \delta_{k, p} \cdot \dfnetog{k}{t + 1} \cdot \tilde{x}_q(t)
   \end{align*} \tag{51}\label{51}
   $$
 
   #### 記憶細胞淨輸入參數
 
-  由於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\wblk{k}$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\wblk{k}$ 對於 $\vyopig(t + 1), \vyopog(t + 1)$ **剩餘梯度**為 $0$
+  由於**閘門單元** $\vyopig(t + 1), \vyopog(t + 1)$ 並不是**直接**透過**記憶細胞淨輸入參數** $\vWopblk{k}$ 產生，因此根據 $\eqref{12}$ 我們可以推得 $\vWopblk{k}$ 對於 $\vyopig(t + 1), \vyopog(t + 1)$ **剩餘梯度**為 $0$
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}
+  \vyopblk{\nblk}
   \end{pmatrix} \in \R^D \\
   k & \in \Set{1, \dots, \nblk} \\
   p & \in \Set{1, \dots, \dblk} \\
   q & \in \Set{1, \dots, D} \\
-  \dv{\vyopig_k(t + 1)}{\wblk{k}_{p, q}} & = \dv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\netig{k}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\wblk{k}_{p, q}}} \aptr 0 \\
-  \dv{\vyopog_k(t + 1)}{\wblk{k}_{p, q}} & \aptr 0
+  \dv{\vyopig_k(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyopig_k(t + 1)}{\netig{k}{t + 1}} \cdot \sum_{j = 1}^D \br{\cancelto{0}{\dv{\netig{k}{t + 1}}{\tilde{x}_j(t)}} \cdot \dv{\tilde{x}_j(t)}{\vWopblk{k}_{p, q}}} \aptr 0 \\
+  \dv{\vyopog_k(t + 1)}{\vWopblk{k}_{p, q}} & \aptr 0
   \end{align*} \tag{52}\label{52}
   $$
 
@@ -1476,30 +1567,30 @@ LSTM 最佳化
 
   #### 閘門單元參數
 
-  將 $\eqref{12}$ 結合 $\eqref{51}$ 我們可以推得**閘門單元參數** $\wig, \wog$ 對於**記憶細胞內部狀態** $\vsopblk{k}(t + 1)$ 計算所得**剩餘梯度**
+  將 $\eqref{12}$ 結合 $\eqref{51}$ 我們可以推得**閘門單元參數** $\vWopig, \vWopog$ 對於**記憶細胞內部狀態** $\vsopblk{k}(t + 1)$ 計算所得**剩餘梯度**
 
   $$
   \begin{align*}
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix} \in \R^D \\
   i & \in \Set{1, \dots, \dblk} \\
   k, p & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
-  \dv{s_i^{\blk{k}}(t + 1)}{\wog_{p, q}} & = \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\dv{s_i^{\blk{k}}(t)}{\wog_{p, q}}} + \dv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopig_k(t + 1)}{\wog_{p, q}}} \\
-  & \quad + \dv{s_i^{\blk{k}}(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vzopblk{k}_i(t + 1)}{\wog_{p, q}}} \\
+  \dv{s_i^{\blk{k}}(t + 1)}{\vWopog_{p, q}} & = \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \cancelto{0}{\dv{s_i^{\blk{k}}(t)}{\vWopog_{p, q}}} + \dv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopig_k(t + 1)}{\vWopog_{p, q}}} \\
+  & \quad + \dv{s_i^{\blk{k}}(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vzopblk{k}_i(t + 1)}{\vWopog_{p, q}}} \\
   & \aptr 0 \tag{53}\label{53} \\
-  \dv{s_i^{\blk{k}}(t + 1)}{\wig_{p, q}} & = \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \dv{s_i^{\blk{k}}(t)}{\wig_{p, q}} + \dv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \dv{\vyopig_k(t + 1)}{\wig_{p, q}} \\
-  & \quad + \dv{s_i^{\blk{k}}(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vzopblk{k}_i(t + 1)}{\wig_{p, q}}} \\
-  & \aptr 1 \cdot \delta_{k, p} \cdot \dv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\vzopblk{k}_i(t + 1)} \cdot \delta_{k, p} \cdot \cancelto{\aptr}{\dv{\vyopig_k(t + 1)}{\wig_{k, q}}} \\
-  & \aptr \delta_{k, p} \cdot \br{\dv{s_i^{\blk{k}}(t)}{\wig_{k, q}} + g_i\pa{\vzopblk{k}_i(t + 1)} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
+  \dv{s_i^{\blk{k}}(t + 1)}{\vWopig_{p, q}} & = \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \dv{s_i^{\blk{k}}(t)}{\vWopig_{p, q}} + \dv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \dv{\vyopig_k(t + 1)}{\vWopig_{p, q}} \\
+  & \quad + \dv{s_i^{\blk{k}}(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vzopblk{k}_i(t + 1)}{\vWopig_{p, q}}} \\
+  & \aptr 1 \cdot \delta_{k, p} \cdot \dv{s_i^{\blk{k}}(t)}{\vWopig_{k, q}} + g_i\pa{\vzopblk{k}_i(t + 1)} \cdot \delta_{k, p} \cdot \cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vWopig_{k, q}}} \\
+  & \aptr \delta_{k, p} \cdot \br{\dv{s_i^{\blk{k}}(t)}{\vWopig_{k, q}} + g_i\pa{\vzopblk{k}_i(t + 1)} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)} \tag{54}\label{54}
   \end{align*}
   $$
 
@@ -1512,21 +1603,21 @@ LSTM 最佳化
   D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
   \tilde{x}(t) & = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix} \in \R^D \\
   i, p & \in \Set{1, \dots, \dblk} \\
   k, k^\star & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, D} \\
   \dv{s_i^{\blk{k}}(t + 1)}{\wblk{k^\star}_{p, q}} & = \dv{s_i^{\blk{k}}(t + 1)}{s_i^{\blk{k}}(t)} \cdot \dv{s_i^{\blk{k}}(t)}{\wblk{k^\star}_{p, q}} + \dv{s_i^{\blk{k}}(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopig_k(t + 1)}{\wblk{k^\star}_{p, q}}} \\
   & \quad + \dv{s_i^{\blk{k}}(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \dv{\vzopblk{k}_i(t + 1)}{\wblk{k^\star}_{p, q}} \\
-  & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot 1 \cdot \dv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} \\
+  & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot 1 \cdot \dv{s_i^{\blk{k}}(t)}{\vWopblk{k}_{i, q}} \\
   & \quad + \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \vyopig_k(t + 1) \cdot g_i'\pa{\vzopblk{k}_i(t + 1)} \cdot \tilde{x}_q(t) \\
-  & = \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \br{\dv{s_i^{\blk{k}}(t)}{\wblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g_i'\pa{\vzopblk{k}_i(t + 1)} \cdot \tilde{x}_q(t)}
+  & = \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \br{\dv{s_i^{\blk{k}}(t)}{\vWopblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g_i'\pa{\vzopblk{k}_i(t + 1)} \cdot \tilde{x}_q(t)}
   \end{align*} \tag{55}\label{55}
   $$
 
@@ -1542,127 +1633,127 @@ LSTM 最佳化
   \begin{align*}
   \tilde{x}(t + 1) & = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t + 1) \\
-  y^{\blk{1}}(t + 1) \\
+  \vyophid(t + 1) \\
+  \vyopblk{1}(t + 1) \\
   \vdots \\
-  y^{\blk{\nblk}}(t + 1)
+  \vyopblk{\nblk}(t + 1)
   \end{pmatrix} \\
   i & \in \Set{1, \dots, \dout} \\
-  j & \in \Set{1, \dots, \din + \dhid + \nblk \cdot \dblk} \\
-  \dv{\cL(t + 1)}{\wout_{i, j}} & = \dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\wout_{i, j}} \\
-  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dv{y_i(t + 1)}{\wout_{i, j}} \\
-  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \tilde{x}_j(t + 1)
+  j & \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+  \dv{\cL(t + 1)}{\vWopout_{i, j}} & = \dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopout_{i, j}} \\
+  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dv{\vy_i(t + 1)}{\vWopout_{i, j}} \\
+  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \tilde{x}_j(t + 1)
   \end{align*} \tag{56}\label{56}
   $$
 
   ### 隱藏單元參數
 
-  從 $\eqref{4} \eqref{14} \eqref{42} \eqref{45}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{14} \eqref{16} \eqref{45}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
   & p \in \Set{1, \dots, \dhid} \\
   & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \dv{\cL(t + 1)}{\vWophid_{p, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\vWophid_{p, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p} \cdot \dv{y_p^{\ophid}(t + 1)}{\vWophid_{p, q}}} \\
-  & = \sum_{i = 1}^\dout \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \dv{y_p^{\ophid}(t + 1)}{\vWophid_{p, q}} \\
-  & \aptr \sum_{i = 1}^\dout \br{\pa{y_i(t + 1) - \vyh_i(t + 1)} \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, p}} \cdot \\
+  & \dv{\cL(t + 1)}{\vWophid_{p, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWophid_{p, q}}} \\
+  & \aptr \sum_{i = 1}^\dout \br{\pa{\vy_i(t + 1) - \vyh_i(t + 1)} \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}}} \\
+  & = \sum_{i = 1}^\dout \br{\pa{\vy_i(t + 1) - \vyh_i(t + 1)} \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p}} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
+  & \aptr \sum_{i = 1}^\dout \br{\pa{\vy_i(t + 1) - \vyh_i(t + 1)} \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p}} \cdot \\
   & \quad \quad \dfnethid{p}{t + 1} \cdot \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
-  y^{\blk{1}}(t) \\
+  \vyophid(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix}_j
   \end{align*} \tag{57}\label{57}
   $$
 
   ### 輸出閘門單元參數
 
-  從 $\eqref{4} \eqref{43} \eqref{48} \eqref{51} \eqref{53}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{17} \eqref{48} \eqref{51} \eqref{53}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
   k & \in \Set{1, \dots, \nblk} \\
   q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \dv{\cL(t + 1)}{\wog_{k, q}} & = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\wog_{k, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \dv{y_j^{\blk{k}}(t + 1)}{\wog_{k, q}}}\Bigg] \\
-  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{\vyopog_k(t + 1)}{\wog_{k, q}}}\Bigg] \\
-  & = \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \dv{\vyopog_k(t + 1)}{\wog_{k, q}} \\
-  & \aptr \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \\
+  \dv{\cL(t + 1)}{\vWopog_{k, q}} & = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopog_{k, q}}} \\
+  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopog_{k, q}}}\Bigg] \\
+  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{\vyopog_k(t + 1)}{\vWopog_{k, q}}}\Bigg] \\
+  & = \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \dv{\vyopog_k(t + 1)}{\vWopog_{k, q}} \\
+  & \aptr \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \\
   & \quad \quad \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix}_q
   \end{align*} \tag{58}\label{58}
   $$
 
   ### 輸入閘門單元參數
 
-  從 $\eqref{4} \eqref{43} \eqref{49} \eqref{51} \eqref{54}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{17} \eqref{49} \eqref{51} \eqref{54}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
   & \tilde{x}(t) = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix} \\
   & k \in \Set{1, \dots, \nblk} \\
   & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \dv{\cL(t + 1)}{\wig_{k, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\wig_{k, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \dv{y_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
-  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot \vyopog_k(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg] \\
-  & = \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{s_j^{\blk{k}}(t + 1)}{\wig_{k, q}}}\Bigg]\Bigg) \cdot \vyopog_k(t + 1) \\
-  & \aptr \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\wout_{i, \din + \dhid + (k - 1) \cdot \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\dv{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \\
+  & \dv{\cL(t + 1)}{\vWopig_{k, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopig_{k, q}}} \\
+  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopig_{k, q}}}\Bigg] \\
+  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_k(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{s_j^{\blk{k}}(t + 1)}{\vWopig_{k, q}}}\Bigg] \\
+  & = \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{s_j^{\blk{k}}(t + 1)}{\vWopig_{k, q}}}\Bigg]\Bigg) \cdot \vyopog_k(t + 1) \\
+  & \aptr \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\dv{s_j^{\blk{k}}(t)}{\vWopig_{k, q}} + \\
   & \quad \quad g_j\pa{\netcell{j}{k}{t + 1}} \cdot \dfnetig{k}{t + 1} \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot \vyopog_k(t + 1)
   \end{align*} \tag{59}\label{59}
   $$
 
   ### 記憶細胞淨輸入參數
 
-  從 $\eqref{4} \eqref{44} \eqref{47} \eqref{50} \eqref{52} \eqref{55}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{18} \eqref{47} \eqref{50} \eqref{52} \eqref{55}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
   & \tilde{x}(t) = \begin{pmatrix}
   \vx(t) \\
-  y^{\ophid}(t) \\
+  \vyophid(t) \\
   y^{\opig}(t) \\
   \vyopog(t) \\
-  y^{\blk{1}}(t) \\
+  \vyopblk{1}(t) \\
   \vdots \\
-  y^{\blk{\nblk}}(t)
+  \vyopblk{\nblk}(t)
   \end{pmatrix} \\
   & k \in \Set{1, \dots, \nblk} \\
   & p \in \Set{1, \dots, \dblk} \\
   & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \dv{\cL(t + 1)}{\wblk{k}_{p, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{y_i(t + 1)} \cdot \dv{y_i(t + 1)}{\wblk{k}_{p, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
-  & \quad \quad \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p} \cdot \dv{\vyopblk{k}_p(t + 1)}{\wblk{k}_{p, q}}\bigg] \\
-  & = \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \dv{\vyopblk{k}_p(t + 1)}{\wblk{k}_{p, q}} \\
-  & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \dv{s_p^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}\Bigg] \\
-  & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + \dhid + (k - 1) \cdot \dblk + p}} \cdot \\
-  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\dv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + \\
+  & \dv{\cL(t + 1)}{\vWopblk{k}_{p, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopblk{k}_{p, q}}} \\
+  & \aptr \sum_{i = 1}^\dout \bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
+  & \quad \quad \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \dv{\vyopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}}\bigg] \\
+  & = \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}} \cdot \\
+  & \quad \quad \dv{\vyopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
+  & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}} \cdot \\
+  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \dv{s_p^{\blk{k}}(t + 1)}{\vWopblk{k}_{p, q}}\Bigg] \\
+  & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}} \cdot \\
+  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\dv{s_p^{\blk{k}}(t)}{\vWopblk{k}_{p, q}} + \\
   & \quad \quad \vyopig_k(t + 1) \cdot g_p'\pa{\netcell{p}{k}{t + 1}} \cdot \tilde{x}_q(t)\Bigg]
   \end{align*} \tag{60}\label{60}
   $$
@@ -1674,13 +1765,13 @@ LSTM 最佳化
   假設 $t + 1$ 時間點的 **forward pass** 已經執行完成，則**更新** $t + 1$ 時間點**所有參數**的**時間複雜度**為
 
   $$
-  O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)) \tag{61}\label{61}
+  O(\dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) + \nblk \cdot \dim(\wblk{1}) + \dim(\vWopout)) \tag{61}\label{61}
   $$
 
   - $\eqref{61}$ 就是論文中的 A.27 式
   - 在 $t + 1$ 時間點**參數更新**需要考慮 $t$ 時間點的**計算狀態**，請見 $\eqref{57} \eqref{58} \eqref{59} \eqref{60}$
   - 沒有如同 $\eqref{14}$ 的**連乘積**項，因此不會有**梯度消失**問題
-  - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\dv{s_j^{\blk{k}}(t)}{\wig_{k, q}}, \dv{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}}$
+  - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\dv{s_j^{\blk{k}}(t)}{\vWopig_{k, q}}, \dv{s_p^{\blk{k}}(t)}{\vWopblk{k}_{p, q}}$
     - 紀錄讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
     - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
     - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
@@ -1688,7 +1779,7 @@ LSTM 最佳化
   總共會執行 $t + 1$ 個 **forward pass**，因此**更新所有參數**所需的**總時間複雜度**為
 
   $$
-  O\big(T \cdot \big[\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)\big]\big) \tag{62}\label{62}
+  O\big(T \cdot \big[\dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) + \nblk \cdot \dim(\wblk{1}) + \dim(\vWopout)\big]\big) \tag{62}\label{62}
   $$
 
   ### 空間複雜度
@@ -1696,7 +1787,7 @@ LSTM 最佳化
   我們也可以推得在 $t + 1$ 時間點**更新所有參數**所需的**空間複雜度**
 
   $$
-  O(\dim(\whid) + \dim(\wog) + \dim(\wig) + \nblk \cdot \dim(\wblk{1}) + \dim(\wout)) \tag{63}\label{63}
+  O(\dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) + \nblk \cdot \dim(\wblk{1}) + \dim(\vWopout)) \tag{63}\label{63}
   $$
 
   總共會執行 $T$ 個 **forward pass**，但**更新**所需的**總空間複雜度**仍然同 $\eqref{63}$
@@ -1727,7 +1818,7 @@ LSTM 最佳化
 
   - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常大**的**正數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 會變得**非常小**
   - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常小**的**負數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 也會變得**非常小**
-  - 在 $\vsopblk{k}(t + 1)$ 極正或極負的情況下，**輸入閘門參數** $\wig$ 的**梯度**會**消失**
+  - 在 $\vsopblk{k}(t + 1)$ 極正或極負的情況下，**輸入閘門參數** $\vWopig$ 的**梯度**會**消失**
   - 此現象稱為**內部狀態偏差行為**（**Internal State Drift**）
   - 同樣的現象也會發生在**記憶細胞淨輸入參數** $\wblk{1}, \dots \wblk{\nblk}$ 身上，請見 $\eqref{60}$
   - 此分析就是論文的 A.39 式改寫而來
@@ -1741,11 +1832,11 @@ LSTM 最佳化
   & b^{\opig} \ll 0 \\
   \implies & \vz^{\opig}(1) \ll 0 \\
   \implies & y^{\opig}(1) \approx 0 \\
-  \implies & s^{\wblk{k}}(1) = s^{\wblk{k}}(0) + y^{\opig}(1) \odot g\big(\vz^{\wblk{k}}(1)\big) \\
-  & = y^{\opig}(1) \odot g\big(\vz^{\wblk{k}}(1)\big) \approx 0 \\
+  \implies & s^{\vWopblk{k}}(1) = s^{\vWopblk{k}}(0) + y^{\opig}(1) \odot g\big(\vz^{\vWopblk{k}}(1)\big) \\
+  & = y^{\opig}(1) \odot g\big(\vz^{\vWopblk{k}}(1)\big) \approx 0 \\
   \implies & \begin{dcases}
-  s^{\wblk{k}}(t + 1) \not\ll 0 \\
-  s^{\wblk{k}}(t + 1) \not\gg 0
+  s^{\vWopblk{k}}(t + 1) \not\ll 0 \\
+  s^{\vWopblk{k}}(t + 1) \not\gg 0
   \end{dcases} \quad \forall t = 0, \dots, \cT - 1
   \end{align*} \tag{65}\label{65}
   $$
@@ -1756,7 +1847,7 @@ LSTM 最佳化
 
   ### 輸出閘門初始化
 
-  論文 4.7 節表示，在訓練的初期模型有可能濫用**記憶細胞的初始值**作為計算的常數項（細節請見 $\eqref{41}$），導致模型在訓練的過程中學會完全**不紀錄資訊**。
+  論文 4.7 節表示，在訓練的初期模型有可能濫用**記憶細胞的初始值**作為計算的常數項（細節請見 $\eqref{15}$），導致模型在訓練的過程中學會完全**不紀錄資訊**。
 
   因此可以將**輸出閘門**加上偏差項，並初始化成**較小的負數**（理由類似於 $\eqref{65}$），讓記憶細胞在**計算初期**輸出值為 $0$，迫使模型只在**需要**時指派記憶細胞進行**記憶**。
 
@@ -1868,11 +1959,11 @@ LSTM 最佳化
   |$\dhid$|$0$|沒有隱藏單元|
   |$(\nblk, \dblk)$|$\Set{(3, 2), (4, 1)}$|至少有 $3$ 個記憶細胞|
   |$\dout$|$7$||
-  |$\dim(\whid)$|$0$|沒有隱藏單元|
-  |$\dim(\wblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk)]$|全連接隱藏層|
-  |$\dim(\wig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wout)$|$\dout \times [\nblk \cdot \dblk]$|外部輸入沒有直接連接到總輸出|
+  |$\dim(\vWophid)$|$0$|沒有隱藏單元|
+  |$\dim(\vWopblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk)]$|全連接隱藏層|
+  |$\dim(\vWopig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopout)$|$\dout \times [\nblk \times \dblk]$|外部輸入沒有直接連接到總輸出|
   |參數初始化範圍|$[-0.2, 0.2]$||
   |輸出閘門偏差項初始化範圍|$\Set{-1, -2, -3, -4}$|由大到小依序初始化不同記憶細胞對應輸出閘門偏差項|
   |Learning rate|$\Set{0.1, 0.2, 0.5}$||
@@ -1937,11 +2028,11 @@ LSTM 最佳化
   |$\dout$|$p + 1$||
   |$g$|$g(x) = \sigma(x)$|Sigmoid 函數|
   |$h$|$h(x) = x$||
-  |$\dim(\whid)$|$0$|沒有隱藏單元|
-  |$\dim(\wblk{k})$|$\dblk \times [\din + (1 + \nblk) \cdot \dblk]$|全連接隱藏層|
-  |$\dim(\wig)$|$\nblk \times [\din + (1 + \nblk) \cdot \dblk]$|全連接隱藏層|
-  |$\dim(\wog)$|$0$|沒有輸出閘門|
-  |$\dim(\wout)$|$0$|總輸出就是記憶細胞的輸出|
+  |$\dim(\vWophid)$|$0$|沒有隱藏單元|
+  |$\dim(\vWopblk{k})$|$\dblk \times [\din + (1 + \nblk) \times \dblk]$|全連接隱藏層|
+  |$\dim(\vWopig)$|$\nblk \times [\din + (1 + \nblk) \times \dblk]$|全連接隱藏層|
+  |$\dim(\vWopog)$|$0$|沒有輸出閘門|
+  |$\dim(\vWopout)$|$0$|總輸出就是記憶細胞的輸出|
   |參數初始化範圍|$[-0.2, 0.2]$||
   |Learning rate|$1$||
   |最大更新次數|$5000000$||
@@ -2049,11 +2140,11 @@ LSTM 最佳化
   |$\dblk$|$1$||
   |$\nblk$|$2$|作者認為其實只要一個記憶細胞就夠了|
   |$\dout$|$2$|只考慮最後一個時間點的預測誤差，並且預測的可能結果只有 $2$ 種（$\alpha$ 或 $\beta$）|
-  |$\dim(\whid)$|$0$|沒有隱藏單元|
-  |$\dim(\wblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk)]$|全連接隱藏層|
-  |$\dim(\wig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk)]$|全連接隱藏層|
-  |$\dim(\wog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk)]$|全連接隱藏層|
-  |$\dim(\wout)$|$\dout \times [\nblk \cdot \dblk]$|外部輸入沒有直接連接到總輸出|
+  |$\dim(\vWophid)$|$0$|沒有隱藏單元|
+  |$\dim(\vWopblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk)]$|全連接隱藏層|
+  |$\dim(\vWopig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk)]$|全連接隱藏層|
+  |$\dim(\vWopog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk)]$|全連接隱藏層|
+  |$\dim(\vWopout)$|$\dout \times [\nblk \times \dblk]$|外部輸入沒有直接連接到總輸出|
   |參數初始化範圍|$[-0.2, 0.2]$||
   |Learning rate|$0.01$||
 
@@ -2101,11 +2192,11 @@ LSTM 最佳化
   |$\dblk$|$1$||
   |$\nblk$|$3$||
   |$\dout$|$1$||
-  |$\dim(\whid)$|$0$|沒有隱藏單元|
-  |$\dim(\wblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wout)$|$\dout \times [\nblk \cdot \dblk]$|外部輸入沒有直接連接到總輸出|
+  |$\dim(\vWophid)$|$0$|沒有隱藏單元|
+  |$\dim(\vWopblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopout)$|$\dout \times [\nblk \times \dblk]$|外部輸入沒有直接連接到總輸出|
   |參數初始化範圍|$[-0.1, 0.1]$||
   |輸入閘門偏差項初始化範圍|$\Set{-1, -3, -5}$|由大到小依序初始化不同記憶細胞對應輸入閘門偏差項|
   |輸出閘門偏差項初始化範圍|$\Set{-2, -4, -6}$|由大到小依序初始化不同記憶細胞對應輸出閘門偏差項|
@@ -2211,11 +2302,11 @@ LSTM 最佳化
   |$\dblk$|$2$||
   |$\nblk$|$2$||
   |$\dout$|$1$||
-  |$\dim(\whid)$|$0$|沒有隱藏單元|
-  |$\dim(\wblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wout)$|$\dout \times [\nblk \cdot \dblk + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
+  |$\dim(\vWophid)$|$0$|沒有隱藏單元|
+  |$\dim(\vWopblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopout)$|$\dout \times [\nblk \times \dblk + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
   |參數初始化範圍|$[-0.1, 0.1]$||
   |輸入閘門偏差項初始化範圍|$\Set{-3, -6}$|由大到小依序初始化不同記憶細胞對應輸入閘門偏差項|
   |Learning rate|$0.5$||
@@ -2314,11 +2405,11 @@ LSTM 最佳化
   |$\dblk$|$2$||
   |$\nblk$|$2$||
   |$\dout$|$4$||
-  |$\dim(\whid)$|$0$|沒有隱藏單元|
-  |$\dim(\wblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wout)$|$\dout \times [\nblk \cdot \dblk + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
+  |$\dim(\vWophid)$|$0$|沒有隱藏單元|
+  |$\dim(\vWopblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopout)$|$\dout \times [\nblk \times \dblk + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
   |參數初始化範圍|$[-0.1, 0.1]$||
   |輸入閘門偏差項初始化範圍|$\Set{-2, -4}$|由大到小依序初始化不同記憶細胞對應輸入閘門偏差項|
   |Learning rate|$0.5$||
@@ -2358,11 +2449,11 @@ LSTM 最佳化
   |$\dblk$|$2$||
   |$\nblk$|$3$||
   |$\dout$|$8$||
-  |$\dim(\whid)$|$0$|沒有隱藏單元|
-  |$\dim(\wblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
-  |$\dim(\wout)$|$\dout \times [\nblk \cdot \dblk + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
+  |$\dim(\vWophid)$|$0$|沒有隱藏單元|
+  |$\dim(\vWopblk{k})$|$\dblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopig)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopog)$|$\nblk \times [\din + \nblk \cdot (2 + \dblk) + 1]$|全連接隱藏層，有額外使用偏差項|
+  |$\dim(\vWopout)$|$\dout \times [\nblk \times \dblk + 1]$|外部輸入沒有直接連接到總輸出，有額外使用偏差項|
   |參數初始化範圍|$[-0.1, 0.1]$||
   |輸入閘門偏差項初始化範圍|$\Set{-2, -4, -6}$|由大到小依序初始化不同記憶細胞對應輸入閘門偏差項|
   |Learning rate|$0.1$||
