@@ -1090,19 +1090,19 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        \dv{\vyophid_i(t + 1)}{\vxt_j(t)} & = \dv{\vyophid_i(t + 1)}{\vzophid_i(t + 1)} \cdot \cancelto{0}{\dv{\vzophid_i(t + 1)}{\vxt_j(t)}} \\
+        \dv{\vyophid_i(t + 1)}{\vxt_j(t)} & = \dv{\vyophid_i(t + 1)}{\vzophid_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzophid_i(t + 1)}{\vxt_j(t)}} \\
                                           & \aptr 0 \qqtext{where} \begin{dcases}
                                                                      i \in \Set{1, \dots, \dhid} \\
                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                      t \in \Set{0, \dots, \cT - 1}
                                                                    \end{dcases}. \\
-        \dv{\vyopig_k(t + 1)}{\vxt_j(t)}  & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \cancelto{0}{\dv{\vzopig_k(t + 1)}{\vxt_j(t)}} \\
+        \dv{\vyopig_k(t + 1)}{\vxt_j(t)}  & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzopig_k(t + 1)}{\vxt_j(t)}} \\
                                           & \aptr 0 \qqtext{where} \begin{dcases}
                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                      k \in \Set{1, \dots, \nblk} \\
                                                                      t \in \Set{0, \dots, \cT - 1}
                                                                    \end{dcases}. \\
-        \dv{\vyopog_k(t + 1)}{\vxt_j(t)}  & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \cancelto{0}{\dv{\vzopog_k(t + 1)}{\vxt_j(t)}} \\
+        \dv{\vyopog_k(t + 1)}{\vxt_j(t)}  & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzopog_k(t + 1)}{\vxt_j(t)}} \\
                                           & \aptr 0 \qqtext{where} \begin{dcases}
                                                                      j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                      k \in \Set{1, \dots, \nblk} \\
@@ -1118,14 +1118,14 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{0}{\dv{\vsopblk{k}_i(t)}{\vxt_j(t)}} + \cancelto{0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot g\qty(\vzopblk{k}_i(t + 1)) + \vyopig_k(t + 1) \cdot \dv{g\qty(\vzopblk{k}_i(t + 1))}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
+        \dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{\aptr 0}{\dv{\vsopblk{k}_i(t)}{\vxt_j(t)}} + \cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot g\qty(\vzopblk{k}_i(t + 1)) + \vyopig_k(t + 1) \cdot \dv{g\qty(\vzopblk{k}_i(t + 1))}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
                                              & \aptr 0 \qqtext{where} \begin{dcases}
                                                                         i \in \Set{1, \dots, \dblk} \\
                                                                         j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                         k \in \Set{1, \dots, \nblk} \\
                                                                         t \in \Set{0, \dots, \cT - 1}
                                                                       \end{dcases}. \\
-        \dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \cancelto{0}{\dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
+        \dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
                                              & \aptr 0 \qqtext{where} \begin{dcases}
                                                                         i \in \Set{1, \dots, \dblk} \\
                                                                         j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
@@ -1173,21 +1173,21 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
+        \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
                                                    & \aptr 0 \qqtext{where} \begin{dcases}
                                                                               k \in \Set{1, \dots, \nblk} \\
                                                                               p \in \Set{1, \dots, \dhid} \\
                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                               t \in \Set{0, \dots, \cT - 1}
                                                                             \end{dcases}. \\
-        \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
+        \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
                                                    & \aptr 0 \qqtext{where} \begin{dcases}
                                                                               k \in \Set{1, \dots, \nblk} \\
                                                                               p \in \Set{1, \dots, \dhid} \\
                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                               t \in \Set{0, \dots, \cT - 1}
                                                                             \end{dcases}. \\
-        \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{0}{\dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
+        \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
                                                    & \aptr 0 \qqtext{where} \begin{dcases}
                                                                               i \in \Set{1, \dots, \dblk} \\
                                                                               k \in \Set{1, \dots, \nblk} \\
