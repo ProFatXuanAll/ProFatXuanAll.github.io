@@ -993,8 +993,8 @@ LSTM 最佳化
 
 - 停止 back propagation 導致在完成 :math:`t + 1` 時間點的 forward pass 後可以\ **即時計算**\參數對 :math:`t + 1` 時間點誤差計算所得微分（real time 的精神便是來自於此）
 
-首先我們定義新的符號 :math:`\aptr`，代表計算\ **微分**\的過程會有\ **部份微分**\故意被\ **丟棄**\（設定為 :math:`0`），並以丟棄結果\ **近似**\真正的\ **全微分**。
-此論文將所有與 **hidden units** 相連的節點 :math:`\vxt(t)` 產生的微分值一律\ **丟棄**。
+首先我們定義新的符號 :math:`\aptr`，代表進行 back propagation 的過程會有\ **部份微分**\故意被\ **丟棄**\（設定為 :math:`0`），並以丟棄結果\ **近似**\參數對誤差求得的\ **全微分**。
+其核心概念為將所有與 **hidden units** 相連的節點 :math:`\vxt(t)` 產生的微分值一律\ **丟棄**，公式如下：
 
 .. math::
   :nowrap:
@@ -1044,7 +1044,7 @@ LSTM 最佳化
 
   論文中沒有描述到 :math:`\dv{\vsopblk{k}_i(t)}{\vxt_j(t)} \aptr 0`，但在 A.1.2 節卻使用了該項近似，才有辦法透過式子 :math:`\eqref{12}` 推出式子 :math:`\eqref{13}`。
 
-根據 :math:`\eqref{12}` 我們可以進一步推得
+根據 :math:`\eqref{12}` 我們可以進一步推得以下微分近似值：
 
 .. math::
   :nowrap:
@@ -1084,7 +1084,7 @@ LSTM 最佳化
 
 .. dropdown:: 推導 :math:`\eqref{13}`
 
-  首先根據式子 :math:`\eqref{12}` 的定義可以得到以下公式：
+  首先根據式子 :math:`\eqref{12}` 的定義可以得到以下微分近似值：
 
   .. math::
     :nowrap:
@@ -1112,7 +1112,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  接著利用上述的結果結合 :math:`\eqref{12}` 推導出與 memory cells 相關的微分近似結果：
+  接著利用上述的結果結合 :math:`\eqref{12}` 推導出 :math:`\vxt(t)` 對於 memory cell internal states 的微分近似值：
 
   .. math::
     :nowrap:
@@ -1125,7 +1125,17 @@ LSTM 最佳化
                                                                         j \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                         k \in \Set{1, \dots, \nblk} \\
                                                                         t \in \Set{0, \dots, \cT - 1}
-                                                                      \end{dcases}. \\
+                                                                      \end{dcases}.
+      \end{align*}
+    \]
+
+  最後總和上述推論得出 :math:`\vxt(t)` 對於 memory cell block activations 的微分近似結果：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
         \dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
                                              & \aptr 0 \qqtext{where} \begin{dcases}
                                                                         i \in \Set{1, \dots, \dblk} \\
@@ -1135,6 +1145,9 @@ LSTM 最佳化
                                                                       \end{dcases}.
       \end{align*}
     \]
+
+我們可以將 :math:`\eqref{13}` 直觀的理解為：任何在 :math:`t + 1` 時間點的誤差資訊\ **無法**\傳遞回 :math:`t` 時間點的節點，因此 :math:`t + 1` 時間點誤差產生的微分只會用於更新參數\ **一次**，**不會**\透過\ **遞迴式**\做 back propagation。
+後續我們將會根據 :math:`\eqref{12} \eqref{13}` 推導出每個參數對誤差的微分近似值。
 
 由於 :math:`\vyopig(t + 1), \vyopog(t + 1), \vzopblk{k}(t + 1)` 並不是\ **直接**\透過 :math:`\vWophid` 產生，因此 :math:`\vWophid` 只能透過參與 :math:`t` 時間點\ **以前**\的計算\ **間接**\對 :math:`t + 1` 時間點的計算造成影響。
 這也代表在 :math:`\eqref{13}` 作用的情況下 :math:`\vWophid` **無法**\從 :math:`\vyopig(t + 1), \vyopog(t + 1), \vyopblk{k}(t + 1)` 收到任何的\ **微分**：
@@ -1887,30 +1900,20 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-    D & = \din + \dhid + \nblk \cdot (2 + \dblk) \\
-    \tilde{x}(t) & = \begin{pmatrix}
-    \vx(t) \\
-    \vyophid(t) \\
-    \vyopig(t) \\
-    \vyopog(t) \\
-    \vyopblk{1}(t) \\
-    \vdots \\
-    \vyopblk{\nblk}(t)
-    \end{pmatrix} \in \R^D \\
-    i, p & \in \Set{1, \dots, \dblk} \\
-    k, k^\star & \in \Set{1, \dots, \nblk} \\
-    q & \in \Set{1, \dots, D} \\
-    \dv{\vsopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} & = \dv{\vsopblk{k}_i(t + 1)}{\vsopblk{k}_i(t)} \cdot \dv{\vsopblk{k}_i(t)}{\vWopblk{k^\star}_{p, q}} + \dv{\vsopblk{k}_i(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{0}{\dv{\vyopig_k(t + 1)}{\vWopblk{k^\star}_{p, q}}} \\
-    & \quad + \dv{\vsopblk{k}_i(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \dv{\vzopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} \\
-    & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot 1 \cdot \dv{\vsopblk{k}_i(t)}{\vWopblk{k}_{i, q}} \\
-    & \quad + \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_i(t + 1)) \cdot \vxt_q(t) \\
-    & = \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \br{\dv{\vsopblk{k}_i(t)}{\vWopblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_i(t + 1)) \cdot \vxt_q(t)}
+      \dv{\vsopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \qty[\dv{\vsopblk{k}_i(t)}{\vWopblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_i(t + 1)) \cdot \vxt_q(t)] \\
+                                                          & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dblk} \\
+                                                              k \in \Set{1, \dots, \nblk} \\
+                                                              k^\star \in \Set{1, \dots, \nblk} \\
+                                                              p \in \Set{1, \dots, \dblk} \\
+                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
     \end{align*}
     \tag{29}\label{29}
   \]
 
 .. dropdown:: 推導式子 :math:`\eqref{29}`
-  :open:
 
   .. math::
     :nowrap:
