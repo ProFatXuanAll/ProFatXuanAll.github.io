@@ -1149,6 +1149,92 @@ LSTM 最佳化
 我們可以將 :math:`\eqref{13}` 直觀的理解為：任何在 :math:`t + 1` 時間點的誤差資訊\ **無法**\傳遞回 :math:`t` 時間點的節點，因此 :math:`t + 1` 時間點誤差產生的微分只會用於更新參數\ **一次**，**不會**\透過\ **遞迴式**\做 back propagation。
 後續我們將會根據 :math:`\eqref{12} \eqref{13}` 推導出每個參數對誤差的微分近似值。
 
+:math:`\vWopout` 相對於誤差的微分
+---------------------------------
+
+由於輸出 :math:`\vy(t + 1)` **不會**\如傳統 RNN 的方式\ **回饋**\到模型的計算狀態中，因此計算輸出參數 :math:`\vWopout` 對誤差所得的微分不須近似，結果如下：
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      & \dv{\frac{1}{2} \qty(\vy_i(t_2) - \vyh_i(t_2))^2}{\vWopout_{p, q}} = \qty(\vy_i(t_2) - \vyh_i(t_2)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
+      & \qqtext{where} \begin{dcases}
+                         i \in \Set{1, \dots, \dout} \\
+                         p \in \Set{1, \dots, \dout} \\
+                         q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                         t \in \Set{0, \dots, \cT - 1}
+                       \end{dcases}.
+    \end{align*}
+    \tag{14}\label{14}
+  \]
+
+.. dropdown:: 推導式子 :math:`\eqref{14}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        & \dv{\frac{1}{2} \qty(\vy_i(t_2) - \vyh_i(t_2))^2}{\vWopout_{p, q}} \\
+        & = \dv{\frac{1}{2} \qty(\vy_i(t_2) - \vyh_i(t_2))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
+        & = \qty(\vy_i(t_2) - \vyh_i(t_2)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
+        & \qqtext{where} \begin{dcases}
+                          i \in \Set{1, \dots, \dout} \\
+                          p \in \Set{1, \dots, \dout} \\
+                          q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                          t \in \Set{0, \dots, \cT - 1}
+                        \end{dcases}.
+      \end{align*}
+    \]
+
+.. note::
+
+  :math:`\eqref{14}` 就是論文中 A.8 式中 :math:`l = k` 的 case。
+
+:math:`\vWophid` 相對於誤差的微分近似值
+---------------------------------------
+
+在 :math:`\eqref{12} \eqref{13} \eqref{14-1}` 的作用下，我們可以求得\ **隱藏單元參數** :math:`\vWophid` 在\ **丟棄**\部份微分後對於\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      \dv{\vy_i(t + 1)}{\vWophid_{p, q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
+                                         & \qqtext{where} \begin{dcases}
+                                                            i \in \Set{1, \dots, \dout} \\
+                                                            p \in \Set{1, \dots, \dhid} \\
+                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                            t \in \Set{0, \dots, \cT - 1}
+                                                          \end{dcases}.
+    \end{align*}
+    \tag{15}\label{15}
+  \]
+
+.. dropdown:: 推導式子 :math:`\eqref{15}`
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vy_i(t + 1)}{\vWophid_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWophid_{p, q}} \\
+                                           & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWophid_{p, q}}}] \\
+                                           & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dout} \\
+                                                              p \in \Set{1, \dots, \dhid} \\
+                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
+      \end{align*}
+    \]
+
+:math:`\eqref{15}` 就是論文中 A.8 式的最後一個 case。
+
 由於 :math:`\vyopig(t + 1), \vyopog(t + 1), \vzopblk{k}(t + 1)` 並不是\ **直接**\透過 :math:`\vWophid` 產生，因此 :math:`\vWophid` 只能透過參與 :math:`t` 時間點\ **以前**\的計算\ **間接**\對 :math:`t + 1` 時間點的計算造成影響。
 這也代表在 :math:`\eqref{13}` 作用的情況下 :math:`\vWophid` **無法**\從 :math:`\vyopig(t + 1), \vyopog(t + 1), \vyopblk{k}(t + 1)` 收到任何的\ **微分**：
 
@@ -1177,10 +1263,10 @@ LSTM 最佳化
                                                                             t \in \Set{0, \dots, \cT - 1}
                                                                           \end{dcases}.
     \end{align*}
-    \tag{14}\label{14}
+    \tag{14-1}\label{14-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{14}`
+.. dropdown:: 推導式子 :math:`\eqref{14-1}`
 
   .. math::
     :nowrap:
@@ -1215,7 +1301,7 @@ LSTM 最佳化
 相對於總輸出所得剩餘微分
 ------------------------
 
-我們將論文的 A.8 式拆解成 :math:`\eqref{15} \eqref{16} \eqref{17} \eqref{18}`。
+我們將論文的 A.8 式拆解成 :math:`\eqref{15-1} \eqref{16-1} \eqref{17-1} \eqref{18-1}`。
 
 總輸出參數
 ~~~~~~~~~~
@@ -1239,7 +1325,7 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-    \dv{\vy_i(t + 1)}{\vWopout_{p, q}} & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout(t + 1)_q \\
+    \dv{\vy_i(t + 1)}{\vWopout_{p, q}} & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
                                        & \qqtext{where} \begin{dcases}
                                                           i \in \Set{1, \dots, \dout} \\
                                                           p \in \Set{1, \dots, \dout} \\
@@ -1247,10 +1333,10 @@ LSTM 最佳化
                                                           t \in \Set{0, \dots, \cT - 1}
                                                         \end{dcases}.
     \end{align*}
-    \tag{15}\label{15}
+    \tag{15-1}\label{15-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{15}`
+.. dropdown:: 推導式子 :math:`\eqref{15-1}`
 
   .. math::
     :nowrap:
@@ -1258,7 +1344,7 @@ LSTM 最佳化
     \[
       \begin{align*}
       \dv{\vy_i(t + 1)}{\vWopout_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
-                                         & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout(t + 1)_q \\
+                                         & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
                                          & \qqtext{where} \begin{dcases}
                                                             i \in \Set{1, \dots, \dout} \\
                                                             p \in \Set{1, \dots, \dout} \\
@@ -1268,13 +1354,13 @@ LSTM 最佳化
       \end{align*}
     \]
 
-- :math:`\eqref{15}` 就是論文中 A.8 式的第一個 case
+- :math:`\eqref{15-1}` 就是論文中 A.8 式的第一個 case
 - 由於 :math:`p` 可以是\ **任意**\的輸出節點，因此在 :math:`i \neq p` 時 :math:`\vWopout_{p, q}` 對於 :math:`\vy_i(t + 1)` 的微分為 :math:`0`
 
 隱藏單元參數
 ~~~~~~~~~~~~
 
-在 :math:`\eqref{12} \eqref{13} \eqref{14}` 的作用下，我們可以求得\ **隱藏單元參數** :math:`\vWophid` 在\ **丟棄**\部份微分後對於\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
+在 :math:`\eqref{12} \eqref{13} \eqref{14-1}` 的作用下，我們可以求得\ **隱藏單元參數** :math:`\vWophid` 在\ **丟棄**\部份微分後對於\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
 
 .. math::
   :nowrap:
@@ -1289,10 +1375,10 @@ LSTM 最佳化
                                                             t \in \Set{0, \dots, \cT - 1}
                                                           \end{dcases}.
     \end{align*}
-    \tag{16}\label{16}
+    \tag{16-1}\label{16-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{16}`
+.. dropdown:: 推導式子 :math:`\eqref{16-1}`
 
   .. math::
     :nowrap:
@@ -1311,12 +1397,12 @@ LSTM 最佳化
       \end{align*}
     \]
 
-:math:`\eqref{16}` 就是論文中 A.8 式的最後一個 case。
+:math:`\eqref{16-1}` 就是論文中 A.8 式的最後一個 case。
 
 閘門單元參數
 ~~~~~~~~~~~~
 
-同 :math:`\eqref{16}`，我們可以計算\ **閘門單元參數** :math:`\vWopig, \vWopog` 對\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
+同 :math:`\eqref{16-1}`，我們可以計算\ **閘門單元參數** :math:`\vWopig, \vWopog` 對\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
 
 .. math::
   :nowrap:
@@ -1338,10 +1424,10 @@ LSTM 最佳化
                                                           t \in \Set{0, \dots, \cT - 1}
                                                         \end{dcases}.
     \end{align*}
-    \tag{17}\label{17}
+    \tag{17-1}\label{17-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{17}`
+.. dropdown:: 推導式子 :math:`\eqref{17-1}`
 
   .. math::
     :nowrap:
@@ -1367,12 +1453,12 @@ LSTM 最佳化
       \end{align*}
     \]
 
-:math:`\eqref{17}` 就是論文中 A.8 式的第三個 case。
+:math:`\eqref{17-1}` 就是論文中 A.8 式的第三個 case。
 
 記憶細胞淨輸入參數
 ~~~~~~~~~~~~~~~~~~
 
-**記憶細胞淨輸入參數** :math:`\vWopblk{k}` 對\ **總輸出** :math:`y(t + 1)` 計算所得的\ **剩餘微分**\與 :math:`\eqref{17}` 幾乎\ **相同**
+**記憶細胞淨輸入參數** :math:`\vWopblk{k}` 對\ **總輸出** :math:`y(t + 1)` 計算所得的\ **剩餘微分**\與 :math:`\eqref{17-1}` 幾乎\ **相同**
 
 .. math::
   :nowrap:
@@ -1388,10 +1474,10 @@ LSTM 最佳化
                                                                 t \in \Set{0, \dots, \cT - 1}
                                                               \end{dcases}.
     \end{align*}
-    \tag{18}\label{18}
+    \tag{18-1}\label{18-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{18}`
+.. dropdown:: 推導式子 :math:`\eqref{18-1}`
 
   .. math::
     :nowrap:
@@ -1411,12 +1497,12 @@ LSTM 最佳化
       \end{align*}
     \]
 
-:math:`\eqref{18}` 就是論文中 A.8 式的第二個 case。
+:math:`\eqref{18-1}` 就是論文中 A.8 式的第二個 case。
 
 相對於隱藏單元所得剩餘微分
 --------------------------
 
-我們將論文的 A.9 式拆解成 :math:`\eqref{19} \eqref{20} \eqref{21}`。
+我們將論文的 A.9 式拆解成 :math:`\eqref{19-1} \eqref{20-1} \eqref{21-1}`。
 
 隱藏單元參數
 ~~~~~~~~~~~~
@@ -1436,10 +1522,10 @@ LSTM 最佳化
                                                   t \in \Set{0, \dots, \cT - 1}
                                                 \end{dcases}.
     \end{align*}
-    \tag{19}\label{19}
+    \tag{19-1}\label{19-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{19}`
+.. dropdown:: 推導式子 :math:`\eqref{19-1}`
 
   .. math::
     :nowrap:
@@ -1480,10 +1566,10 @@ LSTM 最佳化
                                                          t \in \Set{0, \dots, \cT - 1}
                                                        \end{dcases}.
     \end{align*}
-    \tag{20}\label{20}
+    \tag{20-1}\label{20-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{20}`
+.. dropdown:: 推導式子 :math:`\eqref{20-1}`
 
   .. math::
     :nowrap:
@@ -1510,7 +1596,7 @@ LSTM 最佳化
 記憶細胞淨輸入參數
 ~~~~~~~~~~~~~~~~~~
 
-同 :math:`\eqref{20}`，由於 **conventional hidden units** :math:`\vyophid(t + 1)` 並不是\ **直接**\透過 **memory cell blocks** 參數 :math:`\vWopblk{k}` 產生，因此根據 :math:`\eqref{12}` 我們可以推得 :math:`\vWopblk{k}` 對於 :math:`\vyophid(t + 1)` **剩餘微分**\為 :math:`0`
+同 :math:`\eqref{20-1}`，由於 **conventional hidden units** :math:`\vyophid(t + 1)` 並不是\ **直接**\透過 **memory cell blocks** 參數 :math:`\vWopblk{k}` 產生，因此根據 :math:`\eqref{12}` 我們可以推得 :math:`\vWopblk{k}` 對於 :math:`\vyophid(t + 1)` **剩餘微分**\為 :math:`0`
 
 .. math::
   :nowrap:
@@ -1525,10 +1611,10 @@ LSTM 最佳化
                                                              t \in \Set{0, \dots, \cT - 1}
                                                            \end{dcases}.
     \end{align*}
-    \tag{21}\label{21}
+    \tag{21-1}\label{21-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{21}`
+.. dropdown:: 推導式子 :math:`\eqref{21-1}`
 
   .. math::
     :nowrap:
@@ -1549,7 +1635,7 @@ LSTM 最佳化
 相對於記憶細胞輸出所得剩餘微分
 ------------------------------
 
-我們將論文的 A.13 式拆解成 :math:`\eqref{22} \eqref{23} \eqref{24}`。
+我們將論文的 A.13 式拆解成 :math:`\eqref{22-1} \eqref{23-1} \eqref{24-1}`。
 
 閘門單元參數
 ~~~~~~~~~~~~
@@ -1570,7 +1656,7 @@ LSTM 最佳化
                                                                    t \in \Set{0, \dots, \cT - 1}
                                                                  \end{dcases}.
     \end{align*}
-    \tag{22}\label{22}
+    \tag{22-1}\label{22-1}
   \]
   \[
     \begin{align*}
@@ -1583,10 +1669,10 @@ LSTM 最佳化
                                                                    t \in \Set{0, \dots, \cT - 1}
                                                                  \end{dcases}.
     \end{align*}
-    \tag{23}\label{23}
+    \tag{23-1}\label{23-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{22}`
+.. dropdown:: 推導式子 :math:`\eqref{22-1}`
 
   .. math::
     :nowrap:
@@ -1605,7 +1691,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
-.. dropdown:: 推導式子 :math:`\eqref{23}`
+.. dropdown:: 推導式子 :math:`\eqref{23-1}`
 
   .. math::
     :nowrap:
@@ -1627,7 +1713,7 @@ LSTM 最佳化
 記憶細胞淨輸入參數
 ~~~~~~~~~~~~~~~~~~
 
-同 :math:`\eqref{23}`，使用 :math:`\eqref{12}` 推得 **memory cell blocks** 參數 :math:`\vWopblk{k^\star}` 對於 **memory cell block activations** :math:`\vyopblk{k}(t + 1)` 計算所得\ **剩餘微分**\（注意 :math:`k^\star` 可以\ **不等於** :math:`k`）
+同 :math:`\eqref{23-1}`，使用 :math:`\eqref{12}` 推得 **memory cell blocks** 參數 :math:`\vWopblk{k^\star}` 對於 **memory cell block activations** :math:`\vyopblk{k}(t + 1)` 計算所得\ **剩餘微分**\（注意 :math:`k^\star` 可以\ **不等於** :math:`k`）
 
 .. math::
   :nowrap:
@@ -1644,10 +1730,10 @@ LSTM 最佳化
                                                                            t \in \Set{0, \dots, \cT - 1}
                                                                          \end{dcases}.
     \end{align*}
-    \tag{24}\label{24}
+    \tag{24-1}\label{24-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{24}`
+.. dropdown:: 推導式子 :math:`\eqref{24-1}`
 
   .. math::
     :nowrap:
@@ -1674,7 +1760,7 @@ LSTM 最佳化
 相對於閘門單元所得剩餘微分
 --------------------------
 
-我們將論文的 A.10, A.11 式拆解成 :math:`\eqref{25} \eqref{26}`。
+我們將論文的 A.10, A.11 式拆解成 :math:`\eqref{25-1} \eqref{26-1}`。
 
 閘門單元參數
 ~~~~~~~~~~~~
@@ -1715,10 +1801,10 @@ LSTM 最佳化
                                                                t \in \Set{0, \dots, \cT - 1}
                                                              \end{dcases}.
     \end{align*}
-    \tag{25}\label{25}
+    \tag{25-1}\label{25-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{25}`
+.. dropdown:: 推導式子 :math:`\eqref{25-1}`
 
   .. math::
     :nowrap:
@@ -1785,10 +1871,10 @@ LSTM 最佳化
                                                             t \in \Set{0, \dots, \cT - 1}
                                                           \end{dcases}.
     \end{align*}
-    \tag{26}\label{26}
+    \tag{26-1}\label{26-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{26}`
+.. dropdown:: 推導式子 :math:`\eqref{26-1}`
 
   .. math::
     :nowrap:
@@ -1815,12 +1901,12 @@ LSTM 最佳化
 相對於記憶細胞內部狀態所得剩餘微分
 ----------------------------------
 
-我們將論文的 A.12 式拆解成 :math:`\eqref{27} \eqref{28} \eqref{29}`。
+我們將論文的 A.12 式拆解成 :math:`\eqref{27-1} \eqref{28-1} \eqref{29-1}`。
 
 閘門單元參數
 ~~~~~~~~~~~~
 
-將 :math:`\eqref{12}` 結合 :math:`\eqref{25}` 我們可以推得 **gate units** 參數 :math:`\vWopig, \vWopog` 對於 **memory cell internal states** :math:`\vsopblk{k}(t + 1)` 計算所得\ **剩餘微分**
+將 :math:`\eqref{12}` 結合 :math:`\eqref{25-1}` 我們可以推得 **gate units** 參數 :math:`\vWopig, \vWopog` 對於 **memory cell internal states** :math:`\vsopblk{k}(t + 1)` 計算所得\ **剩餘微分**
 
 .. math::
   :nowrap:
@@ -1835,7 +1921,7 @@ LSTM 最佳化
                                                             t \in \Set{0, \dots, \cT - 1}
                                                           \end{dcases}.
     \end{align*}
-    \tag{27}\label{27}
+    \tag{27-1}\label{27-1}
   \]
 
   \[
@@ -1849,10 +1935,10 @@ LSTM 最佳化
                                                     t \in \Set{0, \dots, \cT - 1}
                                                   \end{dcases}.
     \end{align*}
-    \tag{28}\label{28}
+    \tag{28-1}\label{28-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{27}`
+.. dropdown:: 推導式子 :math:`\eqref{27-1}`
 
   .. math::
     :nowrap:
@@ -1870,7 +1956,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
-.. dropdown:: 推導式子 :math:`\eqref{28}`
+.. dropdown:: 推導式子 :math:`\eqref{28-1}`
 
   .. math::
     :nowrap:
@@ -1910,10 +1996,10 @@ LSTM 最佳化
                                                               t \in \Set{0, \dots, \cT - 1}
                                                             \end{dcases}.
     \end{align*}
-    \tag{29}\label{29}
+    \tag{29-1}\label{29-1}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{29}`
+.. dropdown:: 推導式子 :math:`\eqref{29-1}`
 
   .. math::
     :nowrap:
@@ -1964,7 +2050,7 @@ LSTM 最佳化
 
   ### 隱藏單元參數
 
-  從 $\eqref{4} \eqref{14} \eqref{16} \eqref{19}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{14-1} \eqref{16-1} \eqref{19-1}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
@@ -1986,7 +2072,7 @@ LSTM 最佳化
 
   ### 輸出閘門單元參數
 
-  從 $\eqref{4} \eqref{17} \eqref{22} \eqref{25} \eqref{27}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{17-1} \eqref{22-1} \eqref{25-1} \eqref{27-1}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
@@ -2015,7 +2101,7 @@ LSTM 最佳化
 
   ### 輸入閘門單元參數
 
-  從 $\eqref{4} \eqref{17} \eqref{23} \eqref{25} \eqref{28}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{17-1} \eqref{23-1} \eqref{25-1} \eqref{28-1}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
@@ -2045,7 +2131,7 @@ LSTM 最佳化
 
   ### 記憶細胞淨輸入參數
 
-  從 $\eqref{4} \eqref{18} \eqref{21} \eqref{24} \eqref{26} \eqref{29}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{18-1} \eqref{21-1} \eqref{24-1} \eqref{26-1} \eqref{29-1}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
@@ -2086,7 +2172,7 @@ LSTM 最佳化
 
   - $\eqref{61}$ 就是論文中的 A.27 式
   - 在 $t + 1$ 時間點**參數更新**需要考慮 $t$ 時間點的**計算狀態**，請見 $\eqref{57} \eqref{58} \eqref{59} \eqref{60}$
-  - 沒有如同 $\eqref{14}$ 的**連乘積**項，因此不會有**梯度消失**問題
+  - 沒有如同 $\eqref{14-1}$ 的**連乘積**項，因此不會有**梯度消失**問題
   - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\dv{s_j^{\blk{k}}(t)}{\vWopig_{k, q}}, \dv{s_p^{\blk{k}}(t)}{\vWopblk{k}_{p, q}}$
     - 紀錄讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
     - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
@@ -2126,11 +2212,11 @@ LSTM 最佳化
   $$
 
   由於**丟棄部份梯度**的作用，$\vsopblk{k}$ 的**梯度**是模型中**唯一**進行**遞迴**（跨過多個時間點）的計算節點。
-  透過丟棄部份梯度我們從 $\eqref{64}$ 可以看出 LSTM 達成 $\eqref{23}$ 所設想的情況。
+  透過丟棄部份梯度我們從 $\eqref{64}$ 可以看出 LSTM 達成 $\eqref{23-1}$ 所設想的情況。
 
   ### 內部狀態偏差行為
 
-  觀察 $\eqref{28} \eqref{59}$，當 $h$ 是 sigmoid 函數時，我們可以發現
+  觀察 $\eqref{28-1} \eqref{59}$，當 $h$ 是 sigmoid 函數時，我們可以發現
 
   - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常大**的**正數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 會變得**非常小**
   - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常小**的**負數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 也會變得**非常小**
@@ -2163,7 +2249,7 @@ LSTM 最佳化
 
   ### 輸出閘門初始化
 
-  論文 4.7 節表示，在訓練的初期模型有可能濫用**記憶細胞的初始值**作為計算的常數項（細節請見 $\eqref{15}$），導致模型在訓練的過程中學會完全**不紀錄資訊**。
+  論文 4.7 節表示，在訓練的初期模型有可能濫用**記憶細胞的初始值**作為計算的常數項（細節請見 $\eqref{15-1}$），導致模型在訓練的過程中學會完全**不紀錄資訊**。
 
   因此可以將**輸出閘門**加上偏差項，並初始化成**較小的負數**（理由類似於 $\eqref{65}$），讓記憶細胞在**計算初期**輸出值為 $0$，迫使模型只在**需要**時指派記憶細胞進行**記憶**。
 
@@ -2645,7 +2731,7 @@ LSTM 最佳化
 
   #### 任務定義
 
-  從 LSTM 的架構上來看實驗 4 的加法任務可以透過 $\eqref{14}$ 輕鬆完成，因此實驗 5 的目標是確認模型是否能夠從加法上延伸出乘法的概念，確保實驗 4 並不只是單純因模型架構而解決。
+  從 LSTM 的架構上來看實驗 4 的加法任務可以透過 $\eqref{14-1}$ 輕鬆完成，因此實驗 5 的目標是確認模型是否能夠從加法上延伸出乘法的概念，確保實驗 4 並不只是單純因模型架構而解決。
 
   概念與實驗 4 的任務幾乎相同，只做以下修改：
 
