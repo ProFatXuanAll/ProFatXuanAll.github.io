@@ -763,6 +763,7 @@ LSTM 架構
       & \indent{1} \vyopig(0) \algoEq \zv \\
       & \indent{1} \vyopog(0) \algoEq \zv \\
       & \indent{1} \algoFor{k \in \Set{1, \dots, \nblk}} \\
+      & \indent{2}   \vsopblk{k}(0) \algoEq \zv \\
       & \indent{2}   \vyopblk{k}(0) \algoEq \zv \\
       & \indent{1} \algoEndFor \\
       & \indent{1} \algoCmt{Do forward pass.} \\
@@ -1152,14 +1153,14 @@ LSTM 最佳化
 :math:`\vWopout` 相對於誤差的微分
 ---------------------------------
 
-由於輸出 :math:`\vy(t + 1)` **不會**\如傳統 RNN 的方式\ **回饋**\到模型的計算狀態中，因此計算輸出參數 :math:`\vWopout` 對誤差所得的微分不須近似，結果如下：
+由於輸出 :math:`\vy(t + 1)` **不會**\如傳統 RNN 的方式\ **回饋**\到模型的計算狀態中，因此計算輸出參數 :math:`\vWopout` 對誤差所得的微分不需近似，結果如下：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \dv{\frac{1}{2} \qty(\vy_i(t_2) - \vyh_i(t_2))^2}{\vWopout_{p, q}} = \qty(\vy_i(t_2) - \vyh_i(t_2)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
+      & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopout_{p, q}} = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
       & \qqtext{where} \begin{dcases}
                          i \in \Set{1, \dots, \dout} \\
                          p \in \Set{1, \dots, \dout} \\
@@ -1177,9 +1178,9 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        & \dv{\frac{1}{2} \qty(\vy_i(t_2) - \vyh_i(t_2))^2}{\vWopout_{p, q}} \\
-        & = \dv{\frac{1}{2} \qty(\vy_i(t_2) - \vyh_i(t_2))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
-        & = \qty(\vy_i(t_2) - \vyh_i(t_2)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
+        & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopout_{p, q}} \\
+        & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
+        & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
         & \qqtext{where} \begin{dcases}
                           i \in \Set{1, \dots, \dout} \\
                           p \in \Set{1, \dots, \dout} \\
@@ -1196,98 +1197,94 @@ LSTM 最佳化
 :math:`\vWophid` 相對於誤差的微分近似值
 ---------------------------------------
 
-在 :math:`\eqref{12} \eqref{13} \eqref{14-1}` 的作用下，我們可以求得\ **隱藏單元參數** :math:`\vWophid` 在\ **丟棄**\部份微分後對於\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
+在 :math:`\eqref{12} \eqref{13}` 的作用下，我們可以求得 conventional hidden units 參數 :math:`\vWophid` 相對於誤差計算所得的\ **剩餘微分**：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \dv{\vy_i(t + 1)}{\vWophid_{p, q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
-                                         & \qqtext{where} \begin{dcases}
-                                                            i \in \Set{1, \dots, \dout} \\
-                                                            p \in \Set{1, \dots, \dhid} \\
-                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
-                                                            t \in \Set{0, \dots, \cT - 1}
-                                                          \end{dcases}.
+      & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWophid_{p, q}} \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p} \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t) \\
+      & \qqtext{where} \begin{dcases}
+                          i \in \Set{1, \dots, \dout} \\
+                          p \in \Set{1, \dots, \dhid} \\
+                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                          t \in \Set{0, \dots, \cT - 1}
+                       \end{dcases}.
     \end{align*}
     \tag{15}\label{15}
   \]
 
 .. dropdown:: 推導式子 :math:`\eqref{15}`
 
+  由於 memory cell internal states :math:`\vsopblk{k}(0)` 不是由 :math:`\vWophid` 產生，因此我們可以得到：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \dv{\vsopblk{k}_i(0)}{\vWophid_{p, q}} = 0 \qqtext{where} \begin{dcases}
+                                                                  i \in \Set{1, \dots, \dblk} \\
+                                                                  k \in \Set{1, \dots, \nblk} \\
+                                                                  p \in \Set{1, \dots, \dhid} \\
+                                                                  q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                \end{dcases}.
+    \]
+
+  根據式子 :math:`\eqref{13}` 我們可以得到 :math:`\vWophid` 對於 input/output gate units 的微分近似值：
+
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vy_i(t + 1)}{\vWophid_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWophid_{p, q}} \\
-                                           & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWophid_{p, q}}}] \\
-                                           & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
-                                           & \qqtext{where} \begin{dcases}
-                                                              i \in \Set{1, \dots, \dout} \\
-                                                              p \in \Set{1, \dots, \dhid} \\
-                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
-                                                              t \in \Set{0, \dots, \cT - 1}
-                                                            \end{dcases}.
+        \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}} & = \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+                                               & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                          k \in \Set{1, \dots, \nblk} \\
+                                                                          p \in \Set{1, \dots, \dhid} \\
+                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                          t \in \Set{0, \dots, \cT - 1}
+                                                                        \end{dcases}. \\
+        \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}} & = \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+                                               & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                          k \in \Set{1, \dots, \nblk} \\
+                                                                          p \in \Set{1, \dots, \dhid} \\
+                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                          t \in \Set{0, \dots, \cT - 1}
+                                                                        \end{dcases}. \\
       \end{align*}
     \]
 
-:math:`\eqref{15}` 就是論文中 A.8 式的最後一個 case。
-
-由於 :math:`\vyopig(t + 1), \vyopog(t + 1), \vzopblk{k}(t + 1)` 並不是\ **直接**\透過 :math:`\vWophid` 產生，因此 :math:`\vWophid` 只能透過參與 :math:`t` 時間點\ **以前**\的計算\ **間接**\對 :math:`t + 1` 時間點的計算造成影響。
-這也代表在 :math:`\eqref{13}` 作用的情況下 :math:`\vWophid` **無法**\從 :math:`\vyopig(t + 1), \vyopog(t + 1), \vyopblk{k}(t + 1)` 收到任何的\ **微分**：
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-      \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                            k \in \Set{1, \dots, \nblk} \\
-                                                                            p \in \Set{1, \dots, \dhid} \\
-                                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                            t \in \Set{0, \dots, \cT - 1}
-                                                                          \end{dcases}. \\
-      \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                            k \in \Set{1, \dots, \nblk} \\
-                                                                            p \in \Set{1, \dots, \dhid} \\
-                                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                            t \in \Set{0, \dots, \cT - 1}
-                                                                          \end{dcases}. \\
-      \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                            i \in \Set{1, \dots, \dblk} \\
-                                                                            k \in \Set{1, \dots, \nblk} \\
-                                                                            p \in \Set{1, \dots, \dhid} \\
-                                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                            t \in \Set{0, \dots, \cT - 1}
-                                                                          \end{dcases}.
-    \end{align*}
-    \tag{14-1}\label{14-1}
-  \]
-
-.. dropdown:: 推導式子 :math:`\eqref{14-1}`
+  結合式子 :math:`\eqref{12}` 與前面的推導，我們可以得出 :math:`\vWophid` 對於 memory cell internal states :math:`\vsopblk{k}(t + 1)` 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
-                                                   & \aptr 0 \qqtext{where} \begin{dcases}
+        \dv{\vsopblk{k}_i(t + 1)}{\vWophid_{p, q}} & = \dv{\vsopblk{k}_i(t)}{\vWophid_{p, q}} + \cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vWophid_{p, q}}} \cdot g\qty(\vzopblk{k}_i(t + 1)) + \vyopig_k(t + 1) \cdot \dv{g\qty(\vzopblk{k}_i(t + 1))}{\vzopblk{k}_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}] \\
+                                                   & \aptr \dv{\vsopblk{k}_i(t)}{\vWophid_{p, q}} \\
+                                                   & \aptr \dv{\vsopblk{k}_i(t - 1)}{\vWophid_{p, q}} \\
+                                                   & \vdots \\
+                                                   & \aptr \dv{\vsopblk{k}_i(0)}{\vWophid_{p, q}} \\
+                                                   & = 0 \qqtext{where} \begin{dcases}
+                                                                              i \in \Set{1, \dots, \dblk} \\
                                                                               k \in \Set{1, \dots, \nblk} \\
                                                                               p \in \Set{1, \dots, \dhid} \\
                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                                                                               t \in \Set{0, \dots, \cT - 1}
-                                                                            \end{dcases}. \\
-        \dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}     & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
-                                                   & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                              k \in \Set{1, \dots, \nblk} \\
-                                                                              p \in \Set{1, \dots, \dhid} \\
-                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                              t \in \Set{0, \dots, \cT - 1}
-                                                                            \end{dcases}. \\
-        \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & = \sum_{j = \din + 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vyophid_p(t)} \cdot \dv{\vyophid_p(t)}{\vWophid_{p, q}}] \\
+                                                                            \end{dcases}.
+      \end{align*}
+    \]
+
+  接著我們可以得出 :math:`\vWophid` 對於 memory cell block activations :math:`\vyopblk{k}(t + 1)` 的微分近似值：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vyopblk{k}_i(t + 1)}{\vWophid_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vWophid_{p, q}}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vsopblk{k}_i(t + 1)}{\vWophid_{p, q}}} \\
                                                    & \aptr 0 \qqtext{where} \begin{dcases}
                                                                               i \in \Set{1, \dots, \dblk} \\
                                                                               k \in \Set{1, \dots, \nblk} \\
@@ -1298,111 +1295,84 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  透過前述的推導我們可以得出一個結論：
+  參數 :math:`\vWophid` 透過 input gate units、output gate units、memory cell internal states、memory cell block activations 得到的微分近似值為 :math:`0`，意即參數 :math:`\vWophid` **無法透過**\這些節點得到誤差資訊，只能透過 conventional hidden units 取得資訊。
+  所以接下來我們推導 :math:`\vWophid` 對於 conventional hidden units :math:`\vsopblk{k}(t + 1)` 的微分近似值：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vyophid_i(t + 1)}{\vWophid_{p, q}} & = \dv{\vyophid_i(t + 1)}{\vzophid_i(t + 1)} \cdot \dv{\vzophid_i(t + 1)}{\vWophid_{p, q}} \\
+                                                & = {f^\ophid}'\qty(\vzophid_i(t + 1)) \cdot \qty[\delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWophid_{i, j} \cdot \cancelto{\aptr 0}{\dv{\vxt_j(t)}{\vWophid_{p, q}}}]] \\
+                                                & \aptr {f^\ophid}'\qty(\vzophid_i(t + 1)) \cdot \qty[\delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^\dhid \qty[\vWophid_{i, \din + j} \cdot \dv{\vyophid_j(t)}{\vWophid_{p, q}}]] \\
+                                                & \qqtext{where} \begin{dcases}
+                                                                   i \in \Set{1, \dots, \dhid} \\
+                                                                   p \in \Set{1, \dots, \dhid} \\
+                                                                   q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}.
+      \end{align*}
+    \]
+
+  可以發現 :math:`\vWophid` 對於 conventional hidden units :math:`\vyophid(t + 1)` 的微分就是傳統的 BPTT。
+  由於 LSTM 的設計就是用來解決 BPTT 會有的問題，但 conventional hidden units 的存在又違反該邏輯，因此作者在論文中提出額外丟棄 conventional hidden units 的微分，結果如下：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vyophid_i(t + 1)}{\vWophid_{p, q}} & \aptr {f^\ophid}'\qty(\vzophid_i(t + 1)) \cdot \qty[\delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^\dhid \qty[\vWophid_{i, \din + j} \cdot \dv{\vyophid_j(t)}{\vWophid_{p, q}}]] \\
+                                                & \aptr {f^\ophid}'\qty(\vzophid_i(t + 1)) \cdot \delta_{i, p} \cdot \vxt_q(t) \\
+                                                & \qqtext{where} \begin{dcases}
+                                                                   i \in \Set{1, \dots, \dhid} \\
+                                                                   p \in \Set{1, \dots, \dhid} \\
+                                                                   q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}.
+      \end{align*}
+    \]
+
+  .. note::
+
+    上式就是論文中的 A.9 式。
+
+  最後我們可以推得 :math:`\vWophid` 相對於誤差的微分近似值：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWophid_{p, q}} \\
+        & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWophid_{p, q}}}] \\
+        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dhid \qty[\vWopout_{i, \din + j} \cdot \dv{\vyophid_j(t + 1)}{\vWophid_{p, q}}] \\
+        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dhid \qty[\vWopout_{i, \din + j} \cdot {f^\ophid}'\qty(\vzophid_j(t + 1)) \cdot \delta_{j, p} \cdot \vxt_q(t)] \\
+        & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p} \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t) \\
+        & \qqtext{where} \begin{dcases}
+                            i \in \Set{1, \dots, \dout} \\
+                            p \in \Set{1, \dots, \dhid} \\
+                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                            t \in \Set{0, \dots, \cT - 1}
+                         \end{dcases}.
+      \end{align*}
+    \]
+
+.. note::
+
+  :math:`\eqref{15}` 就是論文中 A.8 式 :math:`l` otherwise 的 case。
+
 相對於總輸出所得剩餘微分
 ------------------------
 
-我們將論文的 A.8 式拆解成 :math:`\eqref{15-1} \eqref{16-1} \eqref{17-1} \eqref{18-1}`。
-
-總輸出參數
-~~~~~~~~~~
-
-令 :math:`\delta_{a, b}` 為 **Kronecker delta**，i.e.，
-
-.. math::
-  :nowrap:
-
-  \[
-    \delta_{a, b} = \begin{dcases}
-                      1 & \qqtext*{if} a = b \\
-                      0 & \qqtext*{otherwise}
-                    \end{dcases}.
-  \]
-
-由於\ **總輸出** :math:`\vy(t + 1)` 不會像是傳統 RNN 的方式\ **回饋**\到模型的計算狀態中，因此\ **總輸出參數** :math:`\vWopout` 對\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **微分**\為
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-    \dv{\vy_i(t + 1)}{\vWopout_{p, q}} & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
-                                       & \qqtext{where} \begin{dcases}
-                                                          i \in \Set{1, \dots, \dout} \\
-                                                          p \in \Set{1, \dots, \dout} \\
-                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
-                                                          t \in \Set{0, \dots, \cT - 1}
-                                                        \end{dcases}.
-    \end{align*}
-    \tag{15-1}\label{15-1}
-  \]
-
-.. dropdown:: 推導式子 :math:`\eqref{15-1}`
-
-  .. math::
-    :nowrap:
-
-    \[
-      \begin{align*}
-      \dv{\vy_i(t + 1)}{\vWopout_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
-                                         & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
-                                         & \qqtext{where} \begin{dcases}
-                                                            i \in \Set{1, \dots, \dout} \\
-                                                            p \in \Set{1, \dots, \dout} \\
-                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
-                                                            t \in \Set{0, \dots, \cT - 1}
-                                                          \end{dcases}.
-      \end{align*}
-    \]
-
-- :math:`\eqref{15-1}` 就是論文中 A.8 式的第一個 case
-- 由於 :math:`p` 可以是\ **任意**\的輸出節點，因此在 :math:`i \neq p` 時 :math:`\vWopout_{p, q}` 對於 :math:`\vy_i(t + 1)` 的微分為 :math:`0`
-
-隱藏單元參數
-~~~~~~~~~~~~
-
-在 :math:`\eqref{12} \eqref{13} \eqref{14-1}` 的作用下，我們可以求得\ **隱藏單元參數** :math:`\vWophid` 在\ **丟棄**\部份微分後對於\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-      \dv{\vy_i(t + 1)}{\vWophid_{p, q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
-                                         & \qqtext{where} \begin{dcases}
-                                                            i \in \Set{1, \dots, \dout} \\
-                                                            p \in \Set{1, \dots, \dhid} \\
-                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
-                                                            t \in \Set{0, \dots, \cT - 1}
-                                                          \end{dcases}.
-    \end{align*}
-    \tag{16-1}\label{16-1}
-  \]
-
-.. dropdown:: 推導式子 :math:`\eqref{16-1}`
-
-  .. math::
-    :nowrap:
-
-    \[
-      \begin{align*}
-        \dv{\vy_i(t + 1)}{\vWophid_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWophid_{p, q}} \\
-                                           & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWophid_{p, q}}}] \\
-                                           & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWophid_{p, q}} \\
-                                           & \qqtext{where} \begin{dcases}
-                                                              i \in \Set{1, \dots, \dout} \\
-                                                              p \in \Set{1, \dots, \dhid} \\
-                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
-                                                              t \in \Set{0, \dots, \cT - 1}
-                                                            \end{dcases}.
-      \end{align*}
-    \]
-
-:math:`\eqref{16-1}` 就是論文中 A.8 式的最後一個 case。
+我們將論文的 A.8 式拆解成 :math:`\eqref{17-1} \eqref{18-1}`。
 
 閘門單元參數
 ~~~~~~~~~~~~
 
-同 :math:`\eqref{16-1}`，我們可以計算\ **閘門單元參數** :math:`\vWopig, \vWopog` 對\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
+我們可以計算\ **閘門單元參數** :math:`\vWopig, \vWopog` 對\ **總輸出** :math:`\vy(t + 1)` 計算所得的\ **剩餘微分**
 
 .. math::
   :nowrap:
@@ -1502,46 +1472,7 @@ LSTM 最佳化
 相對於隱藏單元所得剩餘微分
 --------------------------
 
-我們將論文的 A.9 式拆解成 :math:`\eqref{19-1} \eqref{20-1} \eqref{21-1}`。
-
-隱藏單元參數
-~~~~~~~~~~~~
-
-根據 :math:`\eqref{12} \eqref{13}` 我們可以得到 **conventional hidden unit weights** :math:`\vWophid` 對於 **conventional hidden units** :math:`\vyophid(t + 1)` 計算所得\ **剩餘微分**
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-      \dv{\vyophid_i(t + 1)}{\vWophid_{p, q}} & \aptr {f^\ophid}\qty(\vzophid_i(t + 1)) \cdot \delta_{i, p} \cdot \vxt(t)_q \\
-                                              & \qqtext{where} \begin{dcases}
-                                                  i \in \Set{1, \dots, \dhid} \\
-                                                  p \in \Set{1, \dots, \dhid} \\
-                                                  q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                  t \in \Set{0, \dots, \cT - 1}
-                                                \end{dcases}.
-    \end{align*}
-    \tag{19-1}\label{19-1}
-  \]
-
-.. dropdown:: 推導式子 :math:`\eqref{19-1}`
-
-  .. math::
-    :nowrap:
-
-    \[
-      \begin{align*}
-        \dv{\vyophid_i(t + 1)}{\vWophid_{p, q}} & = \dv{\vyophid_i(t + 1)}{\vzophid_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzophid_i(t + 1)}{\vWophid_{p, q}}} \\
-                                                & \aptr {f^\ophid}\qty(\vzophid_i(t + 1)) \cdot \delta_{i, p} \cdot \vxt(t)_q \\
-                                                & \qqtext{where} \begin{dcases}
-                                                    i \in \Set{1, \dots, \dhid} \\
-                                                    p \in \Set{1, \dots, \dhid} \\
-                                                    q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                    t \in \Set{0, \dots, \cT - 1}
-                                                  \end{dcases}.
-      \end{align*}
-    \]
+我們將論文的 A.9 式拆解成 :math:`\eqref{20-1} \eqref{21-1}`。
 
 閘門單元參數
 ~~~~~~~~~~~~
@@ -2050,7 +1981,7 @@ LSTM 最佳化
 
   ### 隱藏單元參數
 
-  從 $\eqref{4} \eqref{14-1} \eqref{16-1} \eqref{19-1}$ 我們可以觀察出以下結論
+  從 $\eqref{4} \eqref{14-1} \eqref{16-1}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
@@ -2249,7 +2180,7 @@ LSTM 最佳化
 
   ### 輸出閘門初始化
 
-  論文 4.7 節表示，在訓練的初期模型有可能濫用**記憶細胞的初始值**作為計算的常數項（細節請見 $\eqref{15-1}$），導致模型在訓練的過程中學會完全**不紀錄資訊**。
+  論文 4.7 節表示，在訓練的初期模型有可能濫用**記憶細胞的初始值**作為計算的常數項（細節請見 $\eqref{14}$），導致模型在訓練的過程中學會完全**不紀錄資訊**。
 
   因此可以將**輸出閘門**加上偏差項，並初始化成**較小的負數**（理由類似於 $\eqref{65}$），讓記憶細胞在**計算初期**輸出值為 $0$，迫使模型只在**需要**時指派記憶細胞進行**記憶**。
 
