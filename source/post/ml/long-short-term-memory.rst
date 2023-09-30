@@ -1681,14 +1681,14 @@ LSTM 最佳化
     \[
       \begin{align*}
         \dv{\vyopblk{k}_i(t + 1)}{\vWopig_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vWopig_{p, q}}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \dv{\vsopblk{k}_i(t + 1)}{\vWopig_{p, q}} \\
-        & \aptr \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_i(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_i(t^\star + 1))] \\
-        & \qqtext{where} \begin{dcases}
-                           i \in \Set{1, \dots, \dblk} \\
-                           k \in \Set{1, \dots, \nblk} \\
-                           p \in \Set{1, \dots, \nblk} \\
-                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                           t \in \Set{0, \dots, \cT - 1}
-                         \end{dcases}.
+                                                  & \aptr \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_i(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_i(t^\star + 1))] \\
+                                                  & \qqtext{where} \begin{dcases}
+                                                                     i \in \Set{1, \dots, \dblk} \\
+                                                                     k \in \Set{1, \dots, \nblk} \\
+                                                                     p \in \Set{1, \dots, \nblk} \\
+                                                                     q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                     t \in \Set{0, \dots, \cT - 1}
+                                                                   \end{dcases}.
       \end{align*}
     \]
 
@@ -1719,134 +1719,101 @@ LSTM 最佳化
 
   :math:`\eqref{17}` 就是論文中 A.8 式 :math:`l = \opin_j` 的 case。
 
-相對於總輸出所得剩餘微分
-------------------------
-
-我們將論文的 A.8 式拆解成 :math:`\eqref{18-1}`。
-
-記憶細胞淨輸入參數
-~~~~~~~~~~~~~~~~~~
+:math:`\vWopblk{k}` 相對於誤差的微分近似值
+-------------------------------------------
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \dv{\vy_i(t + 1)}{\vWopblk{k}_{p, q}} & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \dv{\vyopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
-                                            & \qqtext{where} \begin{dcases}
-                                                                i \in \Set{1, \dots, \dout} \\
-                                                                k \in \Set{1, \dots, \nblk} \\
-                                                                p \in \Set{1, \dots, \dblk} \\
-                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                t \in \Set{0, \dots, \cT - 1}
-                                                              \end{dcases}.
-    \end{align*}
-    \tag{18-1}\label{18-1}
-  \]
-
-.. dropdown:: 推導式子 :math:`\eqref{18-1}`
-
-  .. math::
-    :nowrap:
-
-    \[
-      \begin{align*}
-        \dv{\vy_i(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopblk{k}_{p, q}} \\
-                                              & = {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopblk{k}_{p, q}}}] \\
-                                              & \aptr {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \dv{\vyopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
-                                              & \qqtext{where} \begin{dcases}
-                                                                 i \in \Set{1, \dots, \dout} \\
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \dblk} \\
-                                                                 q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                 t \in \Set{0, \dots, \cT - 1}
-                                                               \end{dcases}.
-      \end{align*}
-    \]
-
-:math:`\eqref{18-1}` 就是論文中 A.8 式的第二個 case。
-
-相對於隱藏單元所得剩餘微分
---------------------------
-
-我們將論文的 A.9 式拆解成 :math:`\eqref{21-1}`。
-
-記憶細胞淨輸入參數
-~~~~~~~~~~~~~~~~~~
-
-由於 **conventional hidden units** :math:`\vyophid(t + 1)` 並不是\ **直接**\透過 **memory cell blocks** 參數 :math:`\vWopblk{k}` 產生，因此根據 :math:`\eqref{12}` 我們可以推得 :math:`\vWopblk{k}` 對於 :math:`\vyophid(t + 1)` **剩餘微分**\為 :math:`0`
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-      \dv{\vyophid_i(t + 1)}{\vWopblk{k}_{p, q}} & \aptr 0 \qqtext{where} \begin{dcases}
-                                                             i \in \Set{1, \dots, \dhid} \\
-                                                             k \in \Set{1, \dots, \nblk} \\
-                                                             p \in \Set{1, \dots, \dblk} \\
-                                                             q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                             t \in \Set{0, \dots, \cT - 1}
-                                                           \end{dcases}.
-    \end{align*}
-    \tag{21-1}\label{21-1}
-  \]
-
-.. dropdown:: 推導式子 :math:`\eqref{21-1}`
-
-  .. math::
-    :nowrap:
-
-    \[
-      \begin{align*}
-        \dv{\vyophid_i(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyophid_i(t + 1)}{\vzophid_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \cdot (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzophid_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
-                                                   & \aptr 0 \qqtext{where} \begin{dcases}
-                                                               i \in \Set{1, \dots, \dhid} \\
-                                                               k \in \Set{1, \dots, \nblk} \\
-                                                               p \in \Set{1, \dots, \dblk} \\
-                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                               t \in \Set{0, \dots, \cT - 1}
-                                                             \end{dcases}.
-      \end{align*}
-    \]
-
-相對於記憶細胞輸出所得剩餘微分
-------------------------------
-
-我們將論文的 A.13 式拆解成 :math:`\eqref{24-1}`。
-
-記憶細胞淨輸入參數
-~~~~~~~~~~~~~~~~~~
-
-使用 :math:`\eqref{12}` 推得 **memory cell blocks** 參數 :math:`\vWopblk{k^\star}` 對於 **memory cell block activations** :math:`\vyopblk{k}(t + 1)` 計算所得\ **剩餘微分**\（注意 :math:`k^\star` 可以\ **不等於** :math:`k`）
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-      & \dv{\vyopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} \aptr \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_i(t + 1)) \cdot \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \dv{\vsopblk{k}_i(t + 1)}{\vWopblk{k}_{i, q}} \\
+      & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopblk{k}_{p, q}} \\
+      & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)] \\
       & \qqtext{where} \begin{dcases}
-                         i \in \Set{1, \dots, \dblk} \\
+                         i \in \Set{1, \dots, \dout} \\
                          k \in \Set{1, \dots, \nblk} \\
-                         k^\star \in \Set{1, \dots, \nblk} \\
                          p \in \Set{1, \dots, \dblk} \\
                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
-    \tag{24-1}\label{24-1}
+    \tag{18}\label{18}
   \]
 
-.. dropdown:: 推導式子 :math:`\eqref{24-1}`
+.. dropdown:: 推導式子 :math:`\eqref{18}`
+
+  由於 memory cell internal states :math:`\vsopblk{k^\star}(0)` 不是由 :math:`\vWopblk{k}` 產生，因此我們可以得到：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \dv{\vsopblk{k^\star}_i(0)}{\vWopblk{k}_{p, q}} = 0 \qqtext{where} \begin{dcases}
+                                                                           i \in \Set{1, \dots, \dblk} \\
+                                                                           k \in \Set{1, \dots, \nblk} \\
+                                                                           k^\star \in \Set{1, \dots, \nblk} \\
+                                                                           p \in \Set{1, \dots, \dblk} \\
+                                                                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                         \end{dcases}.
+    \]
+
+  根據式子 :math:`\eqref{12}` 我們可以求得 :math:`\vWopblk{k}` 相對於 conventional hidden units 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} & = \dv{\vyopblk{k}_i(t + 1)}{\vyopog_k(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{{\vWopblk{k^\star}_{p, q}}}] + \dv{\vyopblk{k}_i(t + 1)}{\vsopblk{k}_i(t + 1)} \cdot \dv{\vsopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} \\
-                                                            & \aptr \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_i(t + 1)) \cdot \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \dv{\vsopblk{k}_i(t + 1)}{\vWopblk{k}_{i, q}} \\
+        \dv{\vyophid_i(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyophid_i(t + 1)}{\vzophid_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzophid_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
+                                               & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                          i \in \Set{1, \dots, \dhid} \\
+                                                                          k \in \Set{1, \dots, \nblk} \\
+                                                                          p \in \Set{1, \dots, \dblk} \\
+                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                          t \in \Set{0, \dots, \cT - 1}
+                                                                        \end{dcases}.
+      \end{align*}
+    \]
+
+  同理，我們也可以求得 :math:`\vWopblk{k}` 相對於 input/output gate units 的微分近似值：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vyopig_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyopig_{k^\star}(t + 1)}{\vzopig_{k^\star}(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopig_{k^\star}(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
+                                                          & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                                     k \in \Set{1, \dots, \nblk} \\
+                                                                                     k^\star \in \Set{1, \dots, \nblk} \\
+                                                                                     p \in \Set{1, \dots, \dblk} \\
+                                                                                     q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                     t \in \Set{0, \dots, \cT - 1}
+                                                                                   \end{dcases}. \\
+        \dv{\vyopog_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyopog_{k^\star}(t + 1)}{\vzopog_{k^\star}(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopog_{k^\star}(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
+                                                          & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                                     k \in \Set{1, \dots, \nblk} \\
+                                                                                     k^\star \in \Set{1, \dots, \nblk} \\
+                                                                                     p \in \Set{1, \dots, \dblk} \\
+                                                                                     q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                     t \in \Set{0, \dots, \cT - 1}
+                                                                                   \end{dcases}.
+      \end{align*}
+    \]
+
+  接著我們推導 :math:`\vWopblk{k}` 相對於 memory cell internal states 的微分近似值：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} + \cancelto{\aptr 0}{\dv{\vyopig_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}}} \cdot g\qty(\vzopblk{k^\star}_i(t + 1)) + \vyopig_{k^\star}(t + 1) \cdot \dv{g\qty(\vzopblk{k^\star}_i(t + 1))}{\vzopblk{k^\star}_i(t + 1)} \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}]] \\
+                                                            & \aptr \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} + \vyopig_{k^\star}(t + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}]] \\
+                                                            & \aptr \dv{\vsopblk{k^\star}_i(t - 1)}{\vWopblk{k}_{p, q}} + \sum_{t^\star = t - 1}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t^\star)}{\vWopblk{k}_{p, q}}]]] \\
+                                                            & \vdots \\
+                                                            & \aptr \dv{\vsopblk{k^\star}_i(0)}{\vWopblk{k}_{p, q}} + \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t^\star)}{\vWopblk{k}_{p, q}}]]] \\
+                                                            & = \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t^\star)}{\vWopblk{k}_{p, q}}]]] \\
                                                             & \qqtext{where} \begin{dcases}
                                                                                i \in \Set{1, \dots, \dblk} \\
                                                                                k \in \Set{1, \dots, \nblk} \\
@@ -1858,117 +1825,86 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  可以發現 :math:`\vWopblk{k}` 對於 memory cell internal states 的微分會有 BPTT 的問題。
+  由於 LSTM 的設計就是用來解決 BPTT 會有的問題，但 memory cell internal states 的全微分又違反該邏輯，因此作者在論文中提出額外丟棄 memory cell internal states 的微分，結果如下：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & \aptr \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t^\star)}{\vWopblk{k}_{p, q}}]}]] \\
+                                                            & \aptr \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star)] \\
+                                                            & \qqtext{where} \begin{dcases}
+                                                                               i \in \Set{1, \dots, \dblk} \\
+                                                                               k \in \Set{1, \dots, \nblk} \\
+                                                                               k^\star \in \Set{1, \dots, \nblk} \\
+                                                                               p \in \Set{1, \dots, \dblk} \\
+                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                               t \in \Set{0, \dots, \cT - 1}
+                                                                             \end{dcases}.
+      \end{align*}
+    \]
+
+  .. note::
+
+    上式就是論文中的 A.12 式。
+
+  使用前述推導結果我們可以得到 :math:`\vWopblk{k}` 相對於 memory cell activation blocks 的微分近似值：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        \dv{\vyopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopog_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}}} \cdot h\qty(\vsopblk{k^\star}_i(t + 1)) + \vyopog_{k^\star}(t + 1) \cdot \dv{h\qty(\vsopblk{k^\star}_i(t + 1))}{\vsopblk{k^\star}_i(t + 1)} \cdot \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} \\
+                                                            & \aptr \vyopog_{k^\star}(t + 1) \cdot h'\qty(\vsopblk{k^\star}_i(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star)] \\
+                                                            & \qqtext{where} \begin{dcases}
+                                                                              i \in \Set{1, \dots, \dblk} \\
+                                                                              k \in \Set{1, \dots, \nblk} \\
+                                                                              k^\star \in \Set{1, \dots, \nblk} \\
+                                                                              p \in \Set{1, \dots, \dblk} \\
+                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                            \end{dcases}.
+      \end{align*}
+    \]
+
+  透過前述的推導我們可以得出一個結論：
+  參數 :math:`\vWopblk{k}` 透過 conventional hidden units、input gate units、output gate units 得到的微分近似值為 :math:`0`，意即參數 :math:`\vWopblk{k}` **無法透過**\這些節點得到誤差資訊，只能透過 memory cell internal states 取得資訊。
+  最後我們推得 :math:`\vWopblk{k}` 相對於誤差的微分近似值：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopblk{k}_{p, q}} \\
+        & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopblk{k}_{p, q}}}] \\
+        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k^\star}_j(t + 1)}{\vWopblk{k}_{p, q}}] \\
+        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_{k^\star}(t + 1) \cdot h'\qty(\vsopblk{k^\star}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_j(t^\star + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{j, p} \cdot \vxt_q(t^\star)]] \\
+        & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)] \\
+        & \qqtext{where} \begin{dcases}
+                            i \in \Set{1, \dots, \dout} \\
+                            k \in \Set{1, \dots, \nblk} \\
+                            p \in \Set{1, \dots, \dblk} \\
+                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                            t \in \Set{0, \dots, \cT - 1}
+                         \end{dcases}.
+      \end{align*}
+    \]
+
+.. note::
+
+  :math:`\eqref{18}` 就是論文中 A.8 式 :math:`l = c_j^v` 的 case。
+
 .. error::
 
   論文 A.13 式最後使用\ **加法** :math:`\delta_{\opin_j l} + \delta_{c_j^v l}`，可能會導致微分\ **乘上常數** :math:`2`，因此應該修正成\ **乘法** :math:`\delta_{\opin_j l} \cdot \delta_{c_j^v l}`。
 
-相對於閘門單元所得剩餘微分
---------------------------
-
-我們將論文的 A.10, A.11 式拆解成 :math:`\eqref{26-1}`。
-
-記憶細胞淨輸入參數
-~~~~~~~~~~~~~~~~~~
-
-由於\ **gate units** :math:`\vyopig(t + 1), \vyopog(t + 1)` 並不是\ **直接**\透過 **memory cell block** 參數 :math:`\vWopblk{k}` 產生，因此根據 :math:`\eqref{12}` 我們可以推得 :math:`\vWopblk{k}` 對於 :math:`\vyopig(t + 1), \vyopog(t + 1)` **剩餘微分**\為 :math:`0`
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-      \dv{\vyopig_k(t + 1)}{\vWopblk{k}_{p, q}} & \aptr 0 \qqtext{where} \begin{dcases}
-                                                            k \in \Set{1, \dots, \nblk} \\
-                                                            p \in \Set{1, \dots, \dblk} \\
-                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                            t \in \Set{0, \dots, \cT - 1}
-                                                          \end{dcases}. \\
-      \dv{\vyopog_k(t + 1)}{\vWopblk{k}_{p, q}} & \aptr 0 \qqtext{where} \begin{dcases}
-                                                            k \in \Set{1, \dots, \nblk} \\
-                                                            p \in \Set{1, \dots, \dblk} \\
-                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                            t \in \Set{0, \dots, \cT - 1}
-                                                          \end{dcases}.
-    \end{align*}
-    \tag{26-1}\label{26-1}
-  \]
-
-.. dropdown:: 推導式子 :math:`\eqref{26-1}`
-
-  .. math::
-    :nowrap:
-
-    \[
-      \begin{align*}
-        \dv{\vyopig_k(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
-                                                  & \aptr 0 \qqtext{where} \begin{dcases}
-                                                              k \in \Set{1, \dots, \nblk} \\
-                                                              p \in \Set{1, \dots, \dblk} \\
-                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                              t \in \Set{0, \dots, \cT - 1}
-                                                            \end{dcases}. \\
-        \dv{\vyopog_k(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
-                                                  & \aptr 0 \qqtext{where} \begin{dcases}
-                                                              k \in \Set{1, \dots, \nblk} \\
-                                                              p \in \Set{1, \dots, \dblk} \\
-                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                              t \in \Set{0, \dots, \cT - 1}
-                                                            \end{dcases}.
-      \end{align*}
-    \]
-
-相對於記憶細胞內部狀態所得剩餘微分
-----------------------------------
-
-我們將論文的 A.12 式拆解成 :math:`\eqref{29-1}`。
-
-記憶細胞淨輸入參數
-~~~~~~~~~~~~~~~~~~
-
-使用 :math:`\eqref{12}` 推得 **memory cell blocks** 參數 :math:`\vWopblk{k^\star}` 對於 **memory cell internal states** :math:`\vsopblk{k}(t + 1)` 計算所得\ **剩餘微分**\（注意 :math:`k^\star` 可以\ **不等於** :math:`k`）
-
-.. math::
-  :nowrap:
-
-  \[
-    \begin{align*}
-      \dv{\vsopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \qty[\dv{\vsopblk{k}_i(t)}{\vWopblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_i(t + 1)) \cdot \vxt_q(t)] \\
-                                                          & \qqtext{where} \begin{dcases}
-                                                              i \in \Set{1, \dots, \dblk} \\
-                                                              k \in \Set{1, \dots, \nblk} \\
-                                                              k^\star \in \Set{1, \dots, \nblk} \\
-                                                              p \in \Set{1, \dots, \dblk} \\
-                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                              t \in \Set{0, \dots, \cT - 1}
-                                                            \end{dcases}.
-    \end{align*}
-    \tag{29-1}\label{29-1}
-  \]
-
-.. dropdown:: 推導式子 :math:`\eqref{29-1}`
-
-  .. math::
-    :nowrap:
-
-    \[
-      \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} & = \dv{\vsopblk{k}_i(t + 1)}{\vsopblk{k}_i(t)} \cdot \dv{\vsopblk{k}_i(t)}{\vWopblk{k^\star}_{p, q}} + \dv{\vsopblk{k}_i(t + 1)}{\vyopig_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vWopblk{k^\star}_{p, q}}} + \dv{\vsopblk{k}_i(t + 1)}{\vzopblk{k}_i(t + 1)} \cdot \dv{\vzopblk{k}_i(t + 1)}{\vWopblk{k^\star}_{p, q}} \\
-                                                            & \aptr \delta_{k, k^\star} \cdot \delta_{i, p} \cdot 1 \cdot \dv{\vsopblk{k}_i(t)}{\vWopblk{k}_{i, q}} + \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_i(t + 1)) \cdot \vxt_q(t) \\
-                                                            & = \delta_{k, k^\star} \cdot \delta_{i, p} \cdot \qty[\dv{\vsopblk{k}_i(t)}{\vWopblk{k}_{i, q}} + \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_i(t + 1)) \cdot \vxt_q(t)] \\
-                                                            & \qqtext{where} \begin{dcases}
-                                                                i \in \Set{1, \dots, \dblk} \\
-                                                                k \in \Set{1, \dots, \nblk} \\
-                                                                k^\star \in \Set{1, \dots, \nblk} \\
-                                                                p \in \Set{1, \dots, \dblk} \\
-                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                t \in \Set{0, \dots, \cT - 1}
-                                                              \end{dcases}.
-      \end{align*}
-    \]
-
 .. error::
 
-  **注意錯誤**：論文 A.12 式最後使用\ **加法** :math:`\delta_{\opin_j l} + \delta_{c_j^v l}`，可能會導致梯度\ **乘上常數** :math:`2`，因此應該修正成\ **乘法** :math:`\delta_{\opin_j l} \cdot \delta_{c_j^v l}`
+  論文 A.12 式最後使用\ **加法** :math:`\delta_{\opin_j l} + \delta_{c_j^v l}`，可能會導致梯度\ **乘上常數** :math:`2`，因此應該修正成\ **乘法** :math:`\delta_{\opin_j l} \cdot \delta_{c_j^v l}`
 
 ..
   ## 更新模型參數
@@ -2077,7 +2013,7 @@ LSTM 最佳化
 
   ### 記憶細胞淨輸入參數
 
-  從 $\eqref{4} \eqref{18-1} \eqref{21-1} \eqref{24-1} \eqref{26-1} \eqref{29-1}$ 我們可以觀察出以下結論
+  從 $\eqref{4}$ 我們可以觀察出以下結論
 
   $$
   \begin{align*}
