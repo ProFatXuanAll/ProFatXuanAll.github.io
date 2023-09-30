@@ -974,28 +974,13 @@ LSTM 最佳化
 過去的論文中提出以\ **修改最佳化過程**\避免 RNN 訓練遇到\ **梯度爆炸 / 消失**\的問題（例如 Truncated BPTT）。
 作者在論文 4.5 節提出\ **最佳化** LSTM 的方法為 **RTRL 的變種**，主要精神如下：
 
-- 最佳化的核心思想是確保能夠達成 **CEC** （見 :math:`\eqref{11}`）
+- 透過設計模型計算架構確保達成 **CEC** （見 :math:`\eqref{11}`）
+- 最佳化過程必須避免進行\ **遞迴 back propagation**，否則會遇到梯度爆炸 / 消失
+- 停止 back propagation 導致在完成 :math:`t + 1` 時間點的 forward pass 後可以\ **即時計算**\參數對 :math:`t + 1` 時間點誤差計算所得微分
 
-  - Internal states 透過遞迴過程傳遞的微分不會被放大或縮小
-  - 因此不會造成梯度爆炸 / 消失
-
-- 使用的手段是要求 **back propagation** 的過程在經過 **hidden units** 後便\ **停止**\計算微分
-
-  - 微分會傳遞至產生 conventional hidden units 的參數 :math:`\vWophid`
-  - 微分不會傳遞至產生 conventional hidden units 的節點 :math:`\vxt(t)`
-  - 微分會傳遞至產生 output gate units 的參數 :math:`\vWopog`
-  - 微分不會傳遞至產生 output gate units 的節點 :math:`\vxt(t)`
-  - Internal states 收到的微分會經由 output gate units 縮放
-  - 微分會傳遞至產生 input gate units 的參數 :math:`\vWopig`
-  - 微分不會傳遞至產生 input gate units 的節點 :math:`\vxt(t)`
-  - 微分會傳遞至產生 internal states 的參數 :math:`\vWopblk{1}, \dots, \vWopblk{\nblk}`
-  - 微分不會傳遞至產生 internal states 的節點 :math:`\vxt(t)`
-  - :math:`\vWopblk{1}, \dots, \vWopblk{\nblk}` 收到的微分會經由 input gate units 縮放
-
-- 停止 back propagation 導致在完成 :math:`t + 1` 時間點的 forward pass 後可以\ **即時計算**\參數對 :math:`t + 1` 時間點誤差計算所得微分（real time 的精神便是來自於此）
-
-首先我們定義新的符號 :math:`\aptr`，代表進行 back propagation 的過程會有\ **部份微分**\故意被\ **丟棄**\（設定為 :math:`0`），並以丟棄結果\ **近似**\參數對誤差求得的\ **全微分**。
-其核心概念為將所有與 **hidden units** 相連的節點 :math:`\vxt(t)` 產生的微分值一律\ **丟棄**，公式如下：
+接下來我們將描述 LSTM 所使用的最佳化演算法。
+我們定義新的符號 :math:`\aptr`，代表進行 back propagation 的過程會有\ **部份微分**\故意被\ **丟棄**\（設定為 :math:`0`），並以丟棄結果\ **近似**\參數對誤差求得的\ **全微分**。
+此論文將所有與 **hidden units** 相連的節點 :math:`\vxt(t)` 產生的微分值一律\ **丟棄**，公式如下：
 
 .. math::
   :nowrap:
@@ -1182,11 +1167,11 @@ LSTM 最佳化
         & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
         & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
         & \qqtext{where} \begin{dcases}
-                          i \in \Set{1, \dots, \dout} \\
-                          p \in \Set{1, \dots, \dout} \\
-                          q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
-                          t \in \Set{0, \dots, \cT - 1}
-                        \end{dcases}.
+                           i \in \Set{1, \dots, \dout} \\
+                           p \in \Set{1, \dots, \dout} \\
+                           q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                           t \in \Set{0, \dots, \cT - 1}
+                         \end{dcases}.
       \end{align*}
     \]
 
@@ -1204,30 +1189,16 @@ LSTM 最佳化
     \begin{align*}
       & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWophid_{p, q}} \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p} \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t) \\
       & \qqtext{where} \begin{dcases}
-                          i \in \Set{1, \dots, \dout} \\
-                          p \in \Set{1, \dots, \dhid} \\
-                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                          t \in \Set{0, \dots, \cT - 1}
+                         i \in \Set{1, \dots, \dout} \\
+                         p \in \Set{1, \dots, \dhid} \\
+                         q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                         t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
     \tag{15}\label{15}
   \]
 
 .. dropdown:: 推導式子 :math:`\eqref{15}`
-
-  由於 memory cell internal states :math:`\vsopblk{k}(0)` 不是由 :math:`\vWophid` 產生，因此我們可以得到：
-
-  .. math::
-    :nowrap:
-
-    \[
-      \dv{\vsopblk{k}_i(0)}{\vWophid_{p, q}} = 0 \qqtext{where} \begin{dcases}
-                                                                  i \in \Set{1, \dots, \dblk} \\
-                                                                  k \in \Set{1, \dots, \nblk} \\
-                                                                  p \in \Set{1, \dots, \dhid} \\
-                                                                  q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
-                                                                \end{dcases}.
-    \]
 
   根據式子 :math:`\eqref{13}` 我們可以得到 :math:`\vWophid` 對於 input/output gate units 的微分近似值：
 
@@ -1253,7 +1224,9 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  結合式子 :math:`\eqref{12}` 與前面的推導，我們可以得出 :math:`\vWophid` 對於 memory cell internal states 的微分近似值：
+  這代表在丟棄部份微分後 :math:`\vWophid` 將\ **無法**\透過 input/output gate units 取得資訊。
+  接著我們推導 :math:`\vWophid` 對於 memory cell internal states 的微分近似值。
+  結合式子 :math:`\eqref{12}` 與前面的推導，我們可以遞迴推論得出以下結果：
 
   .. math::
     :nowrap:
@@ -1264,7 +1237,7 @@ LSTM 最佳化
                                                    & \aptr \dv{\vsopblk{k}_i(t)}{\vWophid_{p, q}} \\
                                                    & \aptr \dv{\vsopblk{k}_i(t - 1)}{\vWophid_{p, q}} \\
                                                    & \vdots \\
-                                                   & \aptr \dv{\vsopblk{k}_i(0)}{\vWophid_{p, q}} \\
+                                                   & \aptr \cancelto{0}{\dv{\vsopblk{k}_i(0)}{\vWophid_{p, q}}} \\
                                                    & = 0 \qqtext{where} \begin{dcases}
                                                                               i \in \Set{1, \dots, \dblk} \\
                                                                               k \in \Set{1, \dots, \nblk} \\
@@ -1275,7 +1248,9 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  接著我們可以得出 :math:`\vWophid` 對於 memory cell block activations 的微分近似值：
+  上式告訴我們在丟棄部份微分後 :math:`\vWophid` **無法**\透過 memory cell internal states 取得資訊。
+  綜合前述結論，直覺告訴我們 :math:`\vWophid` 對於 memory cell block activations 的微分近似值應該為 :math:`0`。
+  以下推導證實該直覺為真：
 
   .. math::
     :nowrap:
@@ -1293,8 +1268,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  透過前述的推導我們可以得出一個結論：
-  參數 :math:`\vWophid` 透過 input gate units、output gate units、memory cell internal states 得到的微分近似值為 :math:`0`，意即參數 :math:`\vWophid` **無法透過**\這些節點得到誤差資訊，只能透過 conventional hidden units 取得資訊。
+  觀察前面的推導結果，可以發現參數 :math:`\vWophid` 僅剩下一個管道可以取得由誤差造成的微分，即是透過 conventional hidden units。
   所以接下來我們推導 :math:`\vWophid` 對於 conventional hidden units 的微分近似值：
 
   .. math::
@@ -1313,15 +1287,14 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  可以發現 :math:`\vWophid` 對於 conventional hidden units 的微分會有 BPTT 的問題。
-  由於 LSTM 的設計就是用來解決 BPTT 會有的問題，但 conventional hidden units 的全微分又違反該邏輯，因此作者在論文中提出額外丟棄 conventional hidden units 的微分，結果如下：
+  可以發現 :math:`\vWophid` 對於 conventional hidden units 的全微分會有 BPTT 的問題，因此作者在論文中提出額外丟棄 conventional hidden units 的部份微分，結果如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyophid_i(t + 1)}{\vWophid_{p, q}} & = {f^\ophid}'\qty(\vzophid_i(t + 1)) \cdot \qty[\delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWophid_{i, j} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}]] \\
+        \dv{\vyophid_i(t + 1)}{\vWophid_{p, q}} & = {f^\ophid}'\qty(\vzophid_i(t + 1)) \cdot \qty[\delta_{i, p} \cdot \vxt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWophid_{i, j} \cdot \dv{\vxt_j(t)}{\vWophid_{p, q}}]}] \\
                                                 & \aptr {f^\ophid}'\qty(\vzophid_i(t + 1)) \cdot \delta_{i, p} \cdot \vxt_q(t) \\
                                                 & \qqtext{where} \begin{dcases}
                                                                    i \in \Set{1, \dots, \dhid} \\
@@ -1382,20 +1355,6 @@ LSTM 最佳化
 
 .. dropdown:: 推導式子 :math:`\eqref{16}`
 
-  由於 memory cell internal states :math:`\vsopblk{k}(0)` 不是由 :math:`\vWopog` 產生，因此我們可以得到：
-
-  .. math::
-    :nowrap:
-
-    \[
-      \dv{\vsopblk{k}_i(0)}{\vWopog_{p, q}} = 0 \qqtext{where} \begin{dcases}
-                                                                 i \in \Set{1, \dots, \dblk} \\
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \nblk} \\
-                                                                 q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
-                                                               \end{dcases}.
-    \]
-
   根據式子 :math:`\eqref{12}` 我們可以求得 :math:`\vWopog` 相對於 conventional hidden units 的微分近似值：
 
   .. math::
@@ -1413,6 +1372,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  這代表在丟棄部份微分後 :math:`\vWopog` 將\ **無法**\透過 conventional hidden units 取得資訊。
   同理，我們也可以求得 :math:`\vWopog` 相對於 input gate units 的微分近似值：
 
   .. math::
@@ -1430,6 +1390,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  我們可以得到相同的結論：在丟棄部份微分後 :math:`\vWopog` 將\ **無法**\透過 input gate units 取得資訊。
   結合式子 :math:`\eqref{12}` 與前面的推導，我們可以得出 :math:`\vWopog` 相對於 memory cell internal states 的微分近似值：
 
   .. math::
@@ -1441,7 +1402,7 @@ LSTM 最佳化
                                                   & \aptr \dv{\vsopblk{k}_i(t)}{\vWopog_{p, q}} \\
                                                   & \aptr \dv{\vsopblk{k}_i(t - 1)}{\vWopog_{p, q}} \\
                                                   & \vdots \\
-                                                  & \aptr \dv{\vsopblk{k}_i(0)}{\vWopog_{p, q}} \\
+                                                  & \aptr \cancelto{0}{\dv{\vsopblk{k}_i(0)}{\vWopog_{p, q}}} \\
                                                   & = 0 \qqtext{where} \begin{dcases}
                                                                          i \in \Set{1, \dots, \dblk} \\
                                                                          k \in \Set{1, \dots, \nblk} \\
@@ -1452,7 +1413,9 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  接著我們推導 :math:`\vWopog` 相對於 output gate units 的微分近似值：
+  上式告訴我們，在丟棄部份微分後 :math:`\vWopog` 將\ **無法**\透過 memory cell internal states 取得資訊。
+  直覺上 :math:`\vWopog` 唯一能夠取得資訊的管道只有 output gate units。
+  所以接下來我們推導 :math:`\vWopog` 相對於 output gate units 的微分近似值：
 
   .. math::
     :nowrap:
@@ -1462,23 +1425,22 @@ LSTM 最佳化
         \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \dv{\vzopog_k(t + 1)}{\vWopig_{p, q}} \\
                                               & = {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopog_{k, j} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}]] \\
                                               & \qqtext{where} \begin{dcases}
-                                                                k \in \Set{1, \dots, \nblk} \\
-                                                                p \in \Set{1, \dots, \nblk} \\
-                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                t \in \Set{0, \dots, \cT - 1}
-                                                              \end{dcases}.
+                                                                 k \in \Set{1, \dots, \nblk} \\
+                                                                 p \in \Set{1, \dots, \nblk} \\
+                                                                 q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}.
       \end{align*}
     \]
 
-  可以發現 :math:`\vWopog` 對於 output gate units 的微分會有 BPTT 的問題。
-  由於 LSTM 的設計就是用來解決 BPTT 會有的問題，但 output gate units 的全微分又違反該邏輯，因此作者在論文中提出額外丟棄 output gate units 的微分，結果如下：
+  可以發現 :math:`\vWopog` 對於 output gate units 的全微分會有 BPTT 的問題，因此作者在論文中提出額外丟棄 output gate units 的部份微分，結果如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} & = {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopog_{k, j} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}]] \\
+        \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} & = {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopog_{k, j} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}]}] \\
                                               & \aptr {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \\
                                               & \qqtext{where} \begin{dcases}
                                                                  k \in \Set{1, \dots, \nblk} \\
@@ -1493,7 +1455,7 @@ LSTM 最佳化
 
     上式就是論文中的 A.11 式。
 
-  使用前述推導結果我們可以得到 :math:`\vWopog` 相對於 memory cell activation blocks 的微分近似值：
+  使用前述推導結果可以幫助我們推得 :math:`\vWopog` 相對於 memory cell activation blocks 的微分近似值：
 
   .. math::
     :nowrap:
@@ -1501,19 +1463,17 @@ LSTM 最佳化
     \[
       \begin{align*}
         \dv{\vyopblk{k}_i(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vsopblk{k}_i(t + 1)}{\vWopog_{p, q}}} \\
-        & \aptr {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot h\qty(\vsopblk{k}_i(t + 1)) \\
-        & \qqtext{where} \begin{dcases}
-                            i \in \Set{1, \dots, \dblk} \\
-                            k \in \Set{1, \dots, \nblk} \\
-                            p \in \Set{1, \dots, \nblk} \\
-                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                            t \in \Set{0, \dots, \cT - 1}
-                         \end{dcases}.
+                                                  & \aptr {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot h\qty(\vsopblk{k}_i(t + 1)) \\
+                                                  & \qqtext{where} \begin{dcases}
+                                                                     i \in \Set{1, \dots, \dblk} \\
+                                                                     k \in \Set{1, \dots, \nblk} \\
+                                                                     p \in \Set{1, \dots, \nblk} \\
+                                                                     q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                     t \in \Set{0, \dots, \cT - 1}
+                                                                   \end{dcases}.
       \end{align*}
     \]
 
-  透過前述的推導我們可以得出一個結論：
-  參數 :math:`\vWopog` 透過 conventional hidden units、input gate units、memory cell internal states 得到的微分近似值為 :math:`0`，意即參數 :math:`\vWopog` **無法透過**\這些節點得到誤差資訊，只能透過 output gate units 取得資訊。
   最後我們推得 :math:`\vWopog` 相對於誤差的微分近似值：
 
   .. math::
@@ -1527,10 +1487,10 @@ LSTM 最佳化
         & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot h\qty(\vsopblk{k}_j(t + 1))] \\
         & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \cdot h\qty(\vsopblk{p}_j(t + 1))] \\
         & \qqtext{where} \begin{dcases}
-                            i \in \Set{1, \dots, \dout} \\
-                            p \in \Set{1, \dots, \nblk} \\
-                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                            t \in \Set{0, \dots, \cT - 1}
+                           i \in \Set{1, \dots, \dout} \\
+                           p \in \Set{1, \dots, \nblk} \\
+                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                           t \in \Set{0, \dots, \cT - 1}
                          \end{dcases}.
       \end{align*}
     \]
@@ -1561,20 +1521,6 @@ LSTM 最佳化
 
 .. dropdown:: 推導式子 :math:`\eqref{17}`
 
-  由於 memory cell internal states :math:`\vsopblk{k}(0)` 不是由 :math:`\vWopig` 產生，因此我們可以得到：
-
-  .. math::
-    :nowrap:
-
-    \[
-      \dv{\vsopblk{k}_i(0)}{\vWopig_{p, q}} = 0 \qqtext{where} \begin{dcases}
-                                                                 i \in \Set{1, \dots, \dblk} \\
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \nblk} \\
-                                                                 q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
-                                                               \end{dcases}.
-    \]
-
   根據式子 :math:`\eqref{12}` 我們可以求得 :math:`\vWopig` 相對於 conventional hidden units 的微分近似值：
 
   .. math::
@@ -1592,6 +1538,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  這代表在丟棄部份微分後 :math:`\vWopig` 將\ **無法**\透過 conventional hidden units 取得資訊。
   同理，我們也可以求得 :math:`\vWopig` 相對於 output gate units 的微分近似值：
 
   .. math::
@@ -1609,7 +1556,9 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  接著我們推導 :math:`\vWopig` 相對於 input gate units 的微分近似值：
+  我們可以得到相同的結論：在丟棄部份微分後 :math:`\vWopig` 將\ **無法**\透過 output gate units 取得資訊。
+  直覺上我們認為 :math:`\vWopig` 應該可以透過 input gate units 取得資訊。
+  所以接下來我們推導 :math:`\vWopig` 相對於 input gate units 的微分近似值：
 
   .. math::
     :nowrap:
@@ -1619,23 +1568,22 @@ LSTM 最佳化
         \dv{\vyopig_k(t + 1)}{\vWopig_{p, q}} & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \dv{\vzopig_k(t + 1)}{\vWopig_{p, q}} \\
                                               & = {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopig_{k, j} \cdot \dv{\vxt_j(t)}{\vWopig_{p, q}}]] \\
                                               & \qqtext{where} \begin{dcases}
-                                                                k \in \Set{1, \dots, \nblk} \\
-                                                                p \in \Set{1, \dots, \nblk} \\
-                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                t \in \Set{0, \dots, \cT - 1}
-                                                              \end{dcases}.
+                                                                 k \in \Set{1, \dots, \nblk} \\
+                                                                 p \in \Set{1, \dots, \nblk} \\
+                                                                 q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}.
       \end{align*}
     \]
 
-  可以發現 :math:`\vWopig` 對於 input gate units 的微分會有 BPTT 的問題。
-  由於 LSTM 的設計就是用來解決 BPTT 會有的問題，但 input gate units 的全微分又違反該邏輯，因此作者在論文中提出額外丟棄 input gate units 的微分，結果如下：
+  可以發現 :math:`\vWopig` 對於 input gate units 的全微分會有 BPTT 的問題，因此作者在論文中提出額外丟棄 input gate units 的部份微分，結果如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopig_k(t + 1)}{\vWopig_{p, q}} & = {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopig_{k, j} \cdot \dv{\vxt_j(t)}{\vWopig_{p, q}}]] \\
+        \dv{\vyopig_k(t + 1)}{\vWopig_{p, q}} & = {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopig_{k, j} \cdot \dv{\vxt_j(t)}{\vWopig_{p, q}}]}] \\
                                               & \aptr {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \\
                                               & \qqtext{where} \begin{dcases}
                                                                  k \in \Set{1, \dots, \nblk} \\
@@ -1661,7 +1609,7 @@ LSTM 最佳化
                                                   & \aptr \dv{\vsopblk{k}_i(t)}{\vWopig_{p, q}} + {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot g\qty(\vzopblk{k}_i(t + 1)) \\
                                                   & \aptr \dv{\vsopblk{k}_i(t - 1)}{\vWopig_{p, q}} + \sum_{t^\star = t - 1}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_i(t^\star + 1))] \\
                                                   & \vdots \\
-                                                  & \aptr \dv{\vsopblk{k}_i(0)}{\vWopig_{p, q}} + \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_i(t^\star + 1))] \\
+                                                  & \aptr \cancelto{0}{\dv{\vsopblk{k}_i(0)}{\vWopig_{p, q}}} + \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_i(t^\star + 1))] \\
                                                   & = \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_i(t^\star + 1))] \\
                                                   & \qqtext{where} \begin{dcases}
                                                                      i \in \Set{1, \dots, \dblk} \\
@@ -1673,6 +1621,8 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  可以發現 :math:`\vWopig` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
+  實際上在執行參數更新演算法時只需要儲存過去累加而得的結果在加上當前計算結果，就可以得到最新的參數更新方向。
   使用前述推導結果我們可以得到 :math:`\vWopig` 相對於 memory cell activation blocks 的微分近似值：
 
   .. math::
@@ -1692,8 +1642,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  透過前述的推導我們可以得出一個結論：
-  參數 :math:`\vWopig` 透過 conventional hidden units 與 output gate units 得到的微分近似值為 :math:`0`，意即參數 :math:`\vWopig` **無法透過**\這些節點得到誤差資訊，只能透過 input gate units 與 memory cell internal states 取得資訊。
+  同前述結論，只需要儲存過去累加而得的結果再加上當前計算結果，最後乘上一些當前的計算狀態，就可以得到最新的參數更新方向。
   最後我們推得 :math:`\vWopig` 相對於誤差的微分近似值：
 
   .. math::
@@ -1707,10 +1656,10 @@ LSTM 最佳化
         & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_j(t^\star + 1))]] \\
         & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot \vyopog_p(t + 1) \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]] \\
         & \qqtext{where} \begin{dcases}
-                            i \in \Set{1, \dots, \dout} \\
-                            p \in \Set{1, \dots, \nblk} \\
-                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                            t \in \Set{0, \dots, \cT - 1}
+                           i \in \Set{1, \dots, \dout} \\
+                           p \in \Set{1, \dots, \nblk} \\
+                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                           t \in \Set{0, \dots, \cT - 1}
                          \end{dcases}.
       \end{align*}
     \]
@@ -1742,21 +1691,6 @@ LSTM 最佳化
 
 .. dropdown:: 推導式子 :math:`\eqref{18}`
 
-  由於 memory cell internal states :math:`\vsopblk{k^\star}(0)` 不是由 :math:`\vWopblk{k}` 產生，因此我們可以得到：
-
-  .. math::
-    :nowrap:
-
-    \[
-      \dv{\vsopblk{k^\star}_i(0)}{\vWopblk{k}_{p, q}} = 0 \qqtext{where} \begin{dcases}
-                                                                           i \in \Set{1, \dots, \dblk} \\
-                                                                           k \in \Set{1, \dots, \nblk} \\
-                                                                           k^\star \in \Set{1, \dots, \nblk} \\
-                                                                           p \in \Set{1, \dots, \dblk} \\
-                                                                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
-                                                                         \end{dcases}.
-    \]
-
   根據式子 :math:`\eqref{12}` 我們可以求得 :math:`\vWopblk{k}` 相對於 conventional hidden units 的微分近似值：
 
   .. math::
@@ -1775,6 +1709,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  這代表在丟棄部份微分後 :math:`\vWopblk{k}` 將\ **無法**\透過 conventional hidden units 取得資訊。
   同理，我們也可以求得 :math:`\vWopblk{k}` 相對於 input/output gate units 的微分近似值：
 
   .. math::
@@ -1801,7 +1736,9 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  接著我們推導 :math:`\vWopblk{k}` 相對於 memory cell internal states 的微分近似值：
+  我們可以得到相同的結論：在丟棄部份微分後 :math:`\vWopblk{k}` 將\ **無法**\透過 input/output gate units 取得資訊。
+  直覺上我們認為 :math:`\vWopblk{k}` 應該可以透過 memory cell internal states 取得資訊。
+  所以接下來我們推導 :math:`\vWopblk{k}` 相對於 memory cell internal states 的微分近似值：
 
   .. math::
     :nowrap:
@@ -1812,7 +1749,7 @@ LSTM 最佳化
                                                             & \aptr \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} + \vyopig_{k^\star}(t + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}]] \\
                                                             & \aptr \dv{\vsopblk{k^\star}_i(t - 1)}{\vWopblk{k}_{p, q}} + \sum_{t^\star = t - 1}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t^\star)}{\vWopblk{k}_{p, q}}]]] \\
                                                             & \vdots \\
-                                                            & \aptr \dv{\vsopblk{k^\star}_i(0)}{\vWopblk{k}_{p, q}} + \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t^\star)}{\vWopblk{k}_{p, q}}]]] \\
+                                                            & \aptr \cancelto{0}{\dv{\vsopblk{k^\star}_i(0)}{\vWopblk{k}_{p, q}}} + \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t^\star)}{\vWopblk{k}_{p, q}}]]] \\
                                                             & = \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t^\star)}{\vWopblk{k}_{p, q}}]]] \\
                                                             & \qqtext{where} \begin{dcases}
                                                                                i \in \Set{1, \dots, \dblk} \\
@@ -1825,8 +1762,7 @@ LSTM 最佳化
       \end{align*}
     \]
 
-  可以發現 :math:`\vWopblk{k}` 對於 memory cell internal states 的微分會有 BPTT 的問題。
-  由於 LSTM 的設計就是用來解決 BPTT 會有的問題，但 memory cell internal states 的全微分又違反該邏輯，因此作者在論文中提出額外丟棄 memory cell internal states 的微分，結果如下：
+  可以發現 :math:`\vWopblk{k}` 對於 memory cell internal states 的全微分會有 BPTT 的問題，因此作者在論文中提出額外丟棄 memory cell internal states 的部份微分，結果如下：
 
   .. math::
     :nowrap:
@@ -1850,6 +1786,8 @@ LSTM 最佳化
 
     上式就是論文中的 A.12 式。
 
+  可以發現 :math:`\vWopblk{k}` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
+  實際上在執行參數更新演算法時只需要儲存過去累加而得的結果在加上當前計算結果，就可以得到最新的參數更新方向。
   使用前述推導結果我們可以得到 :math:`\vWopblk{k}` 相對於 memory cell activation blocks 的微分近似值：
 
   .. math::
@@ -1860,18 +1798,17 @@ LSTM 最佳化
         \dv{\vyopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopog_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}}} \cdot h\qty(\vsopblk{k^\star}_i(t + 1)) + \vyopog_{k^\star}(t + 1) \cdot \dv{h\qty(\vsopblk{k^\star}_i(t + 1))}{\vsopblk{k^\star}_i(t + 1)} \cdot \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} \\
                                                             & \aptr \vyopog_{k^\star}(t + 1) \cdot h'\qty(\vsopblk{k^\star}_i(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t^\star + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t^\star)] \\
                                                             & \qqtext{where} \begin{dcases}
-                                                                              i \in \Set{1, \dots, \dblk} \\
-                                                                              k \in \Set{1, \dots, \nblk} \\
-                                                                              k^\star \in \Set{1, \dots, \nblk} \\
-                                                                              p \in \Set{1, \dots, \dblk} \\
-                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                                                                              t \in \Set{0, \dots, \cT - 1}
-                                                                            \end{dcases}.
+                                                                               i \in \Set{1, \dots, \dblk} \\
+                                                                               k \in \Set{1, \dots, \nblk} \\
+                                                                               k^\star \in \Set{1, \dots, \nblk} \\
+                                                                               p \in \Set{1, \dots, \dblk} \\
+                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                               t \in \Set{0, \dots, \cT - 1}
+                                                                             \end{dcases}.
       \end{align*}
     \]
 
-  透過前述的推導我們可以得出一個結論：
-  參數 :math:`\vWopblk{k}` 透過 conventional hidden units、input gate units、output gate units 得到的微分近似值為 :math:`0`，意即參數 :math:`\vWopblk{k}` **無法透過**\這些節點得到誤差資訊，只能透過 memory cell internal states 取得資訊。
+  同前述結論，只需要儲存過去累加而得的結果再加上當前計算結果，最後乘上一些當前的計算狀態，就可以得到最新的參數更新方向。
   最後我們推得 :math:`\vWopblk{k}` 相對於誤差的微分近似值：
 
   .. math::
@@ -1885,11 +1822,11 @@ LSTM 最佳化
         & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_{k^\star}(t + 1) \cdot h'\qty(\vsopblk{k^\star}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_j(t^\star + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{j, p} \cdot \vxt_q(t^\star)]] \\
         & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)] \\
         & \qqtext{where} \begin{dcases}
-                            i \in \Set{1, \dots, \dout} \\
-                            k \in \Set{1, \dots, \nblk} \\
-                            p \in \Set{1, \dots, \dblk} \\
-                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                            t \in \Set{0, \dots, \cT - 1}
+                           i \in \Set{1, \dots, \dout} \\
+                           k \in \Set{1, \dots, \nblk} \\
+                           p \in \Set{1, \dots, \dblk} \\
+                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                           t \in \Set{0, \dots, \cT - 1}
                          \end{dcases}.
       \end{align*}
     \]
