@@ -167,7 +167,7 @@ Long Short-Term Memory
 重點
 ====
 
-- 提出 :term:`RNN` 模型進行最佳化時遇到的問題，並提出新的模型架構「:term:`LSTM`」與最佳化演算法「truncated RTRL」嘗試解決
+- 探討 :term:`RNN` 模型進行最佳化時遇到的問題，提出的解決方案為新的模型架構「:term:`LSTM`」與最佳化演算法「truncated RTRL」
 
   - **梯度爆炸**\（:term:`gradient explosion`）\造成神經網路的\ **參數數值劇烈振盪**\（**oscillating weights**）
   - **梯度消失**\（:term:`gradient vanishing`）\造成\ **訓練時間慢長**
@@ -175,25 +175,27 @@ Long Short-Term Memory
 
 - LSTM 架構設計
 
-  - \ **記憶細胞區域**\（**memory cell blocks**）
+  - **Memory cells and memory cell blocks**
 
     - 目標為解決關鍵輸入資訊時間差較長的問題
-    - 必須配合閘門單元一起運作
-    - 學習\ **協助**\閘門單元完成\ **寫入**/\ **讀取**\記憶細胞區域
+    - 必須配合 gate units 一起運作
+    - 學習\ **協助** gate units 完成\ **寫入**/\ **讀取** memory cells
 
-  - 基於\ **乘法**\計算機制的\ **閘門單元**\（**multiplicative gate**）
+  - **Gate units**
 
     - 目標為解決關鍵輸入資訊時間差較長的問題
-    - 提出兩種閘門單元：\ **輸入**\閘門單元（**input gate**）與\ **輸出**\閘門單元（**output gate**）
-    - 輸\ **入**\閘門單元學習\ **寫入**\（\ **開啟**）/**保留**\（\ **關閉**）記憶細胞區域中的資訊
-    - 輸\ **出**\閘門單元學習\ **讀取**\（\ **開啟**）/**忽略**\（\ **關閉**）記憶細胞區域中的資訊
-    - 必須配合記憶細胞區域一起運作
+    - 必須配合 memory cell blocks 一起運作
+    - 提出兩種 gate units：
 
-  - **閘門單元參數**\中的\ **偏差項**\（**bias term**）必須\ **初始化**\成\ **負數**
+      - **Input gate units**：學習\ **寫入**\（\ **開啟**）/**保留**\（\ **關閉**）memory cell blocks 中的資訊
+      - **Output gate units**：學習\ **讀取**\（\ **開啟**）/**忽略**\（\ **關閉**）memory cell blocks 的資訊
 
-    - 輸\ **入**\閘門偏差項初始化成負數能夠解決\ **內部狀態偏差行為**\（**internal state drift**）
-    - 輸\ **出**\閘門偏差項初始化成負數能夠避免模型\ **濫用記憶細胞初始值**\與\ **訓練初期梯度過大**
-    - 如果沒有輸出閘門，則\ **收斂速度會變慢**
+    - 計算機制基於\ **乘法**
+    - Gate units 中的 **bias term** 必須\ **初始化**\成\ **負數**
+
+      - Input gate bias 初始化成負數能夠解決\ **內部狀態偏差行為**\（**internal state drift**）
+      - Output gate bias 初始化成負數能夠避免模型\ **濫用記憶細胞初始值**\與\ **訓練初期梯度過大**
+      - 如果沒有輸出閘門，則\ **收斂速度會變慢**
 
 - truncated-RTRL 最佳化演算法設計
 
@@ -665,7 +667,11 @@ Long Short-Term Memory
   \]
 
 在不考慮負號的情況下，我們可以將 :math:`f_i` 設成 identity function 且設定 :math:`\vWii = 1.0` 從而滿足上述等式。
-此論文認為，雖然模型並非只存在自連接節點，但若要讓自連接節點成功運作，可以透過 :math:`\eqref{11}` 推導得出 activation function 必須為 identity function，且 :math:`\vWii` 必須為 :math:`1.0` 的結論。
+此論文認為，雖然模型並非只存在自連接節點，但若要讓自連接節點成功運作，可以透過 :math:`\eqref{11}` 推導得出以下結論：
+
+- 自連接節點使用的 activation function 必須為 identity function
+- 自連接節點使用的參數 :math:`\vWii` 必須為 :math:`1.0`
+
 此論文將該結論稱為 **constant error carousel**\（**CEC**），並將 CEC 納入 LSTM 的核心設計。
 
 觀察 2：輸入訊號衝突
@@ -815,8 +821,8 @@ Memory Cell Blocks and Memory Cells
 
 Memory cells 的主要功能為記憶過去的輸入資訊。
 
-- 在 :math:`t` 時間點時，一個 LSTM 模型有 :math:`\nblk` 個 memory cell blocks :math:`\vyopblk{1}(t), \dots, \vyopblk{\nblk}(t)`
-- 在 :math:`t` 時間點時，第 :math:`k` 個 memory cell block :math:`\vyopblk{k}(t)` 內有 :math:`\dblk` 個 memory cells :math:`\vyopblk{k}_1(t), \dots, \vyopblk{k}_\dblk(t)`
+- 在 :math:`t` 時間點時，一個 LSTM 模型有 :math:`\nblk` 個 memory cell blocks
+- 在 :math:`t` 時間點時，第 :math:`k` 個 memory cell block 內有 :math:`\dblk` 個 memory cells
 - 例如：:ref:`paper-fig-2`
 
   - 共有 :math:`2` 個不同的 memory cell blocks
@@ -827,27 +833,31 @@ Input Gate Units
 
 Input gate units 決定與控制計算資訊是否需要流入 memory cells，LSTM 以此設計避免因輸入訊號衝突造成的參數更新矛盾。
 
-- Input gate units :math:`\vyopig(t + 1)` 是以\ **乘法**\參與計算，因此稱為 **multiplicative gate units**
+- Input gate units 是以\ **乘法**\參與計算，因此稱為 **multiplicative gate units**
 
   - Memory cells in the same memory cell block **share** the same input gate unit（見論文 4.4 節）
-  - 因此 :math:`\vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1))` 中的乘法是\ **純量乘上向量**
+  - 因此 :math:`\vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1))` 中的乘法是\ **純量**\乘上\ **向量**
 
-- 當模型認為 :math:`t` 時間點的計算資訊 :math:`\vxt(t)` **不重要**\時，模型應該要\ **關閉 input gate units**
+- 模型會在訓練的過程中學習\ **關閉**\與\ **開啟** input gate units
 
-  - 更準確的說，當模型認為 :math:`g\qty(\vzopblk{k}(t))` 對第 :math:`k` 個 memory cell block 來說不重要時，模型應該要關閉第 :math:`k` 個 input gate unit，即 :math:`\vyopig_k(t + 1) \approx 0`
-  - 關閉 input gate units 代表丟棄當前輸入訊號，只以\ **過去資訊**\進行決策
-  - 在此狀態下 memory cell internal states :math:`\vsopblk{k}(t + 1)` 與 :math:`\vsopblk{k}(t)` 時間點\ **完全相同**，達成 CEC（見 :math:`\eqref{11}`），藉此保障\ **梯度不會消失**
-  - 不論 :math:`g\qty(\vzopblk{k}(t + 1))` 的大小，只要 :math:`\vyopig_k(t + 1) \approx 0`，則計算資訊 :math:`\vxt(t)` **完全無法影響**\接下來的所有計算
+  - :math:`\vyopig_k(t + 1) \approx 0` 代表\ **關閉** :math:`t + 1` 時間點的第 :math:`k` 個 input gate unit
+  - :math:`\vyopig_k(t + 1) \approx 1` 代表\ **開啟** :math:`t + 1` 時間點的第 :math:`k` 個 input gate unit
+  - 全部 :math:`\nblk` 個 input gate units 不一定要同時關閉或開啟
 
-- 當模型認為 :math:`t` 時間點的計算資訊 :math:`\vxt(t)` **重要**\時，模型應該要\ **開啟 input gate units**
+- 當模型認為 :math:`g\qty(\vzopblk{k}(t + 1))` **不重要**\時，模型應該要\ **關閉**\第 :math:`k` 個 input gate unit
 
-  - 更準確的說，當模型認為 :math:`g\qty(\vzopblk{k}(t))` 對第 :math:`k` 個 memory cell block 來說重要時，模型應該要開啟第 :math:`k` 個 input gate unit，即 :math:`\vyopig_k(t + 1) \approx 1`
+  - 不論 :math:`g\qty(\vzopblk{k}(t + 1))` 的大小，只要關閉 :math:`\vyopig_k(t + 1)`，就代表丟棄輸入訊號 :math:`\vxt(t)`，只以\ **過去資訊** :math:`\vsopblk{k}(t)` 進行決策，且計算資訊 :math:`\vxt(t)` **完全無法影響**\接下來的所有計算
+  - 關閉 :math:`\vyopig_k(t + 1)` 時會得到 :math:`\vsopblk{k}(t + 1) = \vsopblk{k}(t)`，達成 CEC（見 :math:`\eqref{11}`），藉此保障\ **梯度不會消失**
 
-- 我的 :math:`\vyopig_j(t + 1)` 是對應到論文中的 :math:`y^{\opin_j}(t + 1)`，見論文 4.1 節
+- 當模型認為 :math:`g\qty(\vzopblk{k}(t + 1))` **重要**\時，模型應該要\ **開啟**\第 :math:`k` 個 input gate unit
 - 例如：:ref:`paper-fig-2`
 
   - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 1`` 共享 input gate unit ``in 1``
   - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 2`` 共享 input gate unit ``in 2``
+
+.. note::
+
+  我的 :math:`\vyopig_j(t + 1)` 是對應到論文中的 :math:`y^{\opin_j}(t + 1)`，見論文 4.1 節。
 
 Memory Cell Internal States
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -855,41 +865,51 @@ Memory Cell Internal States
 將 CEC 融入 LSTM 的主要機制。
 
 - 有時簡稱 memory cell internal states 為 internal states
-- 更新 internal states 的唯一管道是計算資訊 :math:`\vxt(t)`
-- 更新 internal states 的決策取決於 input gate units :math:`\vyopig(t + 1)`
+- 更新 :math:`t + 1` 時間點 internal states 的唯一管道是 :math:`t` 時間點的計算資訊 :math:`\vxt(t)`
+- 更新 :math:`t + 1` 時間點 internal states 的決策取決於 :math:`t + 1` 時間點的 input gate units :math:`\vyopig(t + 1)`
 - 由於第 :math:`k` 個 memory cell blocks 中的 internal states :math:`\vsopblk{k}(t + 1)` 主要只與第 :math:`k` 個 internal states :math:`\vsopblk{k}(t)` 連接，因此稱為 **fixed self-connection**
 - 由於第 :math:`k` 個 memory cell blocks 中的 internal states :math:`\vsopblk{k}(t + 1)` 是透過加法與 :math:`\vsopblk{k}(t)` 結合，因此稱為 central **linear** unit
-- 我的 :math:`\vsopblk{k}_j(t + 1)` 是對應到論文中的 :math:`s_{c_j}(t + 1)`，見論文 4.1 節
+
+.. note::
+
+  我的 :math:`\vsopblk{k}_j(t + 1)` 是對應到論文中的 :math:`s_{c_j}(t + 1)`，見論文 4.1 節。
 
 Output Gate Units
 ~~~~~~~~~~~~~~~~~
 
 Output gate units 決定與控制 memory cell block activations 是否需要用於當前輸出與未來資訊的計算，LSTM 以此設計避免因輸出訊號衝突造成的參數更新矛盾。
 
-- Output gate units :math:`\vyopog(t + 1)` 是以\ **乘法**\參與計算，因此稱為 **multiplicative gate units**
+- Output gate units 是以\ **乘法**\參與計算，因此稱為 **multiplicative gate units**
 
   - Memory cells in the same memory cell block **share** the same output gate unit（見論文 4.4 節）
-  - 因此 :math:`\vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1))` 中的乘法是\ **純量乘上向量**
+  - 因此 :math:`\vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1))` 中的乘法是\ **純量**\乘上\ **向量**
 
-- 當模型認為 :math:`t + 1` 時間點的 internal state activations 會導致\ **當前計算錯誤**\時，模型應該\ **關閉 output gate units**
+- 模型會在訓練的過程中學習\ **關閉**\與\ **開啟** output gate units
 
-  - 更準確的說，當模型認為 :math:`h\qty(\vsopblk{k}(t + 1))` 對後續計算來說不重要時，模型應該要關閉第 :math:`k` 個 output gate unit，即 :math:`\vyopog_k(t + 1) \approx 0`
-  - 在 **input gate units 開啟**\的狀況下，**關閉 output gate units** 代表不讓\ **現在**\時間點的資訊影響當前計算
-  - 在 **input gate units 關閉**\的狀況下，**關閉 output gate units** 代表不讓\ **過去**\時間點的資訊影響當前計算
-  - 不論 :math:`h\qty(\vsopblk{k}(t + 1))` 的大小，只要 :math:`\vyopog_k(t + 1) \approx 0`，則 internal states :math:`\vsopblk{k}(t + 1)` **完全無法影響**\接下來的所有計算
+  - :math:`\vyopog_k(t + 1) \approx 0` 代表\ **關閉** :math:`t + 1` 時間點的第 :math:`k` 個 output gate unit
+  - :math:`\vyopog_k(t + 1) \approx 1` 代表\ **開啟** :math:`t + 1` 時間點的第 :math:`k` 個 output gate unit
+  - 全部 :math:`\nblk` 個 output gate units 不一定要同時關閉或開啟
 
-- 當模型認為 :math:`t + 1` 時間點的 internal state activations 包含\ **重要資訊**\時，模型應該\ **開啟 output gate units**
+- 當模型認為 :math:`h\qty(\vsopblk{k}(t + 1))` **不重要**\時，模型應該要\ **關閉**\第 :math:`k` 個 output gate unit
 
-  - 更準確的說，當模型認為 :math:`h\qty(\vsopblk{k}(t + 1))` 對後續計算來說很重要時，模型應該要開啟第 :math:`k` 個 output gate unit，即 :math:`\vyopog_k(t + 1) \approx 1`
-  - 在 **input gate units 開啟**\的狀況下，**開啟 output gate units** 代表讓\ **現在**\時間點的資訊影響當前計算
-  - 在 **input gate units 關閉**\的狀況下，**開啟 output gate units** 代表不讓\ **過去**\時間點的資訊影響當前計算
+  - 在 :math:`\vyopig_k(t + 1)` **開啟**\的狀況下，**關閉** :math:`\vyopog_k(t + 1)` 代表不讓 :math:`h\qty(\vsopblk{k}(t + 1))` 影響當前計算
+  - 在 :math:`\vyopig_k(t + 1)` **關閉**\的狀況下，**關閉** :math:`\vyopog_k(t + 1)` 代表不讓 :math:`h\qty(\vsopblk{k}(t))` 影響當前計算
+  - 不論 :math:`h\qty(\vsopblk{k}(t + 1))` 的大小，只要關閉 :math:`\vyopog_k(t + 1)`，則 :math:`\vsopblk{k}(t + 1)` **無法影響**\當前計算，但仍可能影響未來計算（例如關閉 :math:`\vyopig_k(t + 2)` 且開啟 :math:`\vyopog_k(t + 2)` 時）
 
-- 我的 :math:`\vyopog_j(t + 1)` 是對應到論文中的 :math:`y^{\opout_j}(t + 1)`，見論文 4.1 節
+- 當模型認為 :math:`h\qty(\vsopblk{k}(t + 1))` **重要**\時，模型應該要\ **開啟**\第 :math:`k` 個 output gate unit
+
+  - 在 :math:`\vyopig_k(t + 1)` **開啟**\的狀況下，**開啟** :math:`\vyopog_k(t + 1)` 代表讓 :math:`\vxt(t)` 影響當前計算
+  - 在 :math:`\vyopig_k(t + 1)` **關閉**\的狀況下，**開啟** :math:`\vyopog_k(t + 1)` 代表不讓 :math:`\vxt(t)` 影響當前計算
+
 - `PyTorch 實作的 LSTM <Pytorch-LSTM_>`_ 中 :math:`h(t)` 表達的意思是 memory cell block activation :math:`\vyopblk{k}(t)`
 - 例如：:ref:`paper-fig-2`
 
   - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 1`` 共享 output gate unit ``out 1``
   - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 2`` 共享 output gate unit ``out 2``
+
+.. note::
+
+  我的 :math:`\vyopog_j(t + 1)` 是對應到論文中的 :math:`y^{\opout_j}(t + 1)`，見論文 4.1 節。
 
 Activation Functions
 ~~~~~~~~~~~~~~~~~~~~
@@ -903,7 +923,7 @@ Hidden Units
 ~~~~~~~~~~~~
 
 - 作者將此論文新定義的 input/output gate units 與 memory cells 稱為 hidden units（見論文 4.3 節）
-- 作者將 :math:`\vyophid(t)` 稱為 conventional hidden units，因此當我說到 hidden units 時泛指 gate units、memory cells 與 conventional hidden units
+- 作者將 :math:`\vyophid(t)` 稱為 **conventional hidden units**，因此當我說到 hidden units 時泛指 gate units、memory cells 與 conventional hidden units
 - 可以將 conventional hidden units 與 LSTM 視為平行的機制
 - Hidden layer 由 hidden units 組成
 - 此論文的後續研究都基於此論文 hidden layer 的設計進行改良，例如 LSTM-2000 :footcite:`gers-etal-2000-learning` 與 LSTM-2002 :footcite:`gers-etal-2002-learning`
@@ -942,31 +962,32 @@ Hidden Units
   但我仍然認為這裡是筆誤，理由如下：
 
   - 同個實驗室後續的研究（例如 :footcite:`gers-etal-2002-learning`）寫的式子不同
-  - Memory cell block activations 至少要傳播 :math:`2` 個時間點才能影響輸出，代表第 :math:`1` 個時間點的輸出完全無法利用到 memory cell 的資訊
-  - 後續的實驗架構設計中沒有將 input layer 連接到 output layer，代表第 :math:`1` 個時間點的輸出完全依賴模型的初始狀態（常數），非常不合理
+  - Memory cell block activations 至少要傳播 :math:`2` 個時間點才能影響輸出，代表 :math:`t = 1` 的輸出完全無法利用到 memory cells 的資訊
+  - 後續的實驗架構設計中沒有將 input layer 連接到 output layer，代表 :math:`t = 1` 的輸出完全依賴模型的初始狀態（常數），非常不合理
 
   因此我決定改用我認為是正確的版本撰寫後續的筆記，即 :math:`t + 1` 時間點的\ **輸出**\與 :math:`t` 時間點的 memory cell block activations **有關**。
 
 .. note::
 
-  注意在計算 input/output gate units 時並\ **沒有**\使用 **bias term**，但後續的分析會提到可以使用 bias term 進行\ **計算缺陷**\的修正。
+  注意在計算 input/output gate units 時並\ **沒有**\使用 **bias term**，但可以將 bias term 想成 :math:`\vx(t)` 中的某個 coordinate 的數值永遠為 :math:`1`。
+  後續的分析會提到可以使用 bias term 進行\ **計算缺陷**\的修正。
 
 參數結構
 --------
 
-+---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
-| Parameter           | Meaning                                                      | Output Vector Shape | Input Vector Shape                              |
-+=====================+==============================================================+=====================+=================================================+
-| :math:`\vWophid`    | Weight matrix connect to conventional hidden units.          | :math:`\dhid`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
-+---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
-| :math:`\vWopig`     | Weight matrix connect to input gate units.                   | :math:`\nblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
-+---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
-| :math:`\vWopog`     | Weight matrix connect to output gate units.                  | :math:`\nblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
-+---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
-| :math:`\vWopblk{k}` | Weight matrix connect to the :math:`k`-th memory cell block. | :math:`\dblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
-+---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
-| :math:`\vWopout`    | Weight matrix connect to output layer.                       | :math:`\dblk`       | :math:`\din + \dhid + \nblk \times \dblk`       |
-+---------------------+--------------------------------------------------------------+---------------------+-------------------------------------------------+
++---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-------------------------------------------------+
+| Parameter           | Meaning                                                                                                 | Output Vector Shape | Input Vector Shape                              |
++=====================+=========================================================================================================+=====================+=================================================+
+| :math:`\vWophid`    | Weight matrix connect :math:`\vxt(t)` to conventional hidden units :math:`\vyophid(t + 1)`.             | :math:`\dhid`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
++---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-------------------------------------------------+
+| :math:`\vWopig`     | Weight matrix connect :math:`\vxt(t)` to input gate units :math:`\vyopig(t + 1)`.                       | :math:`\nblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
++---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-------------------------------------------------+
+| :math:`\vWopog`     | Weight matrix connect :math:`\vxt(t)` to output gate units :math:`\vyopog(t + 1)`.                      | :math:`\nblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
++---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-------------------------------------------------+
+| :math:`\vWopblk{k}` | Weight matrix connect :math:`\vxt(t)` to the :math:`k`-th memory cell block :math:`\vyopblk{k}(t + 1)`. | :math:`\dblk`       | :math:`\din + \dhid + \nblk \times (2 + \dblk)` |
++---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-------------------------------------------------+
+| :math:`\vWopout`    | Weight matrix connect :math:`\vxopout(t)` to output units :math:`\vy(t + 1)`.                           | :math:`\dblk`       | :math:`\din + \dhid + \nblk \times \dblk`       |
++---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-------------------------------------------------+
 
 LSTM 最佳化
 ===========
@@ -976,7 +997,6 @@ LSTM 最佳化
 
 - 透過設計模型計算架構確保達成 **CEC** （見 :math:`\eqref{11}`）
 - 最佳化過程必須避免進行\ **遞迴 back propagation**，否則會遇到梯度爆炸 / 消失
-- 停止 back propagation 導致在完成 :math:`t + 1` 時間點的 forward pass 後可以\ **即時計算**\參數對 :math:`t + 1` 時間點誤差計算所得微分
 
 接下來我們將描述 LSTM 所使用的最佳化演算法。
 我們定義新的符號 :math:`\aptr`，代表進行 back propagation 的過程會有\ **部份微分**\故意被\ **丟棄**\（設定為 :math:`0`），並以丟棄結果\ **近似**\參數對誤差求得的\ **全微分**。
@@ -1842,6 +1862,8 @@ LSTM 最佳化
 .. error::
 
   論文 A.12 式最後使用\ **加法** :math:`\delta_{\opin_j l} + \delta_{c_j^v l}`，可能會導致梯度\ **乘上常數** :math:`2`，因此應該修正成\ **乘法** :math:`\delta_{\opin_j l} \cdot \delta_{c_j^v l}`
+
+停止 back propagation 導致在完成 :math:`t + 1` 時間點的 forward pass 後可以\ **即時計算**\參數對 :math:`t + 1` 時間點誤差計算所得微分
 
 ..
   ## 更新模型參數
