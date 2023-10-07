@@ -1165,9 +1165,8 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-      & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopout_{p, q}} = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
+      & \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopout_{p, q}} = \qty(\vy_p(t + 1) - \vyh_p(t + 1)) \cdot {f^\opout}'\qty(\vzopout_p(t + 1)) \cdot \vxopout_q(t + 1) \\
       & \qqtext{where} \begin{dcases}
-                         i \in \Set{1, \dots, \dout} \\
                          p \in \Set{1, \dots, \dout} \\
                          q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
                          t \in \Set{0, \dots, \cT - 1}
@@ -1183,11 +1182,12 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopout_{p, q}} \\
-        & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
-        & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
+        & \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopout_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopout_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \dv{\vzopout_i(t + 1)}{\vWopout_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \delta_{i, p} \cdot \vxopout_q(t + 1) \\
+        & = \qty(\vy_p(t + 1) - \vyh_p(t + 1)) \cdot {f^\opout}'\qty(\vzopout_p(t + 1)) \cdot \vxopout_q(t + 1) \\
         & \qqtext{where} \begin{dcases}
-                           i \in \Set{1, \dots, \dout} \\
                            p \in \Set{1, \dots, \dout} \\
                            q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
                            t \in \Set{0, \dots, \cT - 1}
@@ -1207,9 +1207,8 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-      & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWophid_{p, q}} \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p} \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t) \\
+      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWophid_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p}]) \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t) \\
       & \qqtext{where} \begin{dcases}
-                         i \in \Set{1, \dots, \dout} \\
                          p \in \Set{1, \dots, \dhid} \\
                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                          t \in \Set{0, \dots, \cT - 1}
@@ -1336,16 +1335,17 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWophid_{p, q}} \\
-        & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWophid_{p, q}}}] \\
-        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dhid \qty[\vWopout_{i, \din + j} \cdot \dv{\vyophid_j(t + 1)}{\vWophid_{p, q}}] \\
-        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dhid \qty[\vWopout_{i, \din + j} \cdot {f^\ophid}'\qty(\vzophid_j(t + 1)) \cdot \delta_{j, p} \cdot \vxt_q(t)] \\
-        & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p} \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t) \\
+        & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWophid_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWophid_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWophid_{p, q}}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dhid \qty[\vWopout_{i, \din + j} \cdot \dv{\vyophid_j(t + 1)}{\vWophid_{p, q}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dhid \qty[\vWopout_{i, \din + j} \cdot {f^\ophid}'\qty(\vzophid_j(t + 1)) \cdot \delta_{j, p} \cdot \vxt_q(t)]] \\
+        & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p} \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t)] \\
+        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p}]) \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t) \\
         & \qqtext{where} \begin{dcases}
-                            i \in \Set{1, \dots, \dout} \\
-                            p \in \Set{1, \dots, \dhid} \\
-                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
-                            t \in \Set{0, \dots, \cT - 1}
+                           p \in \Set{1, \dots, \dhid} \\
+                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                           t \in \Set{0, \dots, \cT - 1}
                          \end{dcases}.
       \end{align*}
     \]
@@ -1362,9 +1362,8 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-      & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopog_{p, q}} \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \cdot h\qty(\vsopblk{p}_j(t + 1))] \\
+      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopog_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot h\qty(\vsopblk{p}_j(t + 1))]]) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
       & \qqtext{where} \begin{dcases}
-                         i \in \Set{1, \dots, \dout} \\
                          p \in \Set{1, \dots, \nblk} \\
                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                          t \in \Set{0, \dots, \cT - 1}
@@ -1501,13 +1500,14 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopog_{p, q}} \\
-        & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopog_{p, q}}}] \\
-        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopog_{p, q}}] \\
-        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot h\qty(\vsopblk{k}_j(t + 1))] \\
-        & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \cdot h\qty(\vsopblk{p}_j(t + 1))] \\
+        & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopog_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopog_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopog_{p, q}}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopog_{p, q}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot h\qty(\vsopblk{k}_j(t + 1))]] \\
+        & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \cdot h\qty(\vsopblk{p}_j(t + 1))]] \\
+        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot h\qty(\vsopblk{p}_j(t + 1))]]) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
         & \qqtext{where} \begin{dcases}
-                           i \in \Set{1, \dots, \dout} \\
                            p \in \Set{1, \dots, \nblk} \\
                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                            t \in \Set{0, \dots, \cT - 1}
@@ -1527,10 +1527,8 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-      & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopig_{p, q}} \\
-      & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot \vyopog_p(t + 1) \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]] \\
+      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopig_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]]]) \cdot \vyopog_p(t + 1) \\
       & \qqtext{where} \begin{dcases}
-                         i \in \Set{1, \dots, \dout} \\
                          p \in \Set{1, \dots, \nblk} \\
                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                          t \in \Set{0, \dots, \cT - 1}
@@ -1670,13 +1668,14 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopig_{p, q}} \\
-        & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopig_{p, q}}}] \\
-        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopig_{p, q}}] \\
-        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_j(t^\star + 1))]] \\
-        & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot \vyopog_p(t + 1) \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]] \\
+        & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopig_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopig_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopig_{p, q}}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopig_{p, q}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_j(t^\star + 1))]]] \\
+        & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot \vyopog_p(t + 1) \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]]] \\
+        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]]]) \cdot \vyopog_p(t + 1) \\
         & \qqtext{where} \begin{dcases}
-                           i \in \Set{1, \dots, \dout} \\
                            p \in \Set{1, \dots, \nblk} \\
                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
                            t \in \Set{0, \dots, \cT - 1}
@@ -1696,10 +1695,8 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-      & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopblk{k}_{p, q}} \\
-      & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)] \\
+      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopblk{k}_{p, q}} \aptr \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}] \cdot \qty[\sum_{t^\star = 0}^t \vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)] \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \\
       & \qqtext{where} \begin{dcases}
-                         i \in \Set{1, \dots, \dout} \\
                          k \in \Set{1, \dots, \nblk} \\
                          p \in \Set{1, \dots, \dblk} \\
                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
@@ -1836,13 +1833,14 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        & \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopblk{k}_{p, q}} \\
-        & = \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopblk{k}_{p, q}}}] \\
-        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k^\star}_j(t + 1)}{\vWopblk{k}_{p, q}}] \\
-        & \aptr \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_{k^\star}(t + 1) \cdot h'\qty(\vsopblk{k^\star}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_j(t^\star + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{j, p} \cdot \vxt_q(t^\star)]] \\
-        & = \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)] \\
+        & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopblk{k}_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopblk{k}_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \dhid + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopblk{k}_{p, q}}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k^\star - 1) \times \dblk + j} \cdot \dv{\vyopblk{k^\star}_j(t + 1)}{\vWopblk{k}_{p, q}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k^\star - 1) \times \dblk + j} \cdot \vyopog_{k^\star}(t + 1) \cdot h'\qty(\vsopblk{k^\star}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_{k^\star}(t^\star + 1) \cdot g'\qty(\vzopblk{k^\star}_j(t^\star + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{j, p} \cdot \vxt_q(t^\star)]]] \\
+        & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[\vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)]] \\
+        & = \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}] \cdot \qty[\sum_{t^\star = 0}^t \vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)] \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \\
         & \qqtext{where} \begin{dcases}
-                           i \in \Set{1, \dots, \dout} \\
                            k \in \Set{1, \dots, \nblk} \\
                            p \in \Set{1, \dots, \dblk} \\
                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
