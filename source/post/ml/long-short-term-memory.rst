@@ -816,6 +816,10 @@ LSTM 架構
     \end{align*}
   \]
 
+.. note::
+
+  以上計算定義請見論文中式子 A.1, A.2, A.3, A.4, A.5, A.6, A.7。
+
 Memory Cell Blocks and Memory Cells
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -997,6 +1001,7 @@ LSTM 最佳化
 
 - 透過設計模型計算架構確保達成 **CEC** （見 :math:`\eqref{11}`）
 - 最佳化過程必須避免進行\ **遞迴 back propagation**，否則會遇到梯度爆炸 / 消失
+- 結合 RTRL 的概念，每次透過 :math:`t` 時間點的輸入得到 :math:`t + 1` 時間點的誤差時，**馬上**\進行 back propagation 並\ **更新參數**
 
 接下來我們將描述 LSTM 所使用的最佳化演算法。
 我們定義新的符號 :math:`\aptr`，代表進行 back propagation 的過程會有\ **部份微分**\故意被\ **丟棄**\（設定為 :math:`0`），並以丟棄結果\ **近似**\參數對誤差求得的\ **全微分**。
@@ -1151,6 +1156,10 @@ LSTM 最佳化
                                                                       \end{dcases}.
       \end{align*}
     \]
+
+.. note::
+
+  式子 :math:`\eqref{13}` 就是論文 A.1.2 節開頭的前幾項公式。
 
 我們可以將 :math:`\eqref{13}` 直觀的理解為：任何在 :math:`t + 1` 時間點的誤差資訊\ **無法**\傳遞回 :math:`t` 時間點的節點，因此 :math:`t + 1` 時間點誤差產生的微分只會用於更新參數\ **一次**，**不會**\透過\ **遞迴式**\做 back propagation。
 後續我們將會根據 :math:`\eqref{12} \eqref{13}` 推導出每個參數對誤差的微分近似值。
@@ -1362,7 +1371,7 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopog_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot h\qty(\vsopblk{p}_j(t + 1))]]) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
+      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopog_{p, q}} \aptr \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
       & \qqtext{where} \begin{dcases}
                          p \in \Set{1, \dots, \nblk} \\
                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
@@ -1493,6 +1502,10 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  .. note::
+
+    上式就是論文中的 A.13 式 :math:`\delta_{\opout_j l} = 1` 且 :math:`\delta_{\opin_j l} = \delta_{c_j^v l} = 0` 的部份 。
+
   最後我們推得 :math:`\vWopog` 相對於誤差的微分近似值：
 
   .. math::
@@ -1507,6 +1520,7 @@ LSTM 最佳化
         & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot h\qty(\vsopblk{k}_j(t + 1))]] \\
         & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \cdot h\qty(\vsopblk{p}_j(t + 1))]] \\
         & = \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot h\qty(\vsopblk{p}_j(t + 1))]]) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
+        & = \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
         & \qqtext{where} \begin{dcases}
                            p \in \Set{1, \dots, \nblk} \\
                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
@@ -1527,7 +1541,7 @@ LSTM 最佳化
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopig_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]]]) \cdot \vyopog_p(t + 1) \\
+      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopig_{p, q}} \aptr \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]) \cdot \vyopog_p(t + 1) \\
       & \qqtext{where} \begin{dcases}
                          p \in \Set{1, \dots, \nblk} \\
                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
@@ -1639,6 +1653,10 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  .. note::
+
+    上式就是論文中的 A.12 式 :math:`\delta_{\opin_j l} = 1` 且 :math:`\delta_{c_j^v l} = 0` 的部份 。
+
   可以發現 :math:`\vWopig` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
   實際上在執行參數更新演算法時只需要儲存過去累加而得的結果在加上當前計算結果，就可以得到最新的參數更新方向。
   使用前述推導結果我們可以得到 :math:`\vWopig` 相對於 memory cell activation blocks 的微分近似值：
@@ -1660,6 +1678,10 @@ LSTM 最佳化
       \end{align*}
     \]
 
+  .. note::
+
+    上式就是論文中的 A.13 式 :math:`\delta_{\opin_j l} = 1` 且 :math:`\delta_{\opout_j l} = \delta_{c_j^v l} = 0` 的部份 。
+
   同前述結論，只需要儲存過去累加而得的結果再加上當前計算結果，最後乘上一些當前的計算狀態，就可以得到最新的參數更新方向。
   最後我們推得 :math:`\vWopig` 相對於誤差的微分近似值：
 
@@ -1675,6 +1697,7 @@ LSTM 最佳化
         & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_k(t^\star + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{k}_j(t^\star + 1))]]] \\
         & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot \vyopog_p(t + 1) \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]]] \\
         & = \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]]]) \cdot \vyopog_p(t + 1) \\
+        & = \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]) \cdot \vyopog_p(t + 1) \\
         & \qqtext{where} \begin{dcases}
                            p \in \Set{1, \dots, \nblk} \\
                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
@@ -1801,7 +1824,7 @@ LSTM 最佳化
 
   .. note::
 
-    上式就是論文中的 A.12 式。
+    上式就是論文中的 A.12 式 :math:`\delta_{\opin_j l} = 0` 且 :math:`\delta_{c_j^v l} = 1` 的部份 。
 
   可以發現 :math:`\vWopblk{k}` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
   實際上在執行參數更新演算法時只需要儲存過去累加而得的結果在加上當前計算結果，就可以得到最新的參數更新方向。
@@ -1824,6 +1847,10 @@ LSTM 最佳化
                                                                              \end{dcases}.
       \end{align*}
     \]
+
+  .. note::
+
+    上式就是論文中的 A.13 式 :math:`\delta_{\opout_j l} = \delta_{\opin_j l} = 0` 且 :math:`\delta_{c_j^v l} = 1` 的部份 。
 
   同前述結論，只需要儲存過去累加而得的結果再加上當前計算結果，最後乘上一些當前的計算狀態，就可以得到最新的參數更新方向。
   最後我們推得 :math:`\vWopblk{k}` 相對於誤差的微分近似值：
@@ -1853,182 +1880,515 @@ LSTM 最佳化
 
   :math:`\eqref{18}` 就是論文中 A.8 式 :math:`l = c_j^v` 的 case。
 
-.. error::
+時間複雜度
+----------
 
-  論文 A.13 式最後使用\ **加法** :math:`\delta_{\opin_j l} + \delta_{c_j^v l}`，可能會導致微分\ **乘上常數** :math:`2`，因此應該修正成\ **乘法** :math:`\delta_{\opin_j l} \cdot \delta_{c_j^v l}`。
+由於使用 truncated RTRL 作為最佳化演算法，計算完每個 :math:`t + 1` 時間點的誤差後就會馬上進行參數更新。
+參數更新使用的演算法為 :term:`gradient descent`，:math:`\alpha` 為 learning rate：
 
-.. error::
+.. math::
+  :nowrap:
 
-  論文 A.12 式最後使用\ **加法** :math:`\delta_{\opin_j l} + \delta_{c_j^v l}`，可能會導致梯度\ **乘上常數** :math:`2`，因此應該修正成\ **乘法** :math:`\delta_{\opin_j l} \cdot \delta_{c_j^v l}`
+  \[
+    \begin{align*}
+      \vWopout_{p, q}    & \algoEq \vWopout_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopout_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                          p \in \Set{1, \dots, \dout} \\
+                                                                                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk}
+                                                                                                                                        \end{dcases}. \\
+      \vWophid_{p, q}    & \algoEq \vWophid_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWophid_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                          p \in \Set{1, \dots, \dhid} \\
+                                                                                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                                                                                        \end{dcases}. \\
+      \vWopog_{p, q}     & \algoEq \vWopog_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopog_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                        p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                        q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                                                                                      \end{dcases}. \\
+      \vWopig_{p, q}     & \algoEq \vWopig_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopig_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                        p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                        q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                                                                                      \end{dcases}. \\
+      \vWopblk{k}_{p, q} & \algoEq \vWopblk{k}_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopblk{k}_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                                k \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                p \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                                                                                              \end{dcases}.
+    \end{align*}
+    \tag{19}\label{19}
+  \]
 
-停止 back propagation 導致在完成 :math:`t + 1` 時間點的 forward pass 後可以\ **即時計算**\參數對 :math:`t + 1` 時間點誤差計算所得微分
+.. note::
+
+  上式就是論文中的 A.15 式。
+
+根據 :math:`\eqref{14} \eqref{15} \eqref{16} \eqref{17} \eqref{18}` 的微分近似結果，我們可以得出每個 :math:`t + 1` 時間點計算微分近似值的\ **時間複雜度**\為：
+
+.. math::
+  :nowrap:
+
+  \[
+    \order{\dim(\vWopout) + \dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) \times \dblk + \nblk \times \dim(\vWopblk{1})}
+    \tag{20}\label{20}
+  \]
+
+.. dropdown:: 推導式子 :math:`\eqref{20}`
+
+  觀察 :math:`\eqref{14} \eqref{15} \eqref{16} \eqref{17} \eqref{18}` 可以發現以下式子的計算結果可以共用：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                   i \in \Set{1, \dots, \dout} \\
+                                                                                                   t \in \Set{0, \dots \cT - 1}
+                                                                                                 \end{dcases}.
+      \tag{20-1}\label{20-1}
+    \]
+
+  需要 :math:`\dout` 個減法與乘法可以得出 :math:`\dout` 個不同的 :math:`\eqref{20-1}`，因此所需時間複雜度為 :math:`\order{\dout}`。
+
+  利用 :math:`\eqref{20-1}` 我們可以得出式子 :math:`\eqref{14}` 的時間複雜度為 :math:`\order{\dim(\vWopout)}`。
+
+  .. dropdown:: 推導式子 :math:`\eqref{14}` 的時間複雜度
+
+    有了 :math:`\eqref{20-1}` 後，共需執行 :math:`\dout \times (\din + \dhid + \nblk \times \dblk) = \dim(\vWopout)` 個乘法才能得到 :math:`\dim(\vWopout)` 個不同的
+
+    .. math::
+      :nowrap:
+
+      \[
+        \qty(\vy_p(t + 1) - \vyh_p(t + 1)) \cdot {f^\opout}'\qty(\vzopout_p(t + 1)) \cdot \vxopout_q(t + 1) \qqtext{where} \begin{dcases}
+                                                                                                                             p \in \Set{1, \dots, \dout} \\
+                                                                                                                             q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                                                                                             t \in \Set{0, \dots \cT - 1}
+                                                                                                                           \end{dcases}.
+      \]
+
+    因此計算 :math:`\eqref{14}` 所需時間複雜度為 :math:`\order{\dim(\vWopout)}`。
+
+  接著觀察 :math:`\eqref{15} \eqref{16} \eqref{17} \eqref{18}` 可以發現以下式子的計算結果可以共用：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, j} \qqtext{where} \begin{dcases}
+                                                                                                                         i \in \Set{1, \dots, \dout} \\
+                                                                                                                         j \in \Set{\din + 1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                                                                                         t \in \Set{0, \dots \cT - 1}
+                                                                                                                       \end{dcases}.
+      \tag{20-2}\label{20-2}
+    \]
+
+  有了 :math:`\eqref{20-1}` 後，共需執行 :math:`\dout \times (\dhid + \nblk \times \dblk)` 個乘法才能得到 :math:`\eqref{20-2}`，因此計算 :math:`\eqref{20-2}` 所需時間複雜度為 :math:`\order{\dout \times (\dhid + \nblk \times \dblk)} = \order{\dim(\vWopout)}`。
+
+  利用 :math:`\eqref{20-2}` 我們可以得出式子 :math:`\eqref{15}` 的時間複雜度為 :math:`\order{\dim(\vWopout) + \dim(\vWophid)}`。
+
+  .. dropdown:: 推導式子 :math:`\eqref{15}` 的時間複雜度
+
+    得到 :math:`\eqref{20-2}` 後，我們可以依照以下步驟計算得到 :math:`\eqref{15}`：
+
+    1. 進行 :math:`(\dout - 1) \times \dhid` 次加法得到 :math:`\dhid` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p}] \qqtext{where} \begin{dcases}
+                                                                                                                                                             p \in \Set{1, \dots, \dhid} \\
+                                                                                                                                                             t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                           \end{dcases}.
+        \]
+
+    2. 進行 :math:`\dhid` 次乘法得到 :math:`\dhid` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p}]) \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                            p \in \Set{1, \dots, \dhid} \\
+                                                                                                                                                                                                            t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                          \end{dcases}.
+        \]
+
+    3. 進行 :math:`\dhid \times (\din + \dhid + \nblk \times (2 + \dblk)) = \dim(\vWophid)` 次乘法得到 :math:`\dim(\vWophid)` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + p}]) \cdot {f^\ophid}'\qty(\vzophid_p(t + 1)) \cdot \vxt_q(t) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                            p \in \Set{1, \dots, \dhid} \\
+                                                                                                                                                                                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                                            t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                          \end{dcases}.
+        \]
+
+    因此計算 :math:`\eqref{15}` 所需時間複雜度為
+
+    .. math::
+      :nowrap:
+
+      \[
+        \begin{align*}
+          & \order{(\dout - 1) \times \dhid + \dhid + \dim(\vWophid)} \\
+          & = \order{\dout \times \dhid + \dim(\vWophid)} \\
+          & = \order{\dim(\vWopout) + \dim(\vWophid)}.
+        \end{align*}
+      \]
+
+  利用 :math:`\eqref{20-2}` 我們可以得出式子 :math:`\eqref{16}` 的時間複雜度為 :math:`\order{\dim(\vWopout) + \dim(\vWopog)}`。
+
+  .. dropdown:: 推導式子 :math:`\eqref{16}` 的時間複雜度
+
+    得到 :math:`\eqref{20-2}` 後，我們可以依照以下步驟計算得到 :math:`\eqref{16}`：
+
+    1. 進行 :math:`(\dout - 1) \times \nblk \times \dblk` 次加法得到 :math:`\nblk \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \qqtext{where} \begin{dcases}
+                                                                                                                                                                                      j \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                      p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                      t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                    \end{dcases}.
+        \]
+
+    2. 進行 :math:`\nblk \times \dblk` 次乘法得到 :math:`\nblk \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                              j \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                                                              p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                              t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                            \end{dcases}.
+        \]
+
+    3. 進行 :math:`\nblk \times (\dblk - 1)` 次加法得到 :math:`\nblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                 p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                 t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                               \end{dcases}.
+        \]
+
+    4. 進行 :math:`\nblk` 次乘法得到 :math:`\nblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                                                              p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                                                              t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                                                                            \end{dcases}.
+        \]
+
+    5. 進行 :math:`\nblk \times (\din + \dhid + \nblk \times (2 + \dblk)) = \dim(\vWopog)` 次乘法得到 :math:`\dim(\vWopog)` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                                                                              p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                                                                                                                              t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                                                                                            \end{dcases}.
+        \]
+
+    因此計算 :math:`\eqref{16}` 所需時間複雜度為
+
+    .. math::
+      :nowrap:
+
+      \[
+        \begin{align*}
+          & \order{(\dout - 1) \times \nblk \times \dblk + \nblk \times \dblk + \nblk \times (\dblk - 1) + \nblk + \dim(\vWopog)} \\
+          & = \order{\dout \times \nblk \times \dblk + \nblk \times \dblk + \dim(\vWopog)} \\
+          & = \order{\dim(\vWopout) + \dim(\vWopog)}.
+        \end{align*}
+      \]
+
+  利用 :math:`\eqref{20-2}` 我們可以得出式子 :math:`\eqref{17}` 的時間複雜度為 :math:`\order{\dim(\vWopout) + \dim(\vWopig) \times \dblk}`。
+
+  .. dropdown:: 推導式子 :math:`\eqref{17}` 的時間複雜度
+
+    得到 :math:`\eqref{20-2}` 後，我們可以依照以下步驟計算得到 :math:`\eqref{17}`：
+
+    1. 進行 :math:`(\dout - 1) \times \nblk \times \dblk` 次加法得到 :math:`\nblk \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j} \qqtext{where} \begin{dcases}
+                                                                                                                                                                                      j \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                      p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                      t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                    \end{dcases}.
+        \]
+
+    2. 進行 :math:`\nblk \times \dblk` 次乘法得到 :math:`\nblk \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h'\qty(\vsopblk{p}_j(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                               j \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                                                               p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                               t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                             \end{dcases}.
+        \]
+
+    3. 進行 :math:`\nblk \times (\din + \dhid + \nblk \times (2 + \dblk)) = \dim(\vWopig)` 次乘法得到 :math:`\dim(\vWopig)` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          {f^\opig}'\qty(\vzopig_p(t + 1)) \cdot \vxt_q(t) \qqtext{where} \begin{dcases}
+                                                                            p \in \Set{1, \dots, \nblk} \\
+                                                                            q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                            t \in \Set{0, \dots \cT - 1}
+                                                                          \end{dcases}.
+        \]
+
+    4. 進行 :math:`\dim(\vWopig) \times \dblk` 次乘法得到 :math:`\dim(\vWopig) \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          {f^\opig}'\qty(\vzopig_p(t + 1)) \cdot \vxt_q(t) \cdot g\qty(\vzopblk{p}_j(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                              j \in \Set{1, \dots, \dblk} \\
+                                                                                                              p \in \Set{1, \dots, \nblk} \\
+                                                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                              t \in \Set{0, \dots \cT - 1}
+                                                                                                            \end{dcases}.
+        \]
+
+    5. 進行 :math:`\dim(\vWopig) \times \dblk` 次加法得到 :math:`\dim(\vWopig) \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}} = \dv{\vsopblk{p}_j(t)}{\vWopig_{p, q}} + {f^\opig}'\qty(\vzopig_p(t + 1)) \cdot \vxt_q(t) \cdot g\qty(\vzopblk{p}_j(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                  j \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                                  p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                  q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                  t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                \end{dcases}.
+        \]
+
+    6. 進行 :math:`\dim(\vWopig) \times \dblk` 次乘法得到 :math:`\dim(\vWopig) \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                                               j \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                                                                                                               p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                                                                                               t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                                                             \end{dcases}.
+        \]
+
+    7. 進行 :math:`\dim(\vWopig) \times (\dblk - 1)` 次加法得到 :math:`\dim(\vWopig)` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                                                                  p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                                                                  q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                                                                                                                  t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                                                                                \end{dcases}.
+        \]
+
+    8. 進行 :math:`\dim(\vWopig)` 次乘法得到 :math:`\dim(\vWopig)` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (p - 1) \times \dblk + j}] \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}}) \cdot \vyopog_p(t + 1) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                                                                                               p \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                                                                                               q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                                                                                                                                               t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                                                                                                             \end{dcases}.
+        \]
+
+    因此計算 :math:`\eqref{17}` 所需時間複雜度為
+
+    .. math::
+      :nowrap:
+
+      \[
+        \begin{align*}
+          & \order{(\dout - 1) \times \nblk \times \dblk + \nblk \times \dblk + \dim(\vWopig) + 3 \times \dim(\vWopig) \times \dblk + \dim(\vWopig) \times (\dblk - 1) + \dim(\vWopig)} \\
+          & = \order{\dout \times \nblk \times \dblk + \dim(\vWopig) + 4 \times \dim(\vWopig) \times \dblk} \\
+          & = \order{\dim(\vWopout) + \dim(\vWopig) \times \dblk}.
+        \end{align*}
+      \]
+
+  利用 :math:`\eqref{20-2}` 我們可以得出式子 :math:`\eqref{18}` 的時間複雜度為 :math:`\order{\dim(\vWopout) + \nblk \times \dim(\vWopblk{1})}`。
+
+  .. dropdown:: 推導式子 :math:`\eqref{18}` 的時間複雜度
+
+    接下來我們推導式子 :math:`\eqref{18}` 的時間複雜度。
+    得到 :math:`\eqref{20-2}` 後，我們可以依照以下步驟計算得到 :math:`\eqref{18}`：
+
+    1. 進行 :math:`(\dout - 1) \times \nblk \times \dblk` 次加法得到 :math:`\nblk \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \qqtext{where} \begin{dcases}
+                                                                                                                                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                      p \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                      t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                    \end{dcases}.
+        \]
+
+    2. 進行 :math:`\nblk \times \dblk` 次乘法得到 :math:`\nblk \times \dblk` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_p(t + 1)) \qqtext{where} \begin{dcases}
+                                                                              k \in \Set{1, \dots, \nblk} \\
+                                                                              p \in \Set{1, \dots, \dblk} \\
+                                                                              t \in \Set{0, \dots \cT - 1}
+                                                                            \end{dcases}.
+        \]
+
+    3. 進行 :math:`\nblk \times \dblk \times (\din + \dhid + \nblk \times (2 + \dblk)) = \nblk \times \dim(\vWopblk{1})` 次乘法得到 :math:`\nblk \times \dim(\vWopblk{1})` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_p(t + 1)) \cdot \vxt_q(t) \qqtext{where} \begin{dcases}
+                                                                                              k \in \Set{1, \dots, \nblk} \\
+                                                                                              p \in \Set{1, \dots, \dblk} \\
+                                                                                              q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                              t \in \Set{0, \dots \cT - 1}
+                                                                                            \end{dcases}.
+        \]
+
+    4. 進行 :math:`\nblk \times \dim(\vWopblk{1})` 次加法得到 :math:`\nblk \times \dim(\vWopblk{1})` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} = \dv{\vsopblk{k}_p(t)}{\vWopblk{k}_{p, q}} + \vyopig_k(t + 1) \cdot g'\qty(\vzopblk{k}_p(t + 1)) \cdot \vxt_q(t) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                          k \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                          p \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                          t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                        \end{dcases}.
+        \]
+
+    5. 進行 :math:`\nblk \times \dim(\vWopblk{1})` 次乘法得到 :math:`\nblk \times \dim(\vWopblk{1})` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}] \cdot \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                k \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                p \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                                                                t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                              \end{dcases}.
+        \]
+
+    6. 進行 :math:`\nblk \times \dim(\vWopblk{1})` 次乘法得到 :math:`\nblk \times \dim(\vWopblk{1})` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}] \cdot \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \cdot \vyopog_k(t + 1) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                                      k \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                                      p \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                                                                                                      q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                                                                                      t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                                                    \end{dcases}.
+        \]
+
+    7. 進行 :math:`\nblk \times \dim(\vWopblk{1})` 次乘法得到 :math:`\nblk \times \dim(\vWopblk{1})` 個不同的
+
+      .. math::
+        :nowrap:
+
+        \[
+          \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}] \cdot \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                                                                                                                                          k \in \Set{1, \dots, \nblk} \\
+                                                                                                                                                                                                                                                                                                          p \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                                                                                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                                                                                                                                                                          t \in \Set{0, \dots \cT - 1}
+                                                                                                                                                                                                                                                                                                        \end{dcases}.
+        \]
+
+    因此計算 :math:`\eqref{18}` 所需時間複雜度為
+
+    .. math::
+      :nowrap:
+
+      \[
+        \begin{align*}
+          & \order{(\dout - 1) \times \nblk \times \dblk + \nblk \times \dblk + 5 \times \nblk \times \dim(\vWopblk{1})} \\
+          & = \order{\dout \times \nblk \times \dblk + 5 \times \nblk \times \dim(\vWopblk{1})} \\
+          & = \order{\dim(\vWopout) + \nblk \times \dim(\vWopblk{1})}.
+        \end{align*}
+      \]
+
+  透過前述結論我們可以得出 LSTM 最佳化演算法的時間複雜度為
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        & \order{\dout + \dim(\vWopout) + \dim(\vWopout) + \dim(\vWopout) + \dim(\vWophid) + \dim(\vWopout) + \dim(\vWopog) + \dim(\vWopout) + \dim(\vWopig) \times \dblk + \dim(\vWopout) + \nblk \times \dim(\vWopblk{1})} \\
+        & \order{\dout + 6 \times \dim(\vWopout) + \dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) \times \dblk + \nblk \times \dim(\vWopblk{1})} \\
+        & \order{\dim(\vWopout) + \dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) \times \dblk + \nblk \times \dim(\vWopblk{1})}.
+      \end{align*}
+    \]
+
+.. note::
+
+  式子 :math:`\eqref{20}` 與論文中的 A.27 式不同，但我覺得我的推論是正確的。
+
+架構分析
+========
 
 ..
-  ## 更新模型參數
-
-  ### 總輸出參數
-
-  從 $\eqref{4}$ 我們可以觀察出以下結論
-
-  $$
-  \begin{align*}
-  \tilde{x}(t + 1) & = \begin{pmatrix}
-  \vx(t) \\
-  \vyophid(t + 1) \\
-  \vyopblk{1}(t + 1) \\
-  \vdots \\
-  \vyopblk{\nblk}(t + 1)
-  \end{pmatrix} \\
-  i & \in \Set{1, \dots, \dout} \\
-  j & \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
-  \dv{\cL(t + 1)}{\vWopout_{i, j}} & = \dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopout_{i, j}} \\
-  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot \dv{\vy_i(t + 1)}{\vWopout_{i, j}} \\
-  & = \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \tilde{x}_j(t + 1)
-  \end{align*} \tag{56}\label{56}
-  $$
-
-  ### 隱藏單元參數
-
-  從 $\eqref{4} \eqref{14-1} \eqref{16-1}$ 我們可以觀察出以下結論
-
-  $$
-  \begin{align*}
-  & p \in \Set{1, \dots, \dhid} \\
-  & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \dv{\cL(t + 1)}{\vWopog_{p, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopog_{p, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \br{\pa{\vy_i(t + 1) - \vyh_i(t + 1)} \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p} \cdot \dv{\vyophid_p(t + 1)}{\vWopog_{p, q}}} \\
-  & = \sum_{i = 1}^\dout \br{\pa{\vy_i(t + 1) - \vyh_i(t + 1)} \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p}} \cdot \dv{\vyophid_p(t + 1)}{\vWopog_{p, q}} \\
-  & \aptr \sum_{i = 1}^\dout \br{\pa{\vy_i(t + 1) - \vyh_i(t + 1)} \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, p}} \cdot \\
-  & \quad \quad \dfnethid{p}{t + 1} \cdot \begin{pmatrix}
-  \vx(t) \\
-  \vyophid(t) \\
-  \vyopblk{1}(t) \\
-  \vdots \\
-  \vyopblk{\nblk}(t)
-  \end{pmatrix}_j
-  \end{align*} \tag{57}\label{57}
-  $$
-
-  ### 輸出閘門單元參數
-
-  從 $\eqref{4}$ 我們可以觀察出以下結論
-
-  $$
-  \begin{align*}
-  k & \in \Set{1, \dots, \nblk} \\
-  q & \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  \dv{\cL(t + 1)}{\vWopog_{k, q}} & = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopog_{k, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopog_{k, q}}}\Bigg] \\
-  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{\vyopog_k(t + 1)}{\vWopog_{k, q}}}\Bigg] \\
-  & = \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \dv{\vyopog_k(t + 1)}{\vWopog_{k, q}} \\
-  & \aptr \Bigg[\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \pa{\sum_{j = 1}^{\dblk} \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j\pa{s_j^{\blk{k}}(t + 1)}}\Bigg] \cdot \\
-  & \quad \quad {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \begin{pmatrix}
-  \vx(t) \\
-  \vyophid(t) \\
-  \vyopig(t) \\
-  \vyopog(t) \\
-  \vyopblk{1}(t) \\
-  \vdots \\
-  \vyopblk{\nblk}(t)
-  \end{pmatrix}_q
-  \end{align*} \tag{58}\label{58}
-  $$
-
-  ### 輸入閘門單元參數
-
-  從 $\eqref{4}$ 我們可以觀察出以下結論
-
-  $$
-  \begin{align*}
-  & \tilde{x}(t) = \begin{pmatrix}
-  \vx(t) \\
-  \vyophid(t) \\
-  \vyopig(t) \\
-  \vyopog(t) \\
-  \vyopblk{1}(t) \\
-  \vdots \\
-  \vyopblk{\nblk}(t)
-  \end{pmatrix} \\
-  & k \in \Set{1, \dots, \nblk} \\
-  & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \dv{\cL(t + 1)}{\vWopig_{k, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopig_{k, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopig_{k, q}}}\Bigg] \\
-  & \aptr \sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot \vyopog_k(t + 1) \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{s_j^{\blk{k}}(t + 1)}{\vWopig_{k, q}}}\Bigg] \\
-  & = \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \pa{\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \dv{s_j^{\blk{k}}(t + 1)}{\vWopig_{k, q}}}\Bigg]\Bigg) \cdot \vyopog_k(t + 1) \\
-  & \aptr \Bigg(\sum_{i = 1}^\dout \Bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \sum_{j = 1}^{\dblk} \bigg(\vWopout_{i, \din + \dhid + (k - 1) \times \dblk + j} \cdot h_j'\pa{s_j^{\blk{k}}(t + 1)} \cdot \bigg[\dv{s_j^{\blk{k}}(t)}{\vWopig_{k, q}} + \\
-  & \quad \quad g_j\pa{\netcell{j}{k}{t + 1}} \cdot {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \tilde{x}_q(t)\bigg]\bigg)\Bigg]\Bigg) \cdot \vyopog_k(t + 1)
-  \end{align*} \tag{59}\label{59}
-  $$
-
-  ### 記憶細胞淨輸入參數
-
-  從 $\eqref{4}$ 我們可以觀察出以下結論
-
-  $$
-  \begin{align*}
-  & \tilde{x}(t) = \begin{pmatrix}
-  \vx(t) \\
-  \vyophid(t) \\
-  \vyopig(t) \\
-  \vyopog(t) \\
-  \vyopblk{1}(t) \\
-  \vdots \\
-  \vyopblk{\nblk}(t)
-  \end{pmatrix} \\
-  & k \in \Set{1, \dots, \nblk} \\
-  & p \in \Set{1, \dots, \dblk} \\
-  & q \in \Set{1, \dots, \din + \dhid + \nblk \cdot (2 + \dblk)} \\
-  & \dv{\cL(t + 1)}{\vWopblk{k}_{p, q}} = \sum_{i = 1}^\dout \br{\dv{\cL(t + 1)}{\loss{i}{t + 1}} \cdot \dv{\loss{i}{t + 1}}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vWopblk{k}_{p, q}}} \\
-  & \aptr \sum_{i = 1}^\dout \bigg[\big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \\
-  & \quad \quad \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p} \cdot \dv{\vyopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}}\bigg] \\
-  & = \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}} \cdot \\
-  & \quad \quad \dv{\vyopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
-  & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}} \cdot \\
-  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \dv{s_p^{\blk{k}}(t + 1)}{\vWopblk{k}_{p, q}}\Bigg] \\
-  & \aptr \br{\sum_{i = 1}^\dout \big(y_i(t + 1) - \vyh_i(t + 1)\big) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + \dhid + (k - 1) \times \dblk + p}} \cdot \\
-  & \quad \quad \vyopog_k(t + 1) \cdot h_p'\pa{s_p^{\blk{k}}(t + 1)} \cdot \Bigg[\dv{s_p^{\blk{k}}(t)}{\vWopblk{k}_{p, q}} + \\
-  & \quad \quad \vyopig_k(t + 1) \cdot g_p'\pa{\netcell{p}{k}{t + 1}} \cdot \tilde{x}_q(t)\Bigg]
-  \end{align*} \tag{60}\label{60}
-  $$
-
-  ## 架構分析
-
-  ### 時間複雜度
-
-  假設 $t + 1$ 時間點的 **forward pass** 已經執行完成，則**更新** $t + 1$ 時間點**所有參數**的**時間複雜度**為
-
-  $$
-  O(\dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) + \nblk \cdot \dim(\wblk{1}) + \dim(\vWopout)) \tag{61}\label{61}
-  $$
-
-  - $\eqref{61}$ 就是論文中的 A.27 式
-  - 在 $t + 1$ 時間點**參數更新**需要考慮 $t$ 時間點的**計算狀態**，請見 $\eqref{57} \eqref{58} \eqref{59} \eqref{60}$
-  - 沒有如同 $\eqref{14-1}$ 的**連乘積**項，因此不會有**梯度消失**問題
-  - 整個計算過程需要額外紀錄的**梯度**項次**只有** $\eqref{59} \eqref{60}$ 中的 $\dv{s_j^{\blk{k}}(t)}{\vWopig_{k, q}}, \dv{s_p^{\blk{k}}(t)}{\vWopblk{k}_{p, q}}$
-    - 紀錄讓 LSTM 可以隨著 **forward pass** 的過程**即時更新**
-    - **不需要**等到 $T$ 時間點的計算結束，因此不是採用 **BPTT** 的演算法
-    - **即時更新**（意思是 $t + 1$ 時間點的 forward pass 完成後便可計算 $t + 1$ 時間點的誤差梯度）是 **RTRL** 的主要精神
-
-  總共會執行 $t + 1$ 個 **forward pass**，因此**更新所有參數**所需的**總時間複雜度**為
-
-  $$
-  O\big(T \cdot \big[\dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) + \nblk \cdot \dim(\wblk{1}) + \dim(\vWopout)\big]\big) \tag{62}\label{62}
-  $$
-
   ### 空間複雜度
 
   我們也可以推得在 $t + 1$ 時間點**更新所有參數**所需的**空間複雜度**
 
   $$
-  O(\dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) + \nblk \cdot \dim(\wblk{1}) + \dim(\vWopout)) \tag{63}\label{63}
+  O(\dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) + \nblk \cdot \dim(\vWopblk{1}) + \dim(\vWopout)) \tag{63}\label{63}
   $$
 
   總共會執行 $T$ 個 **forward pass**，但**更新**所需的**總空間複雜度**仍然同 $\eqref{63}$
@@ -2061,7 +2421,7 @@ LSTM 最佳化
   - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常小**的**負數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 也會變得**非常小**
   - 在 $\vsopblk{k}(t + 1)$ 極正或極負的情況下，**輸入閘門參數** $\vWopig$ 的**梯度**會**消失**
   - 此現象稱為**內部狀態偏差行為**（**Internal State Drift**）
-  - 同樣的現象也會發生在**記憶細胞淨輸入參數** $\wblk{1}, \dots \wblk{\nblk}$ 身上，請見 $\eqref{60}$
+  - 同樣的現象也會發生在**記憶細胞淨輸入參數** $\vWopblk{1}, \dots \wblk{\nblk}$ 身上，請見 $\eqref{60}$
   - 此分析就是論文的 A.39 式改寫而來
 
   ### 解決 Internal State Drift
