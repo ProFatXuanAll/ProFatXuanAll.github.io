@@ -178,31 +178,29 @@ Long Short-Term Memory
   - **Memory cells and memory cell blocks**
 
     - 目標為解決關鍵輸入資訊時間差較長的問題
-    - 必須配合 gate units 一起運作
+    - 取代 RNN 的遞迴節點
     - 學習\ **協助** gate units 完成\ **寫入**/\ **讀取** memory cells
 
   - **Gate units**
 
-    - 目標為解決關鍵輸入資訊時間差較長的問題
-    - 必須配合 memory cell blocks 一起運作
-    - 提出兩種 gate units：
+    - 解決參數必須同時學習不同目標而導致的更新數值衝突
+    - 基於\ **乘法**\計算機制，提出兩種 gate units：
 
-      - **Input gate units**：學習\ **寫入**\（\ **開啟**）/**保留**\（\ **關閉**）memory cell blocks 中的資訊
-      - **Output gate units**：學習\ **讀取**\（\ **開啟**）/**忽略**\（\ **關閉**）memory cell blocks 的資訊
+      - **Input gate units**：學習\ **寫入**\（\ **開啟**）/**保留**\（\ **關閉**）memory cells
+      - **Output gate units**：學習\ **讀取**\（\ **開啟**）/**忽略**\（\ **關閉**）memory cells
 
-    - 計算機制基於\ **乘法**
     - Gate units 中的 **bias term** 必須\ **初始化**\成\ **負數**
 
-      - Input gate bias 初始化成負數能夠解決\ **內部狀態偏差行為**\（**internal state drift**）
-      - Output gate bias 初始化成負數能夠避免模型\ **濫用記憶細胞初始值**\與\ **訓練初期梯度過大**
-      - 如果沒有輸出閘門，則\ **收斂速度會變慢**
+      - Input gate bias 初始化成負數能夠解決 **internal state drift**
+      - Output gate bias 初始化成負數能夠避免模型\ **濫用 memory cells 初始值**
+      - 如果沒有 output gate units，則\ **收斂速度會變慢**
 
 - truncated-RTRL 最佳化演算法設計
 
-  - 目標為\ **有效率**\的避免梯度\ **爆炸**\或\ **消失**
-  - 以\ **捨棄計算部份梯度**\做為近似全微分的手段，因此只能使用 RTRL 而不能使用 BPTT
-  - Backward pass 演算法\ **時間複雜度**\為 :math:`\order{w}`，:math:`w` 代表模型參數
-  - Backward pass 演算法\ **空間複雜度**\也為 :math:`\order{w}`，因此\ **沒有輸入長度的限制**
+  - 目標為避免梯度\ **爆炸**\或\ **消失**
+  - 以\ **捨棄計算部份微分**\做為近似全微分的手段，因此只能使用 RTRL 而不能使用 BPTT
+  - Backward pass 演算法的\ **時間複雜度**\說明該最佳化演算法計算上\ **非常有效率**
+  - Backward pass 演算法的\ **空間複雜度**\說明該最佳化演算法理論上\ **沒有輸入長度的限制**
 
 - 根據實驗，LSTM 能夠達成以下任務
 
@@ -237,7 +235,7 @@ Long Short-Term Memory
 - 此篇論文與 `PyTorch <Pytorch-LSTM_>`_ 實作的 LSTM 完全不同
 
   - 本篇論文的架構定義更為\ **廣義**
-  - 本篇論文只有輸入閘門跟輸出閘門，並沒有使用\ **失憶閘門**\（**Forget Gate**）\ :footcite:`gers-etal-2000-learning`
+  - 本篇論文只有 input/output gate units，並沒有使用 forget gate units :footcite:`gers-etal-2000-learning`
 
 - Alex Graves 的 LSTM 教學：https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4
 
@@ -1883,7 +1881,7 @@ LSTM 最佳化
 時間複雜度
 ----------
 
-由於使用 truncated RTRL 作為最佳化演算法，計算完每個 :math:`t + 1` 時間點的誤差後就會馬上進行參數更新。
+由於使用基於 RTRL 的最佳化演算法，計算完每個 :math:`t + 1` 時間點的誤差後就會馬上進行參數更新。
 參數更新使用的演算法為 :term:`gradient descent`，:math:`\alpha` 為 learning rate：
 
 .. math::
@@ -2379,89 +2377,161 @@ LSTM 最佳化
 
   式子 :math:`\eqref{20}` 與論文中的 A.27 式不同，但我覺得我的推論是正確的。
 
+.. note::
+
+  LSTM 最佳化演算法可以即時更新的特性作者稱其為 **local in time**.
+
+空間複雜度
+----------
+
+觀察 :math:`\eqref{20}` 的推導過程，我們可以發現除了 :math:`\dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}}` 與 :math:`\dv{\vsopblk{p}_j(t + 1)}{\vWopblk{k}_{p, q}}` 之外，每個 :math:`t + 1` 時間點的資訊計算完畢後就可以丟棄。
+因此論文得出 LSTM 最佳化演算法的\ **空間複雜度** 與時間複雜度相同：
+
+.. math::
+  :nowrap:
+
+  \[
+    \order{\dim(\vWopout) + \dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) \times \dblk + \nblk \times \dim(\vWopblk{1})}.
+    \tag{21}\label{21}
+  \]
+
+.. note::
+
+  LSTM 最佳化演算法即時更新且不須儲存過去所有資訊的特性，作者稱其為 **local in space**.
+
 架構分析
 ========
 
+Abuse Problem
+-------------
+
+在訓練 LSTM 的初期，參數的隨機初始化可能讓 memory cells 在 forward pass 中產生出無意義的值，而 LSTM 有可能濫用這些隨機值來迫使參數更新降低誤差，而不是透過學習輸入知識來降低誤差。
+有可能需要透過長時間的訓練才能讓參數學會釋放 memory cells 中的隨機值並真正開始進行學習，因此學習效率會降低，甚至根本無法正常訓練 LSTM。
+
+作者認為可行的解決方法是將 output gate units 的 **bias term** 初始化成\ **負數**，因此模型在\ **訓練初期**\就會\ **關閉 output gate units**，避免濫用 memory cells 的隨機值。
+
+.. dropdown:: 推導初始化 output gate bias 為負數的邏輯
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+                 & b_k^\opog \ll 0 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
+        \implies & \vzopog_k(t + 1) \ll 0 \qqtext{where} \begin{dcases}
+                                                           k \in \Set{1, \dots, \nblk} \\
+                                                           t \in \Set{1, \dots, \cT - 1}
+                                                         \end{dcases} \\
+        \implies & \vyopog_k(t + 1) \approx 0 \qqtext{where} \begin{dcases}
+                                                               k \in \Set{1, \dots, \nblk} \\
+                                                               t \in \Set{1, \dots, \cT - 1}
+                                                             \end{dcases} \\
+        \implies & \vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}_i(t + 1)) \approx 0 \qqtext{where} \begin{dcases}
+                                                                                                 i \in \Set{1, \dots, \dblk} \\
+                                                                                                 k \in \Set{1, \dots, \nblk} \\
+                                                                                                 t \in \Set{1, \dots, \cT - 1}
+                                                                                               \end{dcases}.
+      \end{align*}
+    \]
+
+作者也將「兩個不同的 memory cells 學到儲存完全相同的知識」視為類似的問題，解決方法是將 output gate units 的 bias term 初始化為\ **大小不同的負數**，迫使 memory cells 依照 bias term **由小到大開啟** output gate units（越接近 :math:`0` 越容易被開啟）。
+
+Internal State Drift
+--------------------
+
+由於 memory cell internal states 是透過疊加的形式計算而得，作者認為 LSTM 在 forward pass 一段時間後容易讓 memory cell internal states 累加得出極正或極負的數值，作者稱此現象為 **internal state drift**。
+當 :math:`h` 是 sigmoid 函數時，極正或極負的 memory cell internal states 只會讓 :math:`h'` 輸出靠近 :math:`0`\（見 :doc:`sigmoid 函數特性 </post/math/sigmoid>`）。
+由於 :math:`\eqref{17} \eqref{18}` 的更新需要計算 :math:`h'`，因此 internal state drift 會造成參數 :math:`\vWopig` 與 :math:`\vWopblk{k}` 的梯度消失。
+
+作者認為可行的解決方法是將 input gate units 的 **bias term** 初始化成\ **負數**，因此模型在\ **訓練初期**\就會\ **關閉 input gate units**，避免 memory cell internal states 在 forward pass 的前期就快速累加成極值。
+後續實驗發現如果 :math:`h` 是 sigmoid 函數，則其實也不太需要將 input gate bias 設成負數。
+
+.. dropdown:: 推導初始化 input gate bias 為負數的邏輯
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+                 & b_k^\opig \ll 0 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
+        \implies & \vzopig_k(1) \ll 0 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
+        \implies & \vyopig_k(1) \approx 0 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
+        \implies & \vyopig_k(1) \cdot g\qty(\vzopblk{k}_i(1)) \approx 0 \qqtext{where} \begin{dcases}
+                                                                                         i \in \Set{1, \dots, \dblk} \\
+                                                                                         k \in \Set{1, \dots, \nblk}
+                                                                                       \end{dcases} \\
+        \implies & \vsopblk{k}_i(1) = \vsopblk{k}_i(0) + \vyopig_k(1) \cdot g\qty(\vzopblk{k}_i(1)) \approx 0 \qqtext{where} \begin{dcases}
+                                                                                                                               i \in \Set{1, \dots, \dblk} \\
+                                                                                                                               k \in \Set{1, \dots, \nblk}
+                                                                                                                             \end{dcases} \\
+        \implies & \begin{dcases}
+                     \vsopblk{k}_i(t + 1) \not\ll 0 \\
+                     \vsopblk{k}_i(t + 1) \not\gg 0
+                   \end{dcases} \qqtext{where} \begin{dcases}
+                                                 i \in \Set{1, \dots, \dblk} \\
+                                                 k \in \Set{1, \dots, \nblk} \\
+                                                 t \in \Set{0, \dots, \cT - 1}
+                                               \end{dcases}.
+      \end{align*}
+    \]
+
+雖然這種作法是種 **model bias** 而且會強迫 :math:`\vyopig` 與 :math:`{f^\opig}'` **趨近於** :math:`0`，但作者認為解決 internal state drift 比較重要。
+
+Scaling Down Error
+------------------
+
+在訓練的初期\ **誤差**\通常比較\ **大**，導致\ **微分值**\跟著變\ **大**，容易使模型在訓練初期的參數劇烈振盪。
+尤其 RNN 又會受到遞迴計算架構的限制導致梯度爆炸，因此 RNN 容易在訓練初期就訓練失敗。
+然而 LSTM 唯一需要遞迴計算的微分項次只有 :math:`\eqref{17} \eqref{18}`，觀察可以發現這些項次都會乘上 :math:`\vyopog`。
+由於 **output gate units** 所使用的 activation function :math:`f^\opog` 是 sigmoid，乘上 :math:`\vyopog` 可以避免\ **過大誤差**\造成的整體微分值太大。
+但這些說法並沒有辦法真的保證一定會實現，算是這篇論文說服力比較薄弱的點。
+
+.. dropdown:: 推導 output gate units 縮放 error 的邏輯
+
+  對 :math:`\vWopig` 來說，透過遞迴造成微分值變成極值的來源為（見 :math:`\eqref{17}`）：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        & \sum_{t^\star = 0}^t {f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1)) \\
+        & \qqtext{where} \begin{dcases}
+                           p \in \Set{1, \dots, \nblk} \\
+                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                           t \in \Set{0, \dots, \cT - 1}
+                         \end{dcases}
+      \end{align*}
+    \]
+
+  比起 RNN 的指數增加微分（累加連乘積項次得出微分值，見 :math:`\eqref{4}`），上式只有單純的累加每個時間的部份計算狀態，因此 LSTM 的微分是成線性增長，不容易達成梯度爆炸。
+  另外觀察 :math:`\eqref{17}` 可以發現上式會乘上 output gate units 進行縮減，因此 LSTM 的設計有助於穩定更新 :math:`\vWopig`。
+
+  我們使用相同邏輯對 :math:`\vWopblk{k}` 進行分析，觀察 :math:`\eqref{18}` 可以發現透過遞迴造成微分值變成極值的來源為：
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+        & \sum_{t^\star = 0}^t \vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star) \\
+        & \qqtext{where} \begin{dcases}
+                           k \in \Set{1, \dots, \nblk} \\
+                           p \in \Set{1, \dots, \dblk} \\
+                           q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                           t \in \Set{0, \dots, \cT - 1}
+                         \end{dcases}
+      \end{align*}
+    \]
+
+  同理，比起 RNN 的指數增加微分，上式只有單純的累加每個時間的部份計算狀態，因此 LSTM 的微分是成線性增長，不容易達成梯度爆炸。
+  另外觀察 :math:`\eqref{18}` 可以發現上式會乘上 output gate units 進行縮減，因此 LSTM 的設計有助於穩定更新 :math:`\vWopblk{k}`。
+
+.. note::
+
+  上述推導就是論文中的 A.28-A.39 式。
+
 ..
-  ### 空間複雜度
-
-  我們也可以推得在 $t + 1$ 時間點**更新所有參數**所需的**空間複雜度**
-
-  $$
-  O(\dim(\vWophid) + \dim(\vWopog) + \dim(\vWopig) + \nblk \cdot \dim(\vWopblk{1}) + \dim(\vWopout)) \tag{63}\label{63}
-  $$
-
-  總共會執行 $T$ 個 **forward pass**，但**更新**所需的**總空間複雜度**仍然同 $\eqref{63}$
-
-  - 依照**時間順序**計算梯度，計算完 $t + 1$ 時間點的梯度時 $t$ 的資訊便可丟棄
-  - 這就是 **RTRL** 的最大優點
-
-  ### 達成梯度常數
-
-  根據 $\eqref{12} \eqref{13}$ 我們可以推得
-
-  $$
-  \begin{align*}
-  i & \in \Set{1, \dots, \dblk} \\
-  k & \in \Set{1, \dots, \nblk} \\
-  \dv{\vsopblk{k}_i(t + 1)}{\vsopblk{k}_i(t)} & = \dv{\vsopblk{k}_i(t)}{\vsopblk{k}_i(t)} + \cancelto{0}{\dv{\vyopig_k(t + 1)}{\vsopblk{k}_i(t)}} \cdot g\pa{\vzopblk{k}_i(t + 1)} + \\
-  & \quad \vyopig_k(t + 1) \cdot \cancelto{0}{\dv{g\pa{\vzopblk{k}_i(t + 1)}}{\vsopblk{k}_i(t)}} \\
-  & \aptr 1
-  \end{align*} \tag{64}\label{64}
-  $$
-
-  由於**丟棄部份梯度**的作用，$\vsopblk{k}$ 的**梯度**是模型中**唯一**進行**遞迴**（跨過多個時間點）的計算節點。
-  透過丟棄部份梯度我們從 $\eqref{64}$ 可以看出 LSTM 達成 $.$ 所設想的情況。
-
-  ### 內部狀態偏差行為
-
-  觀察 $\eqref{59}$，當 $h$ 是 sigmoid 函數時，我們可以發現
-
-  - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常大**的**正數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 會變得**非常小**
-  - 如果 $\vsopblk{k}(t + 1)$ 是一個**非常小**的**負數**，則 $h_j'\pa{s_j^{\blk{k}}(t + 1)}$ 也會變得**非常小**
-  - 在 $\vsopblk{k}(t + 1)$ 極正或極負的情況下，**輸入閘門參數** $\vWopig$ 的**梯度**會**消失**
-  - 此現象稱為**內部狀態偏差行為**（**Internal State Drift**）
-  - 同樣的現象也會發生在**記憶細胞淨輸入參數** $\vWopblk{1}, \dots \wblk{\nblk}$ 身上，請見 $\eqref{60}$
-  - 此分析就是論文的 A.39 式改寫而來
-
-  ### 解決 Internal State Drift
-
-  作者提出可以在 $\vz^{\opig}$ 加上偏差項，並在**訓練初期**將偏差項弄成很小的**負數**，邏輯如下
-
-  $$
-  \begin{align*}
-  & b^{\opig} \ll 0 \\
-  \implies & \vz^{\opig}(1) \ll 0 \\
-  \implies & \vyopig(1) \approx 0 \\
-  \implies & s^{\vWopblk{k}}(1) = s^{\vWopblk{k}}(0) + \vyopig(1) \odot g\big(\vz^{\vWopblk{k}}(1)\big) \\
-  & = \vyopig(1) \odot g\big(\vz^{\vWopblk{k}}(1)\big) \approx 0 \\
-  \implies & \begin{dcases}
-  s^{\vWopblk{k}}(t + 1) \not\ll 0 \\
-  s^{\vWopblk{k}}(t + 1) \not\gg 0
-  \end{dcases} \quad \forall t = 0, \dots, \cT - 1
-  \end{align*} \tag{65}\label{65}
-  $$
-
-  根據 $\eqref{65}$ 我們就不會得到 $\vsopblk{k}(t)$ 極正或極負的情況，也就不會出現 Internal State Drift。
-
-  雖然這種作法是種**模型偏差**（**Model Bias**）而且會導致 $\vyopig(\star)$ 與 $\dfnetig{k}\star$ **變小**，但作者認為這些影響比起 Internal State Drift 一點都不重要。
-
-  ### 輸出閘門初始化
-
-  論文 4.7 節表示，在訓練的初期模型有可能濫用**記憶細胞的初始值**作為計算的常數項（細節請見 $\eqref{14}$），導致模型在訓練的過程中學會完全**不紀錄資訊**。
-
-  因此可以將**輸出閘門**加上偏差項，並初始化成**較小的負數**（理由類似於 $\eqref{65}$），讓記憶細胞在**計算初期**輸出值為 $0$，迫使模型只在**需要**時指派記憶細胞進行**記憶**。
-
-  如果有多個記憶細胞，則可以給予**不同的負數**，讓模型能夠按照需要**依大小順序**取得記憶細胞（**愈大的負數**愈容易被取得）。
-
-  ### 輸出閘門的優點
-
-  在訓練的初期**誤差**通常比較**大**，導致**梯度**跟著變**大**，使得模型在訓練初期的參數劇烈振盪。
-
-  由於**輸出閘門**所使用的**啟發函數** $f^\opog$ 是 sigmoid，數值範圍是 $(0, 1)$，我們可以發現 $\eqref{59} \eqref{60}$ 的梯度乘積包含 $\vyopog$，可以避免**過大誤差**造成的**梯度變大**。
-
-  但這些說法並沒有辦法真的保證一定會實現，算是這篇論文說服力比較薄弱的點。
-
   ## 實驗
 
   ### 實驗設計
