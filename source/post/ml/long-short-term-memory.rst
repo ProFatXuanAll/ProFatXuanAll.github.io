@@ -76,6 +76,7 @@ Long Short-Term Memory
   :nowrap:
 
   \[
+    % 載入數學式中
     % Operators.
     \newcommand{\opblk}{\operatorname{block}}
     \newcommand{\opig}{\operatorname{ig}}
