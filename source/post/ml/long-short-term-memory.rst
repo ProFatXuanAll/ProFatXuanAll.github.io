@@ -47,104 +47,114 @@ Long Short-Term Memory
 .. Setup front matter.
 .. ====================================================================================================================
 
-.. article-info::
-  :author: Sepp Hochreiter, Jürgen Schmidhuber
-  :date: Neural Computation, 1997
-  :class-container: sd-p-2 sd-outline-muted sd-rounded-1
+.. tab-set::
 
-.. ====================================================================================================================
-.. Create visible tags from SEO keywords.
-.. ====================================================================================================================
+  .. tab-item:: Tags
 
-:bdg-secondary:`BPTT`
-:bdg-secondary:`Sequence Model`
-:bdg-secondary:`Gradient Descent`
-:bdg-secondary:`Gradient Explosion`
-:bdg-secondary:`Gradient Vanishing`
-:bdg-secondary:`LSTM`
-:bdg-secondary:`Optimization`
-:bdg-secondary:`Model Architecture`
-:bdg-secondary:`RNN`
-:bdg-secondary:`RTRL`
-:bdg-primary:`Neural Computation`
+    :bdg-secondary:`BPTT`
+    :bdg-secondary:`Sequence Model`
+    :bdg-secondary:`Gradient Descent`
+    :bdg-secondary:`Gradient Explosion`
+    :bdg-secondary:`Gradient Vanishing`
+    :bdg-secondary:`LSTM`
+    :bdg-secondary:`Optimization`
+    :bdg-secondary:`Model Architecture`
+    :bdg-secondary:`RNN`
+    :bdg-secondary:`RTRL`
+    :bdg-primary:`Neural Computation`
 
-.. ====================================================================================================================
-.. Define math macros.
-.. ====================================================================================================================
+  .. tab-item:: Authors
 
-.. math::
-  :nowrap:
+    Sepp Hochreiter, Jürgen Schmidhuber
 
-  \[
-    % 載入數學式中
-    % Operators.
-    \newcommand{\opblk}{\operatorname{block}}
-    \newcommand{\opig}{\operatorname{ig}}
-    \newcommand{\opin}{\operatorname{in}}
-    \newcommand{\ophid}{\operatorname{hid}}
-    \newcommand{\oplen}{\operatorname{len}}
-    \newcommand{\opnet}{\operatorname{net}}
-    \newcommand{\opog}{\operatorname{og}}
-    \newcommand{\opout}{\operatorname{out}}
-    \newcommand{\opseq}{\operatorname{seq}}
+  .. tab-item:: Date
 
-    % Memory cell blocks.
-    \newcommand{\blk}[1]{{\opblk^{#1}}}
+    1997
 
-    % Vectors' notations.
-    \newcommand{\vs}{\mathbf{s}}
-    \newcommand{\vsopblk}[1]{\vs^\blk{#1}}
-    \newcommand{\vx}{\mathbf{x}}
-    \newcommand{\vxopout}{\vx^\opout}
-    \newcommand{\vxt}{\tilde{\vx}}
-    \newcommand{\vy}{\mathbf{y}}
-    \newcommand{\vyh}{\hat{\vy}}
-    \newcommand{\vyopblk}[1]{\vy^\blk{#1}}
-    \newcommand{\vyopig}{\vy^\opig}
-    \newcommand{\vyophid}{\vy^\ophid}
-    \newcommand{\vyopog}{\vy^\opog}
-    \newcommand{\vz}{\mathbf{z}}
-    \newcommand{\vzopblk}[1]{\vz^\blk{#1}}
-    \newcommand{\vzopig}{\vz^\opig}
-    \newcommand{\vzophid}{\vz^\ophid}
-    \newcommand{\vzopog}{\vz^\opog}
-    \newcommand{\vzopout}{\vz^\opout}
+  .. tab-item:: Journal
 
-    % Matrixs' notation.
-    \newcommand{\vW}{\mathbf{W}}
-    \newcommand{\vWopblk}[1]{\vW^\blk{#1}}
-    \newcommand{\vWopig}{\vW^\opig}
-    \newcommand{\vWophid}{\vW^\ophid}
-    \newcommand{\vWopog}{\vW^\opog}
-    \newcommand{\vWopout}{\vW^\opout}
+    Neural Computation
 
-    % Symbols in mathcal.
-    \newcommand{\cL}{\mathcal{L}}
-    \newcommand{\cT}{\mathcal{T}}
+  .. tab-item:: Link
 
-    % Vectors with subscript.
-    \newcommand{\vxj}{{\vx_j}}
-    \newcommand{\vyi}{{\vy_i}}
-    \newcommand{\vyj}{{\vy_j}}
-    \newcommand{\vzi}{{\vz_i}}
+    論文連結 :footcite:`hochreiter-etal-1997-long`
 
-    % Matrixs with subscripts.
-    \newcommand{\vWii}{{\vW_{i, i}}}
-    \newcommand{\vWij}{{\vW_{i, j}}}
+    .. ================================================================================================================
+    .. Define math macros. We put macros here so that user will not see them loading.
+    .. ================================================================================================================
 
-    % Dimensions.
-    \newcommand{\din}{{d_\opin}}
-    \newcommand{\dhid}{{d_\ophid}}
-    \newcommand{\dout}{{d_\opout}}
-    \newcommand{\dblk}{{d_\opblk}}
-    \newcommand{\nblk}{{n_\opblk}}
+    .. math::
+      :nowrap:
 
-    % Derivative of loss(#2) with respect to net input #1 at time #3.
-    \newcommand{\vth}[2]{{\vartheta_{#1}^{#2}}}
+      \[
+        % Operators.
+        \newcommand{\opblk}{\operatorname{block}}
+        \newcommand{\opig}{\operatorname{ig}}
+        \newcommand{\opin}{\operatorname{in}}
+        \newcommand{\ophid}{\operatorname{hid}}
+        \newcommand{\oplen}{\operatorname{len}}
+        \newcommand{\opnet}{\operatorname{net}}
+        \newcommand{\opog}{\operatorname{og}}
+        \newcommand{\opout}{\operatorname{out}}
+        \newcommand{\opseq}{\operatorname{seq}}
 
-    % Gradient approximation by truncating gradient.
-    \newcommand{\aptr}{\approx_{\operatorname{tr}}}
-  \]
+        % Memory cell blocks.
+        \newcommand{\blk}[1]{{\opblk^{#1}}}
+
+        % Vectors' notations.
+        \newcommand{\vs}{\mathbf{s}}
+        \newcommand{\vsopblk}[1]{\vs^\blk{#1}}
+        \newcommand{\vx}{\mathbf{x}}
+        \newcommand{\vxopout}{\vx^\opout}
+        \newcommand{\vxt}{\tilde{\vx}}
+        \newcommand{\vy}{\mathbf{y}}
+        \newcommand{\vyh}{\hat{\vy}}
+        \newcommand{\vyopblk}[1]{\vy^\blk{#1}}
+        \newcommand{\vyopig}{\vy^\opig}
+        \newcommand{\vyophid}{\vy^\ophid}
+        \newcommand{\vyopog}{\vy^\opog}
+        \newcommand{\vz}{\mathbf{z}}
+        \newcommand{\vzopblk}[1]{\vz^\blk{#1}}
+        \newcommand{\vzopig}{\vz^\opig}
+        \newcommand{\vzophid}{\vz^\ophid}
+        \newcommand{\vzopog}{\vz^\opog}
+        \newcommand{\vzopout}{\vz^\opout}
+
+        % Matrixs' notation.
+        \newcommand{\vW}{\mathbf{W}}
+        \newcommand{\vWopblk}[1]{\vW^\blk{#1}}
+        \newcommand{\vWopig}{\vW^\opig}
+        \newcommand{\vWophid}{\vW^\ophid}
+        \newcommand{\vWopog}{\vW^\opog}
+        \newcommand{\vWopout}{\vW^\opout}
+
+        % Symbols in mathcal.
+        \newcommand{\cL}{\mathcal{L}}
+        \newcommand{\cT}{\mathcal{T}}
+
+        % Vectors with subscript.
+        \newcommand{\vxj}{{\vx_j}}
+        \newcommand{\vyi}{{\vy_i}}
+        \newcommand{\vyj}{{\vy_j}}
+        \newcommand{\vzi}{{\vz_i}}
+
+        % Matrixs with subscripts.
+        \newcommand{\vWii}{{\vW_{i, i}}}
+        \newcommand{\vWij}{{\vW_{i, j}}}
+
+        % Dimensions.
+        \newcommand{\din}{{d_\opin}}
+        \newcommand{\dhid}{{d_\ophid}}
+        \newcommand{\dout}{{d_\opout}}
+        \newcommand{\dblk}{{d_\opblk}}
+        \newcommand{\nblk}{{n_\opblk}}
+
+        % Derivative of loss(#2) with respect to net input #1 at time #3.
+        \newcommand{\vth}[2]{{\vartheta_{#1}^{#2}}}
+
+        % Gradient approximation by truncating gradient.
+        \newcommand{\aptr}{\approx_{\operatorname{tr}}}
+      \]
 
 重點
 ====
