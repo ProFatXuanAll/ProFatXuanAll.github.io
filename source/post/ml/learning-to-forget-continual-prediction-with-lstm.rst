@@ -79,6 +79,7 @@ Learning to Forget: Continual Prediction with LSTM
       \[
         % Operators.
         \newcommand{\opblk}{\operatorname{block}}
+        \newcommand{\opfg}{\operatorname{fg}}
         \newcommand{\opig}{\operatorname{ig}}
         \newcommand{\opin}{\operatorname{in}}
         \newcommand{\oplen}{\operatorname{len}}
@@ -99,10 +100,12 @@ Learning to Forget: Continual Prediction with LSTM
         \newcommand{\vy}{\mathbf{y}}
         \newcommand{\vyh}{\hat{\vy}}
         \newcommand{\vyopblk}[1]{\vy^\blk{#1}}
+        \newcommand{\vyopfg}{\vy^\opfg}
         \newcommand{\vyopig}{\vy^\opig}
         \newcommand{\vyopog}{\vy^\opog}
         \newcommand{\vz}{\mathbf{z}}
         \newcommand{\vzopblk}[1]{\vz^\blk{#1}}
+        \newcommand{\vzopfg}{\vz^\opfg}
         \newcommand{\vzopig}{\vz^\opig}
         \newcommand{\vzopog}{\vz^\opog}
         \newcommand{\vzopout}{\vz^\opout}
@@ -110,6 +113,7 @@ Learning to Forget: Continual Prediction with LSTM
         % Matrixs' notation.
         \newcommand{\vW}{\mathbf{W}}
         \newcommand{\vWopblk}[1]{\vW^\blk{#1}}
+        \newcommand{\vWopfg}{\vW^\opfg}
         \newcommand{\vWopig}{\vW^\opig}
         \newcommand{\vWopog}{\vW^\opog}
         \newcommand{\vWopout}{\vW^\opout}
@@ -202,11 +206,11 @@ Learning to Forget: Continual Prediction with LSTM
   $\providecommand{\wfg}{}$
   $\renewcommand{\wfg}{w^{\opfg}}$
   <!-- Weight of multiplicative input gate. -->
-  $\providecommand{\wig}{}$
-  $\renewcommand{\wig}{w^{\opig}}$
+  $\providecommand{\vWopig}{}$
+  $\renewcommand{\vWopig}{w^{\opig}}$
   <!-- Weight of multiplicative output gate. -->
-  $\providecommand{\wog}{}$
-  $\renewcommand{\wog}{w^{\opog}}$
+  $\providecommand{\vWopog}{}$
+  $\renewcommand{\vWopog}{w^{\opog}}$
   <!-- Weight of cell units. -->
   $\providecommand{\wblk}{}$
   $\renewcommand{\wblk}[1]{w^{\blk{#1}}}$
@@ -523,68 +527,183 @@ Learning to Forget: Continual Prediction with LSTM
 
 由於使用基於 RTRL 的最佳化演算法，因此每個時間點 :math:`t + 1` 計算完誤差後就可以更新參數。
 
-..
-  ### 問題
+問題
+====
 
-  當一個輸入序列中包含多個獨立的子序列（例如一個文章段落有多個句子），則模型無法知道不同獨立子序列的起始點在哪裡（除非有明確的切斷序列演算法，但實際上不一定存在）。
+一個 RNN 模型一次只能處理一個序列，並且假設每個序列有\ **明確的結尾**。
+當一個輸入序列中包含多個斷點，通常會在前處理階段就將該序列切割成多個子序列，並分次處理。
+但如果子序列\ **沒有**\明確的斷點標記，則模型就必須擁有\ **判斷序列斷點**\的能力，並且自動在\ **計算過程中重設計算狀態**。
 
-  [原始 LSTM][LSTM1997] 架構假設任意輸入序列都是由單一獨立序列組成，不會包含多個獨立的序列，因此會在每次序列**輸入時重設模型的計算狀態** $y^{\opig}(0), y^{\opog}(0), s^{\blk{k}}(0), y^{\blk{k}}(0)$，沒有**需要在計算過程中重設計算狀態的需求**。
+原始 LSTM :footcite:`hochreiter-etal-1997-long` 架構假設輸入序列\ **不包含**\多個子序列，因此只會在處理序列\ **前**\重設模型的計算狀態，沒有在計算過程中重設計算狀態的需求。
+但當輸入包含多個子序列，且沒有明確的方法辨識不同子序列的斷點時，LSTM 模型架構會讓計算出問題，主要原因來自於以下公式：
 
-  但當輸入包含多個獨立的子序列時，且沒有明確的方法辨識不同獨立子序列的起始點時，LSTM 模型就必須要擁有能夠在任意時間點 $t$ **重設計算狀態** $y^{\opig}(t), y^{\opog}(t), s^{\blk{k}}(t), y^{\blk{k}}(t)$ 的功能。
+.. math::
+  :nowrap:
 
-  ## forget gate
+  \[
+    \vsopblk{k}(t + 1) \algoEq \vsopblk{k}(t) + \vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1))
+    \tag{6}\label{6}
+  \]
+  \[
+    \vyopblk{k}(t + 1) \algoEq \vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1))
+    \tag{7}\label{7}
+  \]
 
-  ### 模型架構
+因為沒有明確的斷點，所以不會有\ **重設/歸零** memory cell internal states 的動作，因此 memory cell internal states 會透過式子 :math:`\eqref{6}` 不斷累加，朝向\ **極正**\或\ **極負**\值前進。
+極值會導致式子 :math:`\eqref{7}` 內經由 :math:`h` 產生的 activation 為 :math:`2` （極正）或 :math:`-2` （極負），因此式子 :math:`\eqref{7}` 的輸出就會完全取決於 output gate units 的數值，同時也喪失了 memory cells 記憶的用途。
 
-  <a name="paper-fig-1"></a>
+作者提出了幾個可行的方案，但都再自己一一否決：
+
+- 使用 time-delay neural networks，但這代表必須對子序列斷點的長度進行假設，因此不可行
+- 使用 weight decay 限制 memory cell internal states 數值增長的速度，但仍然會走向極值
+- 改變最佳化演算法，沒有解釋原因作者直接說不行，我猜是實驗結論
+- 將 memory cell internal states 乘上一個 decay constants，但這代表多了一個 hyperparameter 要調整，而且實驗結果也顯示效果不好
+
+最後作者基於最後一個提案進行改良，提出了 **forget gate units** 的機制。
+
+Forget Gate Units
+=================
+
+模型架構
+--------
+
+.. figure:: https://i.imgur.com/ILRsaEU.png
+  :alt: 在原始 LSTM 架構上增加 forget gate units
+  :name: paper-fig-1
 
   圖 1：在原始 LSTM 架構上增加 forget gate 。
-  圖片來源：[論文][論文]。
 
-  ![圖 1](https://i.imgur.com/ILRsaEU.png)
+  表格來源：:footcite:`gers-etal-2000-learning`。
 
-  作者提出在模型中加入** forget gate **（**forget gate**），概念是讓** memory cell internal states **能夠進行重設。
+作者提出在模型中加入 **forget gate units**，概念是讓 memory cell internal states 能夠自動進行重設。
+如同 input/output gate units，forget gate units 會初始化成 :math:`\zv`，並透過以下計算更新 forget gate units：
 
-  首先需要計算** forget gate ** $y^{\opfg}(t)$，定義如下
+.. math::
+  :nowrap:
 
-  $$
-  \begin{align*}
-  \tilde{x}(t) & = \begin{pmatrix}
-  x(t) \\
-  y^{\opfg}(t) \\
-  y^{\opig}(t) \\
-  y^{\opog}(t) \\
-  y^{\blk{1}}(t) \\
-  \vdots \\
-  y^{\blk{\nblk}}(t)
-  \end{pmatrix} \\
-  y^{\opfg}(0) & = 0 \\
-  y^{\opfg}(t + 1) & = f^{\opfg}\pa{\opnet^{\opfg}(t + 1) = f^{\opfg}\pa{\wfg \cdot \tilde{x}(t)}}
-  \end{align*} \tag{11}\label{11}
-  $$
+  \[
+    \begin{align*}
+      & \vxt(t) \algoEq \begin{pmatrix}
+                          \vx(t) \\
+                          \vyopfg(t) \\
+                          \vyopig(t) \\
+                          \vyopog(t) \\
+                          \vyopblk{1}(t) \\
+                          \vdots \\
+                          \vyopblk{\nblk}(t)
+                        \end{pmatrix} \\
+      & \vzopfg(t + 1) \algoEq \vWopfg \cdot \vxt(t) \\
+      & \vyopfg(t + 1) \algoEq f^\opfg\qty(\vzopfg(t + 1))
+    \end{align*}
+    \tag{8}\label{8}
+  \]
 
-  計算方法與輸入閘門和輸出閘門相同。
+注意以下幾點連帶的改動：
 
-  而計算過程需要做以下修改
+- :math:`\vxt(t)` 的輸入需要加上 :math:`\vyopfg(t)`
+- 新增了參數 :math:`\vWopfg`，該參數的 input vector shape 為 :math:`\din + \nblk \times (3 + \dblk)`，output vector shape 為 :math:`\nblk`
+- 因為 :math:`\vxt(t)` 做了更動，所以參數 :math:`\vWopig, \vWopog, \vWopblk{k}` 的 input vector shape 都改成 :math:`\din + \nblk \times (3 + \dblk)`
 
-  - $\eqref{1}\eqref{2}$ 中的淨輸入需要加上 $y^{\opfg}(t)$
-  - 參數 $\wig, \wog, \wblk{k}$ 的輸入維度都改成 $\din + \nblk \cdot (3 + \dblk)$
-  - $\wfg$ 的維度與 $\wig$ 完全相同
-  - $f^{\opfg}$ 與 $f^{\opig}$ 的定義完全相同
+.. note::
 
-  所謂的遺忘並不是直接設定成 $0$，而是以乘法閘門的形式進行數值重設，因此 $\eqref{2}$ 的計算改成
+  式子 :math:`\eqref{8}` 就是論文中的 (3.1) 式。
 
-  $$
-  s^{\blk{k}}(t + 1) = y_k^{\opfg}(t + 1) \cdot s^{\blk{k}}(t) + y_k^{\opig}(t + 1) \cdot g(\opnet^{\blk{k}}(t + 1)) \tag{12}\label{12}
-  $$
+由於 forget gate units 的設計出發點是作為 memory cell internal states 的 decay factor，因此作者將式子 :math:`\eqref{6}` 的計算方法改成如下：
 
+.. math::
+  :nowrap:
+
+  \[
+    \vsopblk{k}(t + 1) \algoEq \vyopfg_k(t + 1) \cdot \vsopblk{k}(t) + \vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1))
+    \tag{9}\label{9}
+  \]
+
+- Forget gate units 是以\ **乘法**\參與計算，因此稱為 **multiplicative gate units**
+
+  - Memory cells in the same memory cell block **share** the same forget gate unit
+  - 因此 :math:`\vyopfg_k(t + 1) \cdot \vsopblk{k}` 中的乘法是\ **純量**\乘上\ **向量**
+
+- 模型會在訓練的過程中學習\ **關閉**\與\ **開啟** forget gate units
+
+  - :math:`\vyopfg_k(t + 1) \approx 0` 代表\ **關閉** :math:`t + 1` 時間點的第 :math:`k` 個 forget gate unit，並\ **重設** :math:`\vsopblk{k}` 的計算狀態
+  - :math:`\vyopfg_k(t + 1) \approx 1` 代表\ **開啟** :math:`t + 1` 時間點的第 :math:`k` 個 forget gate unit，並\ **保留** :math:`\vsopblk{k}` 的計算狀態
+  - 全部 :math:`\nblk` 個 forget gate units 不一定要同時關閉或開啟
+
+.. note::
+
+  式子 :math:`\eqref{9}` 就是論文中的 (3.2) 式。
+
+計算定義
+--------
+
+加入 forget gate units 後我重新整理一次 LSTM 的計算定義，如下所示。
+
+.. math::
+  :nowrap:
+
+  \[
+    \begin{align*}
+      & \algoProc{\operatorname{LSTM1997}}(\vx, \vWopfg, \vWopig, \vWopog, \vWopblk{1}, \dots, \vWopblk{\nblk}, \vWopout) \\
+      & \indent{1} \algoCmt{Initialize activations with zeros.} \\
+      & \indent{1} \cT \algoEq \oplen(\vx) \\
+      & \indent{1} \vyopfg(0) \algoEq \zv \\
+      & \indent{1} \vyopig(0) \algoEq \zv \\
+      & \indent{1} \vyopog(0) \algoEq \zv \\
+      & \indent{1} \algoFor{k \in \Set{1, \dots, \nblk}} \\
+      & \indent{2}   \vsopblk{k}(0) \algoEq \zv \\
+      & \indent{2}   \vyopblk{k}(0) \algoEq \zv \\
+      & \indent{1} \algoEndFor \\
+      & \indent{1} \algoCmt{Do forward pass.} \\
+      & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
+      & \indent{2}   \algoCmt{Concatenate input units with activations.} \\
+      & \indent{2}   \vxt(t) \algoEq \begin{pmatrix}
+                                       \vx(t) \\
+                                       \vyopfg(t) \\
+                                       \vyopig(t) \\
+                                       \vyopog(t) \\
+                                       \vyopblk{1}(t) \\
+                                       \vdots \\
+                                       \vyopblk{\nblk}(t)
+                                     \end{pmatrix} \\
+      & \indent{2}   \algoCmt{Compute forget gate units' activations.} \\
+      & \indent{2}   \vzopfg(t + 1) \algoEq \vWopfg \cdot \vxt(t) \\
+      & \indent{2}   \vyopfg(t + 1) \algoEq f^\opfg\qty(\vzopfg(t + 1)) \\
+      & \indent{2}   \algoCmt{Compute input gate units' activations.} \\
+      & \indent{2}   \vzopig(t + 1) \algoEq \vWopig \cdot \vxt(t) \\
+      & \indent{2}   \vyopig(t + 1) \algoEq f^\opig\qty(\vzopig(t + 1)) \\
+      & \indent{2}   \algoCmt{Compute output gate units' activations.} \\
+      & \indent{2}   \vzopog(t + 1) \algoEq \vWopog \cdot \vxt(t) \\
+      & \indent{2}   \vyopog(t + 1) \algoEq f^\opog\qty(\vzopog(t + 1)) \\
+      & \indent{2}   \algoCmt{Compute the k-th memory cell block's activations.} \\
+      & \indent{2}   \algoFor{k \in \Set{1, \dots, \nblk}} \\
+      & \indent{3}     \vzopblk{k}(t + 1) \algoEq \vWopblk{k} \cdot \vxt(t) \\
+      & \indent{3}     \vsopblk{k}(t + 1) \algoEq \vyopfg_k(t + 1) \cdot \vsopblk{k}(t) + \vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1)) \\
+      & \indent{3}     \vyopblk{k}(t + 1) \algoEq \vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1)) \\
+      & \indent{2}   \algoEndFor \\
+      & \indent{2}   \algoCmt{Concatenate input units with new activations.} \\
+      & \indent{2}   \vxopout(t + 1) \algoEq \begin{pmatrix}
+                                               \vx(t) \\
+                                               \vyopblk{1}(t + 1) \\
+                                               \vdots \\
+                                               \vyopblk{\nblk}(t + 1) \\
+                                             \end{pmatrix} \\
+      & \indent{2}   \algoCmt{Compute outputs.} \\
+      & \indent{2}   \vzopout(t + 1) \algoEq \vWopout \cdot \vxopout(t + 1) \\
+      & \indent{2}   \vy(t + 1) \algoEq f^\opout\qty(\vzopout(t + 1)) \\
+      & \indent{1} \algoEndFor \\
+      & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
+      & \algoEndProc
+    \end{align*}
+  \]
+
+..
   ### bias term
 
   如同[原始 LSTM][LSTM1997]，**輸入閘門**與**輸出閘門**可以使用**bias term**（bias term），將bias term初始化成**負數**可以讓輸入閘門與輸出閘門在需要的時候才被啟用（細節可以看[我的筆記][note-LSTM1997]）。
 
-  而 forget gate 也可以使用bias term，但初始化的數值應該為**正數**，理由是在模型計算前期應該要讓 forget gate 開啟（$y^{\opfg} \approx 1$），讓 memory cell internal states 的數值能夠進行改變。
+  而 forget gate 也可以使用bias term，但初始化的數值應該為**正數**，理由是在模型計算前期應該要讓 forget gate 開啟（$\vyopfg \approx 1$），讓 memory cell internal states 的數值能夠進行改變。
 
-  注意 forget gate 只有在**關閉**（$y^{\opfg} \approx 0$）時才能進行遺忘，這個名字取得不是很好。
+  注意 forget gate 只有在**關閉**（$\vyopfg \approx 0$）時才能進行遺忘，這個名字取得不是很好。
 
   ### 最佳化
 
@@ -612,7 +731,7 @@ Learning to Forget: Continual Prediction with LSTM
   & \quad \Bigg(\sum_{j = 1}^{\dblk} \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t + 1) \cdot \dhblk{j}{k}{t + 1} \cdot \\
   & \quad \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_j^{\blk{k}}(t)}{\wfg_{k, q}}  + s_j^{\blk{k}}(t) \cdot \dfnetog{k}{t + 1} \cdot \begin{pmatrix}
   x(t) \\
-  y^{\opfg}(t) \\
+  \vyopfg(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
   y^{\blk{1}}(t) \\
@@ -622,7 +741,7 @@ Learning to Forget: Continual Prediction with LSTM
   \end{align*} \tag{14}\label{14}
   $$
 
-  $\eqref{14}$ 式就是論文的 3.12 式，其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \din + \nblk \cdot (3 + \dblk)$。
+  $\eqref{14}$ 式就是論文的 3.12 式，其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \din + \nblk \times (3 + \dblk)$。
 
   由於 $\eqref{12}$ 的修改，$\eqref{9} \eqref{10}$ 最佳化的過程也需要跟著修改。
 
@@ -630,12 +749,12 @@ Learning to Forget: Continual Prediction with LSTM
 
   $$
   \begin{align*}
-  & \pd{\oploss(t + 1)}{\wig_{k, q}} \\
+  & \pd{\oploss(t + 1)}{\vWopig_{k, q}} \\
   & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \\
   & \quad \Bigg(\sum_{j = 1}^{\dblk} \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot y_k^{\opog}(t + 1) \cdot \dhblk{j}{k}{t + 1} \cdot \\
-  & \quad \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_j^{\blk{k}}(t)}{\wig_{k, q}} + \gnetblk{j}{k}{t + 1} \cdot \dfnetig{k}{t + 1} \cdot \begin{pmatrix}
+  & \quad \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_j^{\blk{k}}(t)}{\vWopig_{k, q}} + \gnetblk{j}{k}{t + 1} \cdot \dfnetig{k}{t + 1} \cdot \begin{pmatrix}
   x(t) \\
-  y^{\opfg}(t) \\
+  \vyopfg(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
   y^{\blk{1}}(t) \\
@@ -645,18 +764,18 @@ Learning to Forget: Continual Prediction with LSTM
   \end{align*} \tag{15}\label{15}
   $$
 
-  $\eqref{14}$ 式就是論文的 3.11 式，其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \din + \nblk \cdot (3 + \dblk)$。
+  $\eqref{14}$ 式就是論文的 3.11 式，其中 $1 \leq k \leq \nblk$ 且 $1 \leq q \leq \din + \nblk \times (3 + \dblk)$。
 
    memory cells 淨輸入參數的剩餘梯度改為
 
   $$
   \begin{align*}
-  & \pd{\oploss(t + 1)}{\wblk{k}_{p, q}} \\
+  & \pd{\oploss(t + 1)}{\vWopblk{k}_{p, q}} \\
   & \aptr \sum_{i = 1}^{\dout} \Bigg[\big(y_i(t + 1) - \hat{y}_i(t + 1)\big) \cdot \dfnetout{i}{t + 1} \cdot \wout_{i, \din + (k - 1) \cdot \dblk + j} \cdot \\
   & \quad y_k^{\opog}(t + 1) \cdot \dhblk{j}{k}{t + 1} \cdot \\
-  & \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_p^{\blk{k}}(t)}{\wblk{k}_{p, q}} + y_k^{\opig}(t + 1) \cdot \dgnetblk{p}{k}{t + 1} \cdot \begin{pmatrix}
+  & \quad \br{y_k^{\opfg}(t + 1) \cdot \pd{s_p^{\blk{k}}(t)}{\vWopblk{k}_{p, q}} + y_k^{\opig}(t + 1) \cdot \dgnetblk{p}{k}{t + 1} \cdot \begin{pmatrix}
   x(t) \\
-  y^{\opfg}(t) \\
+  \vyopfg(t) \\
   y^{\opig}(t) \\
   y^{\opog}(t) \\
   y^{\blk{1}}(t) \\
@@ -666,14 +785,14 @@ Learning to Forget: Continual Prediction with LSTM
   \end{align*} \tag{16}\label{16}
   $$
 
-  $\eqref{14}$ 式就是論文的 3.10 式，其中 $1 \leq k \leq \nblk$， $1 \leq p \leq \dblk$ 且 $1 \leq q \leq \din + \nblk \cdot (3 + \dblk)$。
+  $\eqref{14}$ 式就是論文的 3.10 式，其中 $1 \leq k \leq \nblk$， $1 \leq p \leq \dblk$ 且 $1 \leq q \leq \din + \nblk \times (3 + \dblk)$。
 
   **注意錯誤**：根據論文中的 3.4 式，論文 2.5 式的 $t - 1$ 應該改成 $t$。
 
   根據 $\eqref{14}\eqref{15}\eqref{16}$，當 forget gate $y_k^{\opfg}(t + 1) \approx 0$ （關閉）時，不只 memory cells  $s^{\blk{k}}(t + 1)$ 會重設，與其相關的梯度也會重設，因此更新時需要額外紀錄以下的項次
 
   $$
-  \pd{s_i^{\blk{k}}(t + 1)}{\wfg_{k, q}}, \pd{s_i^{\blk{k}}(t + 1)}{\wig_{k, q}}, \pd{s_i^{\blk{k}}(t + 1)}{\wblk{k}_{p, q}}
+  \pd{s_i^{\blk{k}}(t + 1)}{\wfg_{k, q}}, \pd{s_i^{\blk{k}}(t + 1)}{\vWopig_{k, q}}, \pd{s_i^{\blk{k}}(t + 1)}{\vWopblk{k}_{p, q}}
   $$
 
   同樣的概念在[原始 LSTM][LSTM1997] 中也有出現，細節可以看[我的筆記][note-LSTM1997]。
@@ -716,10 +835,10 @@ Learning to Forget: Continual Prediction with LSTM
   |$\nblk$|$4$||
   |$\dblk$|$2$||
   |$\dout$|$7$||
-  |$\dim(\wblk{k})$|$\dblk \times [\din + \nblk \cdot \dblk]$|訊號來源為外部輸入與 memory cells |
+  |$\dim(\vWopblk{k})$|$\dblk \times [\din + \nblk \cdot \dblk]$|訊號來源為外部輸入與 memory cells |
   |$\dim(\wfg)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
-  |$\dim(\wig)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
-  |$\dim(\wog)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
+  |$\dim(\vWopig)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
+  |$\dim(\vWopog)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
   |$\dim(\wout)$|$\dout \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
   |總參數量|$424$||
   |參數初始化|$[-0.2, 0.2]$|平均分佈|
