@@ -696,18 +696,38 @@ Forget Gate Units
     \end{align*}
   \]
 
+Bias Terms
+----------
+
+原始 LSTM :footcite:`hochreiter-etal-1997-long` 提出對 input/output gate units 使用 **bias terms** 參數並初始化成\ **負數**，如此可以讓 input/output gate units 在需要的時候才被啟用，並同時避免一些 LSTM 計算上的問題（細節可以看\ :doc:`我的筆記 </post/ml/long-short-term-memory>`）。
+而 forget gate units 也可以使用 bias terms，但初始化的數值應該為\ **正數**，理由是在模型計算前期應該要讓 forget gate units **開啟**，讓 memory cell internal states 的數值能夠進行改變。
+注意 forget gate 只有在\ **關閉**\時才能進行狀態重設，這個名字取得不是很好。
+
+.. dropdown:: 推導初始化 forget gate bias 為正數的邏輯
+
+  .. math::
+    :nowrap:
+
+    \[
+      \begin{align*}
+                 & b_k^\opfg \gg 0 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
+        \implies & \vzopfg_k(1) \gg 0 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
+        \implies & \vyopfg_k(1) \approx 1 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
+        \implies & \vyopfg_k(1) \cdot \vsopblk{k}_i(0) \approx \vsopblk{k}_i(0) = 0 \qqtext{where} \begin{dcases}
+                                                                                                     i \in \Set{1, \dots, \dblk} \\
+                                                                                                     k \in \Set{1, \dots, \nblk}
+                                                                                                   \end{dcases} \\
+        \implies & \vsopblk{k}_i(1) = \vyopfg_k(1) \cdot \vsopblk{k}_i(0) + \vyopfg_k(1) \cdot g\qty(\vzopblk{k}_i(1)) \approx \vyopfg_k(1) \cdot g\qty(\vzopblk{k}_i(1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                                           i \in \Set{1, \dots, \dblk} \\
+                                                                                                                                                                                           k \in \Set{1, \dots, \nblk}
+                                                                                                                                                                                         \end{dcases}.
+      \end{align*}
+    \]
+
 ..
-  ### bias term
-
-  如同[原始 LSTM][LSTM1997]，**輸入閘門**與**輸出閘門**可以使用**bias term**（bias term），將bias term初始化成**負數**可以讓輸入閘門與輸出閘門在需要的時候才被啟用（細節可以看[我的筆記][note-LSTM1997]）。
-
-  而 forget gate 也可以使用bias term，但初始化的數值應該為**正數**，理由是在模型計算前期應該要讓 forget gate 開啟（$\vyopfg \approx 1$），讓 memory cell internal states 的數值能夠進行改變。
-
-  注意 forget gate 只有在**關閉**（$\vyopfg \approx 0$）時才能進行遺忘，這個名字取得不是很好。
-
   ### 最佳化
 
-  基於[原始 LSTM][LSTM1997] 的最佳化演算法，將流出 forget gate 的梯度也一起**丟棄**
+  基於原始 LSTM :footcite:`hochreiter-etal-1997-long` 的最佳化演算法，將流出 forget gate 的梯度也一起**丟棄**
 
   $$
   \begin{align*}
@@ -745,7 +765,7 @@ Forget Gate Units
 
   由於 $\eqref{12}$ 的修改，$\eqref{9} \eqref{10}$ 最佳化的過程也需要跟著修改。
 
-  輸入閘門的參數剩餘梯度改為
+  input gate units的參數剩餘梯度改為
 
   $$
   \begin{align*}
@@ -795,7 +815,7 @@ Forget Gate Units
   \pd{s_i^{\blk{k}}(t + 1)}{\wfg_{k, q}}, \pd{s_i^{\blk{k}}(t + 1)}{\vWopig_{k, q}}, \pd{s_i^{\blk{k}}(t + 1)}{\vWopblk{k}_{p, q}}
   $$
 
-  同樣的概念在[原始 LSTM][LSTM1997] 中也有出現，細節可以看[我的筆記][note-LSTM1997]。
+  同樣的概念在[原始 LSTM][LSTM1997] 中也有出現，細節可以看 :doc:`我的筆記 </post/ml/long-short-term-memory>`。
 
   ## 實驗 1：Continual Embedded Reber Grammar
 
@@ -808,7 +828,7 @@ Forget Gate Units
 
   ### 任務定義
 
-  - 根據[原始 LSTM 論文][LSTM1997]中的實驗 1（Embedded Reber Grammar）進行修改，輸入為連續序列，連續序列的定義是由多個 Embedded Reber Grammar 產生的序列組合而成（細節可以看[我的筆記][note-LSTM1997]）
+  - 根據[原始 LSTM 論文][LSTM1997]中的實驗 1（Embedded Reber Grammar）進行修改，輸入為連續序列，連續序列的定義是由多個 Embedded Reber Grammar 產生的序列組合而成（細節可以看 :doc:`我的筆記 </post/ml/long-short-term-memory>`）
   - 每個分支的生成機率值為 $0.5$
   - 當所有輸出單元的平方誤差低於 $0.49$ 時就當成預測正確
   - 在一次的訓練過程中，給予模型的輸入只會在以下兩種狀況之一發生時停止
@@ -842,8 +862,8 @@ Forget Gate Units
   |$\dim(\wout)$|$\dout \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
   |總參數量|$424$||
   |參數初始化|$[-0.2, 0.2]$|平均分佈|
-  |輸入閘門bias term初始化|$\set{-0.5, -1.0, -1.5, -2.0}$|依序初始化成不同數值|
-  |輸出閘門bias term初始化|$\set{-0.5, -1.0, -1.5, -2.0}$|依序初始化成不同數值|
+  |input gate unitsbias term初始化|$\set{-0.5, -1.0, -1.5, -2.0}$|依序初始化成不同數值|
+  |output gate unitsbias term初始化|$\set{-0.5, -1.0, -1.5, -2.0}$|依序初始化成不同數值|
   | forget gate bias term初始化|$\set{0.5, 1.0, 1.5, 2.0}$|依序初始化成不同數值|
   |Learning rate $\alpha$|$0.5$|訓練過程可以固定 $\alpha$，或是以 $0.99$ 的 decay factor 在每次更新後進行衰減|
 
@@ -896,7 +916,7 @@ Forget Gate Units
 
   ### 任務定義
 
-  - 就是[原始 LSTM 論文][LSTM1997]中的實驗 6b，細節可以看[我的筆記][note-LSTM1997]
+  - 就是[原始 LSTM 論文][LSTM1997]中的實驗 6b，細節可以看 :doc:`我的筆記 </post/ml/long-short-term-memory>`
   - 由於此任務需要讓記憶維持一段不短的時間，因此遺忘資訊對於這個任務可能有害，透過這個任務想要驗證是否有任務是只能使用原版 LSTM 可以解決但增加 forget gate 後不能解決
 
   ### LSTM 架構
@@ -941,7 +961,7 @@ Forget Gate Units
   ![圖 8](https://i.imgur.com/VV5wQVG.png)
 
   - [圖 8](#paper-fig-8) 中的註解 a 應該寫錯了，應該改為 correct classification of 100 successive NTO sequences
-  - 實驗再次驗證原版 LSTM 無法解決連續輸入，但使用輸入閘門後就能夠解決問題
+  - 實驗再次驗證原版 LSTM 無法解決連續輸入，但使用input gate units後就能夠解決問題
   - 將 learning rate 使用 decay factor $0.9$ 逐漸下降可以讓模型表現變更好，但作者認為這不重要
 
 .. footbibliography::

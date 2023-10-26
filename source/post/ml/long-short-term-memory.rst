@@ -30,7 +30,7 @@ Long Short-Term Memory
 
 .. meta::
   :description:
-    提出 RNN 模型進行最佳化時遇到的問題，並提出新的模型架構「LSTM」與最佳化演算法「truncated RTRL」嘗試解決
+    提出 RNN 模型進行最佳化時遇到的問題，並提出新的模型架構「LSTM」與最佳化演算法「truncated BPTT + RTRL」嘗試解決
   :keywords:
     BPTT,
     Sequence Model,
@@ -159,7 +159,7 @@ Long Short-Term Memory
 重點
 ====
 
-- 探討 :term:`RNN` 模型進行最佳化時遇到的問題，提出的解決方案為新的模型架構「:term:`LSTM`」與最佳化演算法「truncated RTRL」
+- 探討 :term:`RNN` 模型進行最佳化時遇到的問題，提出的解決方案為新的模型架構「:term:`LSTM`」與最佳化演算法「truncated BPTT + RTRL」
 
   - **梯度爆炸**\（:term:`gradient explosion`）\造成神經網路的\ **參數數值劇烈振盪**\（**oscillating weights**）
   - **梯度消失**\（:term:`gradient vanishing`）\造成\ **訓練時間慢長**
@@ -187,10 +187,11 @@ Long Short-Term Memory
       - Output gate bias 初始化成負數能夠避免模型\ **濫用 memory cells 初始值**
       - 如果沒有 output gate units，則\ **收斂速度會變慢**
 
-- truncated-RTRL 最佳化演算法設計
+- truncated BPTT + RTRL 最佳化演算法設計
 
   - 目標為避免梯度\ **爆炸**\或\ **消失**
-  - 以\ **捨棄計算部份微分**\做為近似全微分的手段，因此只能使用 RTRL 而不能使用 BPTT
+  - 以\ **捨棄計算部份微分**\做為近似全微分的手段，因此稱為 truncated BPTT
+  - 由於不須進行遞迴求得全微分，因此可以使用 RTRL 進行更新
   - Backward pass 演算法的\ **時間複雜度**\說明該最佳化演算法計算上\ **非常有效率**
   - Backward pass 演算法的\ **空間複雜度**\說明該最佳化演算法理論上\ **沒有輸入長度的限制**
 
@@ -989,7 +990,7 @@ LSTM 最佳化
 ===========
 
 過去的論文中提出以\ **修改最佳化過程**\避免 RNN 訓練遇到\ **梯度爆炸 / 消失**\的問題（例如 Truncated BPTT）。
-作者在論文 4.5 節提出\ **最佳化** LSTM 的方法為 **RTRL 的變種**，主要精神如下：
+作者在論文 4.5 節提出\ **最佳化** LSTM 的方法為 **truncated BPTT + RTRL 的變種**，主要精神如下：
 
 - 透過設計模型計算架構確保達成 **CEC** （見 :math:`\eqref{11}`）
 - 最佳化過程必須避免進行\ **遞迴 back propagation**，否則會遇到梯度爆炸 / 消失
