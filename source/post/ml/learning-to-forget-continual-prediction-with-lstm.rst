@@ -145,136 +145,6 @@ Learning to Forget: Continual Prediction with LSTM
         \newcommand{\aptr}{\approx_{\operatorname{tr}}}
       \]
 
-..
-  <!-- Operator in. -->
-  $\providecommand{\opnet}{}$
-  $\renewcommand{\opnet}{\operatorname{net}}$
-  <!-- Operator in. -->
-  $\providecommand{\opin}{}$
-  $\renewcommand{\opin}{\operatorname{in}}$
-  <!-- Operator out. -->
-  $\providecommand{\opout}{}$
-  $\renewcommand{\opout}{\operatorname{out}}$
-  <!-- Operator cell block. -->
-  $\providecommand{\opblk}{}$
-  $\renewcommand{\opblk}{\operatorname{block}}$
-  <!-- Operator cell multiplicative forget gate. -->
-  $\providecommand{\opfg}{}$
-  $\renewcommand{\opfg}{\operatorname{fg}}$
-  <!-- Operator cell multiplicative input gate. -->
-  $\providecommand{\opig}{}$
-  $\renewcommand{\opig}{\operatorname{ig}}$
-  <!-- Operator cell multiplicative output gate. -->
-  $\providecommand{\opog}{}$
-  $\renewcommand{\opog}{\operatorname{og}}$
-  <!-- Operator sequence. -->
-  $\providecommand{\opseq}{}$
-  $\renewcommand{\opseq}{\operatorname{seq}}$
-  <!-- Operator loss. -->
-  $\providecommand{\oploss}{}$
-  $\renewcommand{\oploss}{\operatorname{loss}}$
-
-  <!-- Net input. -->
-  $\providecommand{\net}{}$
-  $\renewcommand{\net}[2]{\opnet_{#1}(#2)}$
-  <!-- Net input with activatiton f. -->
-  $\providecommand{\fnet}{}$
-  $\renewcommand{\fnet}[2]{f_{#1}\big(\net{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input. -->
-  $\providecommand{\dfnet}{}$
-  $\renewcommand{\dfnet}[2]{f_{#1}'\big(\net{#1}{#2}\big)}$
-
-  <!-- Input dimension. -->
-  $\providecommand{\din}{}$
-  $\renewcommand{\din}{d_{\opin}}$
-  <!-- Output dimension. -->
-  $\providecommand{\dout}{}$
-  $\renewcommand{\dout}{d_{\opout}}$
-  <!-- Cell block dimension. -->
-  $\providecommand{\dblk}{}$
-  $\renewcommand{\dblk}{d_{\opblk}}$
-
-  <!-- Number of cell blocks. -->
-  $\providecommand{\nblk}{}$
-  $\renewcommand{\nblk}{n_{\opblk}}$
-
-  <!-- Cell block k. -->
-  $\providecommand{\blk}{}$
-  $\renewcommand{\blk}[1]{\opblk^{#1}}$
-
-  <!-- Weight of multiplicative forget gate. -->
-  $\providecommand{\wfg}{}$
-  $\renewcommand{\wfg}{w^{\opfg}}$
-  <!-- Weight of multiplicative input gate. -->
-  $\providecommand{\vWopig}{}$
-  $\renewcommand{\vWopig}{w^{\opig}}$
-  <!-- Weight of multiplicative output gate. -->
-  $\providecommand{\vWopog}{}$
-  $\renewcommand{\vWopog}{w^{\opog}}$
-  <!-- Weight of cell units. -->
-  $\providecommand{\wblk}{}$
-  $\renewcommand{\wblk}[1]{w^{\blk{#1}}}$
-  <!-- Weight of output units. -->
-  $\providecommand{\wout}{}$
-  $\renewcommand{\wout}{w^{\opout}}$
-
-  <!-- Net input of multiplicative forget gate. -->
-  $\providecommand{\netfg}{}$
-  $\renewcommand{\netfg}[2]{\opnet_{#1}^{\opfg}(#2)}$
-  <!-- Net input of multiplicative forget gate with activatiton f. -->
-  $\providecommand{\fnetfg}{}$
-  $\renewcommand{\fnetfg}[2]{f_{#1}^{\opfg}\big(\netfg{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input of forget gate. -->
-  $\providecommand{\dfnetfg}{}$
-  $\renewcommand{\dfnetfg}[2]{f_{#1}^{\opfg}{'}\big(\netfg{#1}{#2}\big)}$
-  <!-- Net input of multiplicative input gate. -->
-  $\providecommand{\netig}{}$
-  $\renewcommand{\netig}[2]{\opnet_{#1}^{\opig}(#2)}$
-  <!-- Net input of multiplicative input gate with activatiton f. -->
-  $\providecommand{\fnetig}{}$
-  $\renewcommand{\fnetig}[2]{f_{#1}^{\opig}\big(\netig{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input of input gate. -->
-  $\providecommand{\dfnetig}{}$
-  $\renewcommand{\dfnetig}[2]{f_{#1}^{\opig}{'}\big(\netig{#1}{#2}\big)}$
-  <!-- Net input of multiplicative output gate. -->
-  $\providecommand{\netog}{}$
-  $\renewcommand{\netog}[2]{\opnet_{#1}^{\opog}(#2)}$
-  <!-- Net input of multiplicative output gate with activatiton f. -->
-  $\providecommand{\fnetog}{}$
-  $\renewcommand{\fnetog}[2]{f_{#1}^{\opog}\big(\netog{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input of output gate. -->
-  $\providecommand{\dfnetog}{}$
-  $\renewcommand{\dfnetog}[2]{f_{#1}^{\opog}{'}\big(\netog{#1}{#2}\big)}$
-  <!-- Net input of output units. -->
-  $\providecommand{\netout}{}$
-  $\renewcommand{\netout}[2]{\opnet_{#1}^{\opout}(#2)}$
-  <!-- Net input of output units with activatiton f. -->
-  $\providecommand{\fnetout}{}$
-  $\renewcommand{\fnetout}[2]{f_{#1}^{\opout}\big(\netout{#1}{#2}\big)}$
-  <!-- Derivative of f with respect to net input of output units. -->
-  $\providecommand{\dfnetout}{}$
-  $\renewcommand{\dfnetout}[2]{f_{#1}^{\opout}{'}\big(\netout{#1}{#2}\big)}$
-
-  <!-- Net input of cell unit. -->
-  $\providecommand{\netblk}{}$
-  $\renewcommand{\netblk}[3]{\opnet_{#1}^{\blk{#2}}(#3)}$
-  <!-- Net input of cell unit with activatiton g. -->
-  $\providecommand{\gnetblk}{}$
-  $\renewcommand{\gnetblk}[3]{g_{#1}\big(\netblk{#1}{#2}{#3}\big)}$
-  <!-- Derivative of g with respect to net input of cell unit. -->
-  $\providecommand{\dgnetblk}{}$
-  $\renewcommand{\dgnetblk}[3]{g_{#1}'\big(\netblk{#1}{#2}{#3}\big)}$
-  <!-- Cell unit with activatiton h. -->
-  $\providecommand{\hblk}{}$
-  $\renewcommand{\hblk}[3]{h_{#1}\big(s_{#1}^{\blk{#2}}(#3)\big)}$
-  <!-- Derivative of h with respect to cell unit. -->
-  $\providecommand{\dhblk}{}$
-  $\renewcommand{\dhblk}[3]{h_{#1}'\big(s_{#1}^{\blk{#2}}(#3)\big)}$
-
-  <!-- Gradient approximation by truncating gradient. -->
-  $\providecommand{\aptr}{}$
-  $\renewcommand{\aptr}{\approx_{\operatorname{tr}}}$
-
 重點
 ====
 
@@ -1731,94 +1601,124 @@ Bias Terms
     \tag{19}\label{19}
   \]
 
-..
-  ## 實驗 1：Continual Embedded Reber Grammar
+實驗 1：Continual Embedded Reber Grammar
+========================================
 
-  <a name="paper-fig-2"></a>
+.. figure:: https://i.imgur.com/rhHtVRN.png
+  :alt: Continual Embedded Reber Grammar。
+  :name: paper-fig-2
 
   圖 2：Continual Embedded Reber Grammar。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`gers-etal-2000-learning`。
 
-  ![圖 2](https://i.imgur.com/rhHtVRN.png)
+任務定義
+--------
 
-  ### 任務定義
+- 根據原始 LSTM 論文 :footcite:`hochreiter-etal-1997-long` 中的實驗 1（Embedded Reber Grammar）進行修改，輸入為連續序列，連續序列的定義是由多個 Embedded Reber Grammar 產生的序列組合而成（細節可以看\ :doc:`我的筆記 </post/ml/long-short-term-memory>`）
+- 每個分支的生成機率值為 :math:`0.5`
+- 當所有輸出單元的平方誤差低於 :math:`0.49` 時就當成預測正確
+- 在一次的訓練過程中，給予模型的輸入只會在以下兩種狀況之一發生時停止
 
-  - 根據[原始 LSTM 論文][LSTM1997]中的實驗 1（Embedded Reber Grammar）進行修改，輸入為連續序列，連續序列的定義是由多個 Embedded Reber Grammar 產生的序列組合而成（細節可以看 :doc:`我的筆記 </post/ml/long-short-term-memory>`）
-  - 每個分支的生成機率值為 $0.5$
-  - 當所有輸出單元的平方誤差低於 $0.49$ 時就當成預測正確
-  - 在一次的訓練過程中，給予模型的輸入只會在以下兩種狀況之一發生時停止
-    - 當模型產生一次的預測錯誤
-    - 模型連續接收 $10^6$ 個輸入
-  - 每次訓練停止就進行一次測試
-    - 一次測試會執行 $10$ 次的連續輸入
-    - 評估結果是 $10$ 次連續輸入的平均值
-  - 每輸入一個訊號就進行更新（RTRL）
-  - 訓練最多執行 $30000$ 次，實驗結果由 $100$ 個訓練模型實驗進行平均
+  - 當模型產生一次的預測錯誤
+  - 模型連續接收 :math:`10^6` 個輸入
 
-  ### LSTM 架構
+- 每次訓練停止就進行一次測試
 
-  <a name="paper-fig-3"></a>
+  - 一次測試會執行 :math:`10` 次的連續輸入
+  - 評估結果是 :math:`10` 次連續輸入的平均值
+
+- 每輸入一個訊號就進行更新（RTRL）
+- 訓練最多執行 :math:`30000` 次，實驗結果由 :math:`100` 個訓練模型實驗進行平均
+
+LSTM 架構
+---------
+
+.. figure:: https://i.imgur.com/uUJjmSz.png
+  :alt: LSTM 架構。
+  :name: paper-fig-3
 
   圖 3：LSTM 架構。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`gers-etal-2000-learning`。
 
-  ![圖 3](https://i.imgur.com/uUJjmSz.png)
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| Hyperparameters                       | Value or Range                                              | Notes                                                                          |
++=======================================+=============================================================+================================================================================+
+| :math:`\din`                          | :math:`7`                                                   |                                                                                |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dblk`                         | :math:`2`                                                   |                                                                                |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\nblk`                         | :math:`4`                                                   | Author believes that we actually only need :math:`\nblk = 1`.                  |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dout`                         | :math:`7`                                                   | Output can only be :math:`x` or :math:`y`.                                     |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dim(\vWopblk{k})`             | :math:`\dblk \times (\din + \nblk \times (3 + \dblk) + 1)`  | Fully-connected layer, used bias term on memory cell blocks.                   |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dim(\vWopfg)`                 | :math:`\nblk \times (\din + \nblk \times (3 + \dblk) + 1)`  | Fully-connected layer, used bias term on forget gate units.                    |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dim(\vWopig)`                 | :math:`\nblk \times (\din + \nblk \times (3 + \dblk) + 1)`  | Fully-connected layer, used bias term on input gate units.                     |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dim(\vWopog)`                 | :math:`\nblk \times (\din + \nblk \times (3 + \dblk) + 1)`  | Fully-connected layer, used bias term on output gate units.                    |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dim(\vWopout)`                | :math:`\dout \times (\nblk \times \dblk)`                   | Input units are not directly connected to output units.                        |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| Total number of parameters            | :math:`424`                                                 |                                                                                |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| Weight initalization range            | :math:`[-0.2, 0.2]`                                         |                                                                                |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| Forget gate bias initialization range | :math:`\Set{0.5, 1.0, 1.5, 2.0}`                            | Different forget gate biases were initialized with different values.           |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| Input gate bias initialization range  | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`                        | Different input gate biases were initialized with different values.            |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| Output gate bias initialization range | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`                        | Different output gate biases were initialized with different values.           |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
+| Learning rate                         | :math:`0.5`                                                 | Either fix learning rate or decay with factor :math:`0.99` after every update. |
++---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
 
-  |參數|數值（或範圍）|備註|
-  |-|-|-|
-  |$\din$|$7$||
-  |$\nblk$|$4$||
-  |$\dblk$|$2$||
-  |$\dout$|$7$||
-  |$\dim(\vWopblk{k})$|$\dblk \times [\din + \nblk \cdot \dblk]$|訊號來源為外部輸入與 memory cells |
-  |$\dim(\wfg)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
-  |$\dim(\vWopig)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
-  |$\dim(\vWopog)$|$\nblk \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
-  |$\dim(\wout)$|$\dout \times [\din + \nblk \cdot \dblk + 1]$|訊號來源為外部輸入與 memory cells ，有額外使用bias term|
-  |總參數量|$424$||
-  |參數初始化|$[-0.2, 0.2]$|平均分佈|
-  |input gate unitsbias term初始化|$\set{-0.5, -1.0, -1.5, -2.0}$|依序初始化成不同數值|
-  |output gate unitsbias term初始化|$\set{-0.5, -1.0, -1.5, -2.0}$|依序初始化成不同數值|
-  | forget gate bias term初始化|$\set{0.5, 1.0, 1.5, 2.0}$|依序初始化成不同數值|
-  |Learning rate $\alpha$|$0.5$|訓練過程可以固定 $\alpha$，或是以 $0.99$ 的 decay factor 在每次更新後進行衰減|
+實驗結果
+--------
 
-  ### 實驗結果
-
-  <a name="paper-fig-4"></a>
+.. figure:: https://i.imgur.com/uu9Nccj.png
+  :alt: Continual Embedded Reber Grammar 實驗結果。
+  :name: paper-fig-4
 
   圖 4：Continual Embedded Reber Grammar 實驗結果。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`gers-etal-2000-learning`。
 
-  ![圖 4](https://i.imgur.com/uu9Nccj.png)
+- 原始 LSTM :footcite:`hochreiter-etal-1997-long` 在有手動進行計算狀態的重置時表現非常好，但當沒有手動重置時完全無法執行任務
 
-  - [原始 LSTM][LSTM1997] 在有手動進行計算狀態的重置時表現非常好，但當沒有手動重置時完全無法執行任務
-    - 就算讓 memory cell internal states 進行 decay 也無濟於事
-  - 使用 forget gate 的 LSTM 不需要手動重置計算狀態也能達成完美預測
-    - 完美預測指的是連續 $10^6$ 輸入都預測正確
-  - 有嘗試使用 $\alpha / t$ 或 $\alpha / \sqrt{T}$ 作為 learning rate，實驗發現不論是哪種最佳化的方法使用 forget gate 的 LSTM 都表現的不錯
-    - 在其他模型架構上（包含原版 LSTM）就算使用這些最佳化演算法也無法解決任務
-  - 額外實驗在將 Embedded Reber Grammar 開頭的 `B` 與結尾的 `E` 去除的狀態下，使用 forget gate 的 LSTM 仍然表現不錯
+  - 就算讓 memory cell internal states 進行 decay 也無濟於事
 
+- 使用 forget gate 的 LSTM 不需要手動重置計算狀態也能達成完美預測
+
+  - 完美預測指的是連續 :math:`10^6` 輸入都預測正確
+
+- 有嘗試使用 :math:`\alpha / t` 或 :math:`\alpha / \sqrt{T}` 作為 learning rate，實驗發現不論是哪種最佳化的方法使用 forget gate 的 LSTM 都表現的不錯
+
+  - 在其他模型架構上（包含原版 LSTM）就算使用這些最佳化演算法也無法解決任務
+
+- 額外實驗在將 Embedded Reber Grammar 開頭的 ``B`` 與結尾的 ``E`` 去除的狀態下，使用 forget gate 的 LSTM 仍然表現不錯
+
+..
   ### 分析
 
   <a name="paper-fig-5"></a>
 
   圖 5：[原版 LSTM][LSTM1997]  memory cell internal states 的累加值。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`gers-etal-2000-learning`。
 
   ![圖 5](https://i.imgur.com/qwU4pnG.png)
 
   <a name="paper-fig-6"></a>
 
   圖 6：LSTM 加上 forget gate 後第三個 memory cell internal states 。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`gers-etal-2000-learning`。
 
   ![圖 6](https://i.imgur.com/jtLnfu2.png)
 
   <a name="paper-fig-7"></a>
 
   圖 7：LSTM 加上 forget gate 後第一個 memory cell internal states 。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`gers-etal-2000-learning`。
 
   ![圖 7](https://i.imgur.com/K1mp9rg.png)
 
@@ -1838,29 +1738,29 @@ Bias Terms
 
   與實驗 1 大致相同，只做以下修改
 
-  - $\din = \dout = 8$
-  - 將 forget gate 的bias term初始化成較大的正數（論文使用 $5$），讓 forget gate 很難被關閉，藉此達到跟原本 LSTM 幾乎相同的計算能力
+  - :math:`\din = \dout = 8`
+  - 將 forget gate 的bias term初始化成較大的正數（論文使用 :math:`5`），讓 forget gate 很難被關閉，藉此達到跟原本 LSTM 幾乎相同的計算能力
 
   ### 實驗結果
 
   - 使用 forget gate 的 LSTM 仍然能夠解決 Noisy Temporal Order Problem
-    - 當bias term初始化成較大的正數（例如 $5$）時，收斂速度與原版 LSTM 一樣快
-    - 當bias term初始化成較小的正數（例如 $1$）時，收斂速度約為原版 LSTM 的 $3$ 倍
+    - 當bias term初始化成較大的正數（例如 :math:`5`）時，收斂速度與原版 LSTM 一樣快
+    - 當bias term初始化成較小的正數（例如 :math:`1`）時，收斂速度約為原版 LSTM 的 :math:`3` 倍
   - 因此根據實驗沒有什麼任務是原版 LSTM 可以解決但加上 forget gate 後不能解決的
 
   ## 實驗 3：Continual Noisy Temporal Order Problem
 
   ### 任務定義
 
-  - 根據[原始 LSTM 論文][LSTM1997]中的實驗 6b 進行修改，輸入為連續序列，連續序列的定義是由 $100$ 筆 Noisy Temporal Order 序列所組成
+  - 根據[原始 LSTM 論文][LSTM1997]中的實驗 6b 進行修改，輸入為連續序列，連續序列的定義是由 :math:`100` 筆 Noisy Temporal Order 序列所組成
   - 在一次的訓練過程中，給予模型的輸入只會在以下兩種狀況之一發生時停止
     - 當模型產生一次的預測錯誤
-    - 模型連續接收 $100$ 個 Noisy Temporal Order 序列
+    - 模型連續接收 :math:`100` 個 Noisy Temporal Order 序列
   - 每次訓練停止就進行一次測試
-    - 一次測試會執行 $10$ 次的連續輸入
-    - 評估結果是 $10$ 次連續輸入中預測正確的序列個數平均值
-  - 論文沒有講怎麼計算誤差與更新，我猜變成每個非預測時間點必須輸出 $0$，預測時間點時輸出預測結果
-  - 訓練最多執行 $10^5$ 次，實驗結果由 $100$ 個訓練模型實驗進行平均
+    - 一次測試會執行 :math:`10` 次的連續輸入
+    - 評估結果是 :math:`10` 次連續輸入中預測正確的序列個數平均值
+  - 論文沒有講怎麼計算誤差與更新，我猜變成每個非預測時間點必須輸出 :math:`0`，預測時間點時輸出預測結果
+  - 訓練最多執行 :math:`10^5` 次，實驗結果由 :math:`100` 個訓練模型實驗進行平均
 
   ### LSTM 架構
 
@@ -1871,13 +1771,13 @@ Bias Terms
   <a name="paper-fig-8"></a>
 
   圖 8：Continual Noisy Temporal Order Problem 實驗結果。
-  圖片來源：[論文][論文]。
+  圖片來源：:footcite:`gers-etal-2000-learning`。
 
   ![圖 8](https://i.imgur.com/VV5wQVG.png)
 
   - [圖 8](#paper-fig-8) 中的註解 a 應該寫錯了，應該改為 correct classification of 100 successive NTO sequences
   - 實驗再次驗證原版 LSTM 無法解決連續輸入，但使用input gate units後就能夠解決問題
-  - 將 learning rate 使用 decay factor $0.9$ 逐漸下降可以讓模型表現變更好，但作者認為這不重要
+  - 將 learning rate 使用 decay factor :math:`0.9` 逐漸下降可以讓模型表現變更好，但作者認為這不重要
 
 .. footbibliography::
 
