@@ -1443,7 +1443,7 @@ LSTM 最佳化
 
     \[
       \begin{align*}
-        \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \dv{\vzopog_k(t + 1)}{\vWopig_{p, q}} \\
+        \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \dv{\vzopog_k(t + 1)}{\vWopog_{p, q}} \\
                                               & = {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \dhid + \nblk \times (2 + \dblk)} \qty[\vWopog_{k, j} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}]] \\
                                               & \qqtext{where} \begin{dcases}
                                                                  k \in \Set{1, \dots, \nblk} \\
@@ -1886,24 +1886,29 @@ LSTM 最佳化
     \begin{align*}
       \vWopout_{p, q}    & \algoEq \vWopout_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopout_{p, q}} \qqtext{where} \begin{dcases}
                                                                                                                                           p \in \Set{1, \dots, \dout} \\
-                                                                                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk}
+                                                                                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times \dblk} \\
+                                                                                                                                          t \in \Set{0, \dots, \cT - 1}
                                                                                                                                         \end{dcases}. \\
       \vWophid_{p, q}    & \algoEq \vWophid_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWophid_{p, q}} \qqtext{where} \begin{dcases}
                                                                                                                                           p \in \Set{1, \dots, \dhid} \\
-                                                                                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                                                                                          q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                          t \in \Set{0, \dots, \cT - 1}
                                                                                                                                         \end{dcases}. \\
       \vWopog_{p, q}     & \algoEq \vWopog_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopog_{p, q}} \qqtext{where} \begin{dcases}
                                                                                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                                                                                        q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                                                                                        q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                        t \in \Set{0, \dots, \cT - 1}
                                                                                                                                       \end{dcases}. \\
       \vWopig_{p, q}     & \algoEq \vWopig_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopig_{p, q}} \qqtext{where} \begin{dcases}
                                                                                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                                                                                        q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                                                                                        q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                        t \in \Set{0, \dots, \cT - 1}
                                                                                                                                       \end{dcases}. \\
       \vWopblk{k}_{p, q} & \algoEq \vWopblk{k}_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopblk{k}_{p, q}} \qqtext{where} \begin{dcases}
                                                                                                                                                 k \in \Set{1, \dots, \nblk} \\
                                                                                                                                                 p \in \Set{1, \dots, \dblk} \\
-                                                                                                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)}
+                                                                                                                                                q \in \Set{1, \dots, \din + \dhid + \nblk \times (2 + \dblk)} \\
+                                                                                                                                                t \in \Set{0, \dots, \cT - 1}
                                                                                                                                               \end{dcases}.
     \end{align*}
     \tag{19}\label{19}
