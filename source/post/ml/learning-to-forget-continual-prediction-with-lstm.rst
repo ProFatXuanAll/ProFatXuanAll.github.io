@@ -1616,16 +1616,19 @@ Bias Terms
 
 - 根據原始 LSTM 論文 :footcite:`hochreiter-etal-1997-long` 中的實驗 1（Embedded Reber Grammar）進行修改，輸入為連續序列，連續序列的定義是由多個 Embedded Reber Grammar 產生的序列組合而成（細節可以看\ :doc:`我的筆記 </post/ml/long-short-term-memory>`）
 - 每個分支的生成機率值為 :math:`0.5`
-- 當所有輸出單元的平方誤差低於 :math:`0.49` 時就當成預測正確
-- 在一次的訓練過程中，給予模型的輸入只會在以下兩種狀況之一發生時停止
 
-  - 當模型產生一次的預測錯誤
-  - 模型連續接收 :math:`10^6` 個輸入
+  - 生成序列的 minimal time lag 為 :math:`7`，由於可生成任意長度，因此 time lag 沒有上界
+  - 作者有額外描述生成序列的屬性，例如生成序列長度的期望值為 :math:`11.5`，推導來源應該是作者的其他論文
 
-- 每次訓練停止就進行一次測試
+- 當所有輸出單元的 MSE 低於 :math:`0.49` 時就當成預測正確
+- 一個 input stream 由 :math:`10^5` 個輸入組成，當模型產生一個輸出的預測錯誤時就停止當前的 input stream
+- 每次 training 停止就進行一次 test
 
-  - 一次測試會執行 :math:`10` 次的連續輸入
-  - 評估結果是 :math:`10` 次連續輸入的平均值
+  - 一次 training 會給予 :math:`1` 個 training stream
+  - 一次 test 會給予 :math:`10` 個 test stream
+  - 當模型連續預測 :math:`10^6` 個結果稱為 perfect solution
+  - 當模型在 :math:`10` 個 test stream 上平均連續成功預測 :math:`\gt 1000` 個結果稱為 good solution
+  - 當模型在 :math:`10` 個 test stream 上平均連續成功預測 :math:`\le 1000` 個結果稱為 bad solution
 
 - 每輸入一個訊號就進行更新（RTRL）
 - 訓練最多執行 :math:`30000` 次，實驗結果由 :math:`100` 個訓練模型實驗進行平均
@@ -1643,35 +1646,37 @@ LSTM 架構
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
 | Hyperparameters                       | Value or Range                                              | Notes                                                                          |
 +=======================================+=============================================================+================================================================================+
-| :math:`\din`                          | :math:`7`                                                   |                                                                                |
+| :math:`\din`                          | :math:`7`                                                   | ``BEPSTVX``                                                                    |
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
 | :math:`\dblk`                         | :math:`2`                                                   |                                                                                |
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\nblk`                         | :math:`4`                                                   | Author believes that we actually only need :math:`\nblk = 1`.                  |
+| :math:`\nblk`                         | :math:`4`                                                   |                                                                                |
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dout`                         | :math:`7`                                                   | Output can only be :math:`x` or :math:`y`.                                     |
+| :math:`\dout`                         | :math:`7`                                                   | ``BEPSTVX``                                                                    |
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dim(\vWopblk{k})`             | :math:`\dblk \times (\din + \nblk \times (3 + \dblk) + 1)`  | Fully-connected layer, used bias term on memory cell blocks.                   |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dim(\vWopfg)`                 | :math:`\nblk \times (\din + \nblk \times (3 + \dblk) + 1)`  | Fully-connected layer, used bias term on forget gate units.                    |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dim(\vWopig)`                 | :math:`\nblk \times (\din + \nblk \times (3 + \dblk) + 1)`  | Fully-connected layer, used bias term on input gate units.                     |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dim(\vWopog)`                 | :math:`\nblk \times (\din + \nblk \times (3 + \dblk) + 1)`  | Fully-connected layer, used bias term on output gate units.                    |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dim(\vWopout)`                | :math:`\dout \times (\nblk \times \dblk)`                   | Input units are not directly connected to output units.                        |
+| :math:`\dim(\vWopblk{k})`             | :math:`\dblk \times (\din + \nblk \times \dblk)`            | The seven input units are fully connected to a hidden layer consisting of four |
++---------------------------------------+-------------------------------------------------------------+ memory blocks with 2 cells each (8 cells and 12 gates in total). The cell      |
+| :math:`\dim(\vWopfg)`                 | :math:`\nblk \times (\din + \nblk \times \dblk + 1)`        | outputs are fully connected to the cell inputs, all gates, and the seven       |
++---------------------------------------+-------------------------------------------------------------+ output units. The output units have additional "shortcut" connection from the  |
+| :math:`\dim(\vWopig)`                 | :math:`\nblk \times (\din + \nblk \times \dblk + 1)`        | input units (see Figure 3). All gates and output units are biased.             |
++---------------------------------------+-------------------------------------------------------------+                                                                                |
+| :math:`\dim(\vWopog)`                 | :math:`\nblk \times (\din + \nblk \times \dblk + 1)`        |                                                                                |
++---------------------------------------+-------------------------------------------------------------+                                                                                |
+| :math:`\dim(\vWopout)`                | :math:`\dout \times (\din + \nblk \times \dblk + 1)`        |                                                                                |
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
 | Total number of parameters            | :math:`424`                                                 |                                                                                |
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Weight initalization range            | :math:`[-0.2, 0.2]`                                         |                                                                                |
+| Weight initalization range            | :math:`[-0.2, 0.2]`                                         | Bias weights to input and output gates are initialized blockwise: :math:`-0.5` |
++---------------------------------------+-------------------------------------------------------------+ for the first block, :math:`-1.0` for the second, :math:`-1.5` for the third,  |
+| Forget gate bias initialization range | :math:`\Set{0.5, 1.0, 1.5, 2.0}`                            | and so forth. ... Forget gates are initialized with symmetric positive values: |
++---------------------------------------+-------------------------------------------------------------+ :math:`+0.5` for the first block, :math:`+1` for the second block, and so on.  |
+| Input gate bias initialization range  | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`                        | Precise bias initialization is not critical, though; other values work just as |
++---------------------------------------+-------------------------------------------------------------+ well. All other weights including the output bias are initialized randomly in  |
+| Output gate bias initialization range | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`                        | the range :math:`[-0.2, 0.2]`.                                                 |
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Forget gate bias initialization range | :math:`\Set{0.5, 1.0, 1.5, 2.0}`                            | Different forget gate biases were initialized with different values.           |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Input gate bias initialization range  | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`                        | Different input gate biases were initialized with different values.            |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Output gate bias initialization range | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`                        | Different output gate biases were initialized with different values.           |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Learning rate                         | :math:`0.5`                                                 | Either fix learning rate or decay with factor :math:`0.99` after every update. |
+| Learning rate                         | :math:`0.5`                                                 | At the beginning of each training stream, the learning rate :math:`\alpha` is  |
+|                                       |                                                             | initialized with :math:`0.5`. It either remains fixed or decays by a factor of |
+|                                       |                                                             | :math:`0.99` per time step (LSTM with :math:`\alpha`-decay).                   |
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
 
 實驗結果
@@ -1685,18 +1690,14 @@ LSTM 架構
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
 - 原始 LSTM :footcite:`hochreiter-etal-1997-long` 在有手動進行計算狀態的重置時表現非常好，但當沒有手動重置時完全無法執行任務
+- 對 memory cell internal states 乘上 decay factor 也無濟於事（見 LSTM with state decay），作者嘗試了各種不同數值的 decay factor 並報告最好結果，但仍然表現很差
+- 使用 forget gate units 的 LSTM 不需要手動重置計算狀態也能達成 perfect solution
+- 嘗試使用不同的 learning rate decay 發現可以讓模型效果變好
+- 額外實驗：
 
-  - 就算讓 memory cell internal states 進行 decay 也無濟於事
-
-- 使用 forget gate 的 LSTM 不需要手動重置計算狀態也能達成完美預測
-
-  - 完美預測指的是連續 :math:`10^6` 輸入都預測正確
-
-- 有嘗試使用 :math:`\alpha / t` 或 :math:`\alpha / \sqrt{T}` 作為 learning rate，實驗發現不論是哪種最佳化的方法使用 forget gate 的 LSTM 都表現的不錯
-
-  - 在其他模型架構上（包含原版 LSTM）就算使用這些最佳化演算法也無法解決任務
-
-- 額外實驗在將 Embedded Reber Grammar 開頭的 ``B`` 與結尾的 ``E`` 去除的狀態下，使用 forget gate 的 LSTM 仍然表現不錯
+  - 將 Embedded Reber Grammar 開頭的 ``B`` 與結尾的 ``E`` 去除
+  - 因為沒有了開頭與結尾的輸入提示，模型變得更難判斷一個序列的斷點
+  - 實驗證實使用 forget gate units 的 LSTM 仍然可以達成 perfect solution，只是達成的比例下降
 
 ..
   ### 分析
