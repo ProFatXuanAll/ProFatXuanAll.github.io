@@ -78,7 +78,7 @@ Learning to Forget: Continual Prediction with LSTM
 
       \[
         % Operators.
-        \newcommand{\opblk}{\operatorname{block}}
+        \newcommand{\opbk}{\operatorname{bk}}
         \newcommand{\opfg}{\operatorname{fg}}
         \newcommand{\opig}{\operatorname{ig}}
         \newcommand{\opin}{\operatorname{in}}
@@ -87,34 +87,34 @@ Learning to Forget: Continual Prediction with LSTM
         \newcommand{\opout}{\operatorname{out}}
 
         % Memory cell blocks.
-        \newcommand{\blk}[1]{{\opblk^{#1}}}
+        \newcommand{\bk}[1]{{\opbk^{#1}}}
 
         % Vectors' notations.
-        \newcommand{\vs}{\mathbf{s}}
-        \newcommand{\vsopblk}[1]{\vs^\blk{#1}}
-        \newcommand{\vx}{\mathbf{x}}
-        \newcommand{\vxopout}{\vx^\opout}
-        \newcommand{\vxt}{\tilde{\vx}}
-        \newcommand{\vy}{\mathbf{y}}
-        \newcommand{\vyh}{\hat{\vy}}
-        \newcommand{\vyopblk}[1]{\vy^\blk{#1}}
-        \newcommand{\vyopfg}{\vy^\opfg}
-        \newcommand{\vyopig}{\vy^\opig}
-        \newcommand{\vyopog}{\vy^\opog}
-        \newcommand{\vz}{\mathbf{z}}
-        \newcommand{\vzopblk}[1]{\vz^\blk{#1}}
-        \newcommand{\vzopfg}{\vz^\opfg}
-        \newcommand{\vzopig}{\vz^\opig}
-        \newcommand{\vzopog}{\vz^\opog}
-        \newcommand{\vzopout}{\vz^\opout}
+        \newcommand{\s}{\mathbf{s}}
+        \newcommand{\sbk}[1]{\s^\bk{#1}}
+        \newcommand{\x}{\mathbf{x}}
+        \newcommand{\xout}{\x^\opout}
+        \newcommand{\xt}{\tilde{\x}}
+        \newcommand{\y}{\mathbf{y}}
+        \newcommand{\yh}{\hat{\y}}
+        \newcommand{\ybk}[1]{\y^\bk{#1}}
+        \newcommand{\yfg}{\y^\opfg}
+        \newcommand{\yig}{\y^\opig}
+        \newcommand{\yog}{\y^\opog}
+        \newcommand{\z}{\mathbf{z}}
+        \newcommand{\zbk}[1]{\z^\bk{#1}}
+        \newcommand{\zfg}{\z^\opfg}
+        \newcommand{\zig}{\z^\opig}
+        \newcommand{\zog}{\z^\opog}
+        \newcommand{\zout}{\z^\opout}
 
         % Matrixs' notation.
-        \newcommand{\vW}{\mathbf{W}}
-        \newcommand{\vWopblk}[1]{\vW^\blk{#1}}
-        \newcommand{\vWopfg}{\vW^\opfg}
-        \newcommand{\vWopig}{\vW^\opig}
-        \newcommand{\vWopog}{\vW^\opog}
-        \newcommand{\vWopout}{\vW^\opout}
+        \newcommand{\W}{\mathbf{W}}
+        \newcommand{\Wbk}[1]{\W^\bk{#1}}
+        \newcommand{\Wfg}{\W^\opfg}
+        \newcommand{\Wig}{\W^\opig}
+        \newcommand{\Wog}{\W^\opog}
+        \newcommand{\Wout}{\W^\opout}
 
         % Symbols in mathcal.
         \newcommand{\cL}{\mathcal{L}}
@@ -123,8 +123,8 @@ Learning to Forget: Continual Prediction with LSTM
         % Dimensions.
         \newcommand{\din}{{d_\opin}}
         \newcommand{\dout}{{d_\opout}}
-        \newcommand{\dblk}{{d_\opblk}}
-        \newcommand{\nblk}{{n_\opblk}}
+        \newcommand{\dbk}{{d_\opbk}}
+        \newcommand{\nbk}{{n_\opbk}}
 
         % Gradient approximation by truncating gradient.
         \newcommand{\aptr}{\approx_{\operatorname{tr}}}
@@ -157,37 +157,37 @@ Learning to Forget: Continual Prediction with LSTM
 
 我使用的符號與論文不同，我的符號定義請參考\ :doc:`我的筆記 </post/ml/long-short-term-memory>`。
 
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| Symbol                 | Meaning                                                                                           | Value Range          |
-+========================+===================================================================================================+======================+
-| :math:`\dblk`          | Number of memory cells in each memory cell block at time step :math:`t`.                          | :math:`\Z^+`         |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`\nblk`          | Number of memory cell blocks at time step :math:`t`.                                              | :math:`\Z^+`         |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`\vx(t)`         | LSTM input at time step :math:`t`.                                                                | :math:`\R^\din`      |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`\vyopig(t)`     | Input gate units at time step :math:`t`.                                                          | :math:`[0, 1]^\nblk` |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`\vyopog(t)`     | Output gate units at time step :math:`t`.                                                         | :math:`[0, 1]^\nblk` |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`\vyopblk{k}(t)` | Output of the :math:`k`-th memory cell block at time step :math:`t`.                              | :math:`\R^\dblk`     |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`\vsopblk{k}(t)` | Internal states of the :math:`k`-th memory cell block at time step :math:`t`.                     | :math:`\R^\dblk`     |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`\vy(t)`         | LSTM output at time step :math:`t`.                                                               | :math:`\R^\dout`     |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`\sigma`         | Sigmoid function.                                                                                 | :math:`[0, 1]`       |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`f^\opig`        | Activation function for input gate units, set to :math:`\sigma` in this paper.                    | :math:`[0, 1]`       |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`f^\opog`        | Activation function for output gate units, set to :math:`\sigma` in this paper.                   | :math:`[0, 1]`       |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`f^\opout`       | Activation function for output units, set to :math:`\sigma` in this paper.                        | :math:`[0, 1]`       |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`g`              | Activation function for memory cells, set to :math:`4 \sigma - 2` in this paper.                  | :math:`[-2, 2]`      |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
-| :math:`h`              | Activation function for memory cell block activations, set to :math:`2 \sigma - 1` in this paper. | :math:`[-1, 1]`      |
-+------------------------+---------------------------------------------------------------------------------------------------+----------------------+
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| Symbol             | Meaning                                                                                           | Value Range         |
++====================+===================================================================================================+=====================+
+| :math:`\dbk`       | Number of memory cells in each memory cell block at time step :math:`t`.                          | :math:`\Z^+`        |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\nbk`       | Number of memory cell blocks at time step :math:`t`.                                              | :math:`\Z^+`        |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\x(t)`      | LSTM input at time step :math:`t`.                                                                | :math:`\R^\din`     |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\yig(t)`    | Input gate units at time step :math:`t`.                                                          | :math:`[0, 1]^\nbk` |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\yog(t)`    | Output gate units at time step :math:`t`.                                                         | :math:`[0, 1]^\nbk` |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\ybk{k}(t)` | Output of the :math:`k`-th memory cell block at time step :math:`t`.                              | :math:`\R^\dbk`     |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\sbk{k}(t)` | Internal states of the :math:`k`-th memory cell block at time step :math:`t`.                     | :math:`\R^\dbk`     |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\y(t)`      | LSTM output at time step :math:`t`.                                                               | :math:`\R^\dout`    |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\sigma`     | Sigmoid function.                                                                                 | :math:`[0, 1]`      |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`f^\opig`    | Activation function for input gate units, set to :math:`\sigma` in this paper.                    | :math:`[0, 1]`      |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`f^\opog`    | Activation function for output gate units, set to :math:`\sigma` in this paper.                   | :math:`[0, 1]`      |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`f^\opout`   | Activation function for output units, set to :math:`\sigma` in this paper.                        | :math:`[0, 1]`      |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`g`          | Activation function for memory cells, set to :math:`4 \sigma - 2` in this paper.                  | :math:`[-2, 2]`     |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
+| :math:`h`          | Activation function for memory cell block activations, set to :math:`2 \sigma - 1` in this paper. | :math:`[-1, 1]`     |
++--------------------+---------------------------------------------------------------------------------------------------+---------------------+
 
 計算定義
 --------
@@ -199,74 +199,74 @@ Learning to Forget: Continual Prediction with LSTM
 
   \[
     \begin{align*}
-      & \algoProc{\operatorname{LSTM1997}}(\vx, \vWopig, \vWopog, \vWopblk{1}, \dots, \vWopblk{\nblk}, \vWopout) \\
+      & \algoProc{\operatorname{LSTM1997}}(\x, \Wig, \Wog, \Wbk{1}, \dots, \Wbk{\nbk}, \Wout) \\
       & \indent{1} \algoCmt{Initialize activations with zeros.} \\
-      & \indent{1} \cT \algoEq \oplen(\vx) \\
-      & \indent{1} \vyopig(0) \algoEq \zv \\
-      & \indent{1} \vyopog(0) \algoEq \zv \\
-      & \indent{1} \algoFor{k \in \Set{1, \dots, \nblk}} \\
-      & \indent{2}   \vsopblk{k}(0) \algoEq \zv \\
-      & \indent{2}   \vyopblk{k}(0) \algoEq \zv \\
+      & \indent{1} \cT \algoEq \oplen(\x) \\
+      & \indent{1} \yig(0) \algoEq \zv \\
+      & \indent{1} \yog(0) \algoEq \zv \\
+      & \indent{1} \algoFor{k \in \Set{1, \dots, \nbk}} \\
+      & \indent{2}   \sbk{k}(0) \algoEq \zv \\
+      & \indent{2}   \ybk{k}(0) \algoEq \zv \\
       & \indent{1} \algoEndFor \\
       & \indent{1} \algoCmt{Do forward pass.} \\
       & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
       & \indent{2}   \algoCmt{Concatenate input units with activations.} \\
-      & \indent{2}   \vxt(t) \algoEq \begin{pmatrix}
-                                       \vx(t) \\
-                                       \vyopig(t) \\
-                                       \vyopog(t) \\
-                                       \vyopblk{1}(t) \\
-                                       \vdots \\
-                                       \vyopblk{\nblk}(t)
-                                     \end{pmatrix} \\
+      & \indent{2}   \xt(t) \algoEq \begin{pmatrix}
+                                      \x(t) \\
+                                      \yig(t) \\
+                                      \yog(t) \\
+                                      \ybk{1}(t) \\
+                                      \vdots \\
+                                      \ybk{\nbk}(t)
+                                    \end{pmatrix} \\
       & \indent{2}   \algoCmt{Compute input gate units' activations.} \\
-      & \indent{2}   \vzopig(t + 1) \algoEq \vWopig \cdot \vxt(t) \\
-      & \indent{2}   \vyopig(t + 1) \algoEq f^\opig\qty(\vzopig(t + 1)) \\
+      & \indent{2}   \zig(t + 1) \algoEq \Wig \cdot \xt(t) \\
+      & \indent{2}   \yig(t + 1) \algoEq f^\opig\qty(\zig(t + 1)) \\
       & \indent{2}   \algoCmt{Compute output gate units' activations.} \\
-      & \indent{2}   \vzopog(t + 1) \algoEq \vWopog \cdot \vxt(t) \\
-      & \indent{2}   \vyopog(t + 1) \algoEq f^\opog\qty(\vzopog(t + 1)) \\
+      & \indent{2}   \zog(t + 1) \algoEq \Wog \cdot \xt(t) \\
+      & \indent{2}   \yog(t + 1) \algoEq f^\opog\qty(\zog(t + 1)) \\
       & \indent{2}   \algoCmt{Compute the k-th memory cell block's activations.} \\
-      & \indent{2}   \algoFor{k \in \Set{1, \dots, \nblk}} \\
-      & \indent{3}     \vzopblk{k}(t + 1) \algoEq \vWopblk{k} \cdot \vxt(t) \\
-      & \indent{3}     \vsopblk{k}(t + 1) \algoEq \vsopblk{k}(t) + \vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1)) \\
-      & \indent{3}     \vyopblk{k}(t + 1) \algoEq \vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1)) \\
+      & \indent{2}   \algoFor{k \in \Set{1, \dots, \nbk}} \\
+      & \indent{3}     \zbk{k}(t + 1) \algoEq \Wbk{k} \cdot \xt(t) \\
+      & \indent{3}     \sbk{k}(t + 1) \algoEq \sbk{k}(t) + \yig_k(t + 1) \cdot g\qty(\zbk{k}(t + 1)) \\
+      & \indent{3}     \ybk{k}(t + 1) \algoEq \yog_k(t + 1) \cdot h\qty(\sbk{k}(t + 1)) \\
       & \indent{2}   \algoEndFor \\
       & \indent{2}   \algoCmt{Concatenate input units with new activations.} \\
-      & \indent{2}   \vxopout(t + 1) \algoEq \begin{pmatrix}
-                                               \vx(t) \\
-                                               \vyopblk{1}(t + 1) \\
-                                               \vdots \\
-                                               \vyopblk{\nblk}(t + 1) \\
-                                             \end{pmatrix} \\
+      & \indent{2}   \xout(t + 1) \algoEq \begin{pmatrix}
+                                            \x(t) \\
+                                            \ybk{1}(t + 1) \\
+                                            \vdots \\
+                                            \ybk{\nbk}(t + 1) \\
+                                          \end{pmatrix} \\
       & \indent{2}   \algoCmt{Compute outputs.} \\
-      & \indent{2}   \vzopout(t + 1) \algoEq \vWopout \cdot \vxopout(t + 1) \\
-      & \indent{2}   \vy(t + 1) \algoEq f^\opout\qty(\vzopout(t + 1)) \\
+      & \indent{2}   \zout(t + 1) \algoEq \Wout \cdot \xout(t + 1) \\
+      & \indent{2}   \y(t + 1) \algoEq f^\opout\qty(\zout(t + 1)) \\
       & \indent{1} \algoEndFor \\
-      & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
+      & \indent{1} \algoReturn \y(1), \dots, \y(\cT) \\
       & \algoEndProc
     \end{align*}
   \]
 
 .. error::
 
-  此篇論文 :footcite:`gers-etal-2000-learning` 與原版 LSTM 的論文 :footcite:`hochreiter-etal-1997-long` 都不小心將 :math:`\vy(t + 1)` 的輸入寫成 :math:`\vyopblk{k}(t)` 而不是 :math:`\vyopblk{k}(t + 1)`，我在上述公式中已經進行修正。
+  此篇論文 :footcite:`gers-etal-2000-learning` 與原版 LSTM 的論文 :footcite:`hochreiter-etal-1997-long` 都不小心將 :math:`\y(t + 1)` 的輸入寫成 :math:`\ybk{k}(t)` 而不是 :math:`\ybk{k}(t + 1)`，我在上述公式中已經進行修正。
   對應的正確寫法在後續論文 :footcite:`gers-etal-2002-learning` 中才終於寫對。
 
 
 參數結構
 --------
 
-+---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-----------------------------------------+
-| Parameter           | Meaning                                                                                                 | Output Vector Shape | Input Vector Shape                      |
-+=====================+=========================================================================================================+=====================+=========================================+
-| :math:`\vWopig`     | Weight matrix connect :math:`\vxt(t)` to input gate units :math:`\vyopig(t + 1)`.                       | :math:`\nblk`       | :math:`\din + \nblk \times (2 + \dblk)` |
-+---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-----------------------------------------+
-| :math:`\vWopog`     | Weight matrix connect :math:`\vxt(t)` to output gate units :math:`\vyopog(t + 1)`.                      | :math:`\nblk`       | :math:`\din + \nblk \times (2 + \dblk)` |
-+---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-----------------------------------------+
-| :math:`\vWopblk{k}` | Weight matrix connect :math:`\vxt(t)` to the :math:`k`-th memory cell block :math:`\vyopblk{k}(t + 1)`. | :math:`\dblk`       | :math:`\din + \nblk \times (2 + \dblk)` |
-+---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-----------------------------------------+
-| :math:`\vWopout`    | Weight matrix connect :math:`\vxopout(t)` to output units :math:`\vy(t + 1)`.                           | :math:`\dblk`       | :math:`\din + \nblk \times \dblk`       |
-+---------------------+---------------------------------------------------------------------------------------------------------+---------------------+-----------------------------------------+
++-----------------+----------------------------------------------------------------------------------------------------+---------------------+---------------------------------------+
+| Parameter       | Meaning                                                                                            | Output Vector Shape | Input Vector Shape                    |
++=================+====================================================================================================+=====================+=======================================+
+| :math:`\Wig`    | Weight matrix connect :math:`\xt(t)` to input gate units :math:`\yig(t + 1)`.                      | :math:`\nbk`        | :math:`\din + \nbk \times (2 + \dbk)` |
++-----------------+----------------------------------------------------------------------------------------------------+---------------------+---------------------------------------+
+| :math:`\Wog`    | Weight matrix connect :math:`\xt(t)` to output gate units :math:`\yog(t + 1)`.                     | :math:`\nbk`        | :math:`\din + \nbk \times (2 + \dbk)` |
++-----------------+----------------------------------------------------------------------------------------------------+---------------------+---------------------------------------+
+| :math:`\Wbk{k}` | Weight matrix connect :math:`\xt(t)` to the :math:`k`-th memory cell block :math:`\ybk{k}(t + 1)`. | :math:`\dbk`        | :math:`\din + \nbk \times (2 + \dbk)` |
++-----------------+----------------------------------------------------------------------------------------------------+---------------------+---------------------------------------+
+| :math:`\Wout`   | Weight matrix connect :math:`\xout(t)` to output units :math:`\y(t + 1)`.                          | :math:`\dbk`        | :math:`\din + \nbk \times \dbk`       |
++-----------------+----------------------------------------------------------------------------------------------------+---------------------+---------------------------------------+
 
 最佳化
 ------
@@ -274,73 +274,73 @@ Learning to Forget: Continual Prediction with LSTM
 原始 LSTM 論文 :footcite:`hochreiter-etal-1997-long` 提出與 truncated BPTT 相似的概念，透過 RTRL 進行參數更新，故意\ **丟棄部份微分值**\來近似全微分，避免梯度爆炸或梯度消失的問題，同時節省更新所需的空間與時間（local in time and space）。
 丟棄微分後的近似結果我以 :math:`\aptr` 表示，推導細節請見\ :doc:`我的筆記 </post/ml/long-short-term-memory>`，以下我直接列出對應的公式。
 
-:math:`\vWopout` 相對於誤差的微分
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wout` 相對於誤差的微分
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopout_{p, q}} = \qty(\vy_p(t + 1) - \vyh_p(t + 1)) \cdot {f^\opout}'\qty(\vzopout_p(t + 1)) \cdot \vxopout_q(t + 1) \\
+      & \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wout_{p, q}} = \qty(\y_p(t + 1) - \yh_p(t + 1)) \cdot {f^\opout}'\qty(\zout_p(t + 1)) \cdot \xout_q(t + 1) \\
       & \qqtext{where} \begin{dcases}
                          p \in \Set{1, \dots, \dout} \\
-                         q \in \Set{1, \dots, \din + \nblk \times \dblk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times \dbk} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
     \tag{1}\label{1}
   \]
 
-:math:`\vWopog` 相對於誤差的微分近似值
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wog` 相對於誤差的微分近似值
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopog_{p, q}} \aptr \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
+      & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wog_{p, q}} \aptr \qty(\sum_{j = 1}^\dbk \qty[\sum_{i = 1}^\dout \qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \Wout_{i, \din + (p - 1) \times \dbk + j}] \cdot h\qty(\sbk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\zog_p(t + 1)) \cdot \xt_q(t) \\
       & \qqtext{where} \begin{dcases}
-                         p \in \Set{1, \dots, \nblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (2 + \dblk)} \\
+                         p \in \Set{1, \dots, \nbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (2 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
     \tag{2}\label{2}
   \]
 
-:math:`\vWopig` 相對於誤差的微分近似值
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wig` 相對於誤差的微分近似值
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopig_{p, q}} \aptr \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + (p - 1) \times \dblk + j}] \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\vzopig_p(t^\star + 1)) \cdot \vxt_q(t^\star) \cdot g\qty(\vzopblk{p}_j(t^\star + 1))]) \cdot \vyopog_p(t + 1) \\
+      & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wig_{p, q}} \aptr \qty(\sum_{j = 1}^\dbk \qty[\sum_{i = 1}^\dout \qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \Wout_{i, \din + (p - 1) \times \dbk + j}] \cdot h'\qty(\sbk{p}_j(t + 1)) \cdot \sum_{t^\star = 0}^t \qty[{f^\opig}'\qty(\zig_p(t^\star + 1)) \cdot \xt_q(t^\star) \cdot g\qty(\zbk{p}_j(t^\star + 1))]) \cdot \yog_p(t + 1) \\
       & \qqtext{where} \begin{dcases}
-                         p \in \Set{1, \dots, \nblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (2 + \dblk)} \\
+                         p \in \Set{1, \dots, \nbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (2 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
     \tag{3}\label{3}
   \]
 
-:math:`\vWopblk{k}` 相對於誤差的微分近似值
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wbk{k}` 相對於誤差的微分近似值
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopblk{k}_{p, q}} \aptr \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + (k - 1) \times \dblk + p}] \cdot \qty[\sum_{t^\star = 0}^t \vyopig_k(t^\star + 1) \cdot g'\qty(\vzopblk{k}_p(t^\star + 1)) \cdot \vxt_q(t^\star)] \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \\
+      & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wbk{k}_{p, q}} \aptr \qty[\sum_{i = 1}^\dout \qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \Wout_{i, \din + (k - 1) \times \dbk + p}] \cdot \qty[\sum_{t^\star = 0}^t \yig_k(t^\star + 1) \cdot g'\qty(\zbk{k}_p(t^\star + 1)) \cdot \xt_q(t^\star)] \cdot \yog_k(t + 1) \cdot h'\qty(\sbk{k}_p(t + 1)) \\
       & \qqtext{where} \begin{dcases}
-                         k \in \Set{1, \dots, \nblk} \\
-                         p \in \Set{1, \dots, \dblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (2 + \dblk)} \\
+                         k \in \Set{1, \dots, \nbk} \\
+                         p \in \Set{1, \dots, \dbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (2 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
@@ -357,27 +357,27 @@ Learning to Forget: Continual Prediction with LSTM
 
   \[
     \begin{align*}
-      \vWopout_{p, q}    & \algoEq \vWopout_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopout_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                          p \in \Set{1, \dots, \dout} \\
-                                                                                                                                          q \in \Set{1, \dots, \din + \nblk \times \dblk} \\
-                                                                                                                                          t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                        \end{dcases}. \\
-      \vWopog_{p, q}     & \algoEq \vWopog_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopog_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                        p \in \Set{1, \dots, \nblk} \\
-                                                                                                                                        q \in \Set{1, \dots, \din + \nblk \times (2 + \dblk)} \\
-                                                                                                                                        t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                      \end{dcases}. \\
-      \vWopig_{p, q}     & \algoEq \vWopig_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopig_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                        p \in \Set{1, \dots, \nblk} \\
-                                                                                                                                        q \in \Set{1, \dots, \din + \nblk \times (2 + \dblk)} \\
-                                                                                                                                        t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                      \end{dcases}. \\
-      \vWopblk{k}_{p, q} & \algoEq \vWopblk{k}_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopblk{k}_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                                k \in \Set{1, \dots, \nblk} \\
-                                                                                                                                                p \in \Set{1, \dots, \dblk} \\
-                                                                                                                                                q \in \Set{1, \dots, \din + \nblk \times (2 + \dblk)} \\
-                                                                                                                                                t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                              \end{dcases}.
+      \Wout_{p, q}   & \algoEq \Wout_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wout_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                              p \in \Set{1, \dots, \dout} \\
+                                                                                                                              q \in \Set{1, \dots, \din + \nbk \times \dbk} \\
+                                                                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                                                                            \end{dcases}. \\
+      \Wog_{p, q}    & \algoEq \Wog_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wog_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                            p \in \Set{1, \dots, \nbk} \\
+                                                                                                                            q \in \Set{1, \dots, \din + \nbk \times (2 + \dbk)} \\
+                                                                                                                            t \in \Set{0, \dots, \cT - 1}
+                                                                                                                          \end{dcases}. \\
+      \Wig_{p, q}    & \algoEq \Wig_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wig_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                            p \in \Set{1, \dots, \nbk} \\
+                                                                                                                            q \in \Set{1, \dots, \din + \nbk \times (2 + \dbk)} \\
+                                                                                                                            t \in \Set{0, \dots, \cT - 1}
+                                                                                                                          \end{dcases}. \\
+      \Wbk{k}_{p, q} & \algoEq \Wbk{k}_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wbk{k}_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                  k \in \Set{1, \dots, \nbk} \\
+                                                                                                                                  p \in \Set{1, \dots, \dbk} \\
+                                                                                                                                  q \in \Set{1, \dots, \din + \nbk \times (2 + \dbk)} \\
+                                                                                                                                  t \in \Set{0, \dots, \cT - 1}
+                                                                                                                                \end{dcases}.
     \end{align*}
     \tag{5}\label{5}
   \]
@@ -398,11 +398,11 @@ Learning to Forget: Continual Prediction with LSTM
   :nowrap:
 
   \[
-    \vsopblk{k}(t + 1) \algoEq \vsopblk{k}(t) + \vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1))
+    \sbk{k}(t + 1) \algoEq \sbk{k}(t) + \yig_k(t + 1) \cdot g\qty(\zbk{k}(t + 1))
     \tag{6}\label{6}
   \]
   \[
-    \vyopblk{k}(t + 1) \algoEq \vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1))
+    \ybk{k}(t + 1) \algoEq \yog_k(t + 1) \cdot h\qty(\sbk{k}(t + 1))
     \tag{7}\label{7}
   \]
 
@@ -440,26 +440,26 @@ Forget Gate Units
 
   \[
     \begin{align*}
-      & \vxt(t) \algoEq \begin{pmatrix}
-                          \vx(t) \\
-                          \vyopfg(t) \\
-                          \vyopig(t) \\
-                          \vyopog(t) \\
-                          \vyopblk{1}(t) \\
-                          \vdots \\
-                          \vyopblk{\nblk}(t)
-                        \end{pmatrix} \\
-      & \vzopfg(t + 1) \algoEq \vWopfg \cdot \vxt(t) \\
-      & \vyopfg(t + 1) \algoEq f^\opfg\qty(\vzopfg(t + 1))
+      & \xt(t) \algoEq \begin{pmatrix}
+                         \x(t) \\
+                         \yfg(t) \\
+                         \yig(t) \\
+                         \yog(t) \\
+                         \ybk{1}(t) \\
+                         \vdots \\
+                         \ybk{\nbk}(t)
+                       \end{pmatrix} \\
+      & \zfg(t + 1) \algoEq \Wfg \cdot \xt(t) \\
+      & \yfg(t + 1) \algoEq f^\opfg\qty(\zfg(t + 1))
     \end{align*}
     \tag{8}\label{8}
   \]
 
 注意以下幾點連帶的改動：
 
-- :math:`\vxt(t)` 的輸入需要加上 :math:`\vyopfg(t)`
-- 新增了參數 :math:`\vWopfg`，該參數的 input vector shape 為 :math:`\din + \nblk \times (3 + \dblk)`，output vector shape 為 :math:`\nblk`
-- 因為 :math:`\vxt(t)` 做了更動，所以參數 :math:`\vWopig, \vWopog, \vWopblk{k}` 的 input vector shape 都改成 :math:`\din + \nblk \times (3 + \dblk)`
+- :math:`\xt(t)` 的輸入需要加上 :math:`\yfg(t)`
+- 新增了參數 :math:`\Wfg`，該參數的 input vector shape 為 :math:`\din + \nbk \times (3 + \dbk)`，output vector shape 為 :math:`\nbk`
+- 因為 :math:`\xt(t)` 做了更動，所以參數 :math:`\Wig, \Wog, \Wbk{k}` 的 input vector shape 都改成 :math:`\din + \nbk \times (3 + \dbk)`
 
 .. note::
 
@@ -471,20 +471,20 @@ Forget Gate Units
   :nowrap:
 
   \[
-    \vsopblk{k}(t + 1) \algoEq \vyopfg_k(t + 1) \cdot \vsopblk{k}(t) + \vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1))
+    \sbk{k}(t + 1) \algoEq \yfg_k(t + 1) \cdot \sbk{k}(t) + \yig_k(t + 1) \cdot g\qty(\zbk{k}(t + 1))
     \tag{9}\label{9}
   \]
 
 - Forget gate units 是以\ **乘法**\參與計算，因此稱為 **multiplicative gate units**
 
   - Memory cells in the same memory cell block **share** the same forget gate unit
-  - 因此 :math:`\vyopfg_k(t + 1) \cdot \vsopblk{k}` 中的乘法是\ **純量**\乘上\ **向量**
+  - 因此 :math:`\yfg_k(t + 1) \cdot \sbk{k}` 中的乘法是\ **純量**\乘上\ **向量**
 
 - 模型會在訓練的過程中學習\ **關閉**\與\ **開啟** forget gate units
 
-  - :math:`\vyopfg_k(t + 1) \approx 0` 代表\ **關閉** :math:`t + 1` 時間點的第 :math:`k` 個 forget gate unit，並\ **重設** :math:`\vsopblk{k}` 的計算狀態
-  - :math:`\vyopfg_k(t + 1) \approx 1` 代表\ **開啟** :math:`t + 1` 時間點的第 :math:`k` 個 forget gate unit，並\ **保留** :math:`\vsopblk{k}` 的計算狀態
-  - 全部 :math:`\nblk` 個 forget gate units 不一定要同時關閉或開啟
+  - :math:`\yfg_k(t + 1) \approx 0` 代表\ **關閉** :math:`t + 1` 時間點的第 :math:`k` 個 forget gate unit，並\ **重設** :math:`\sbk{k}` 的計算狀態
+  - :math:`\yfg_k(t + 1) \approx 1` 代表\ **開啟** :math:`t + 1` 時間點的第 :math:`k` 個 forget gate unit，並\ **保留** :math:`\sbk{k}` 的計算狀態
+  - 全部 :math:`\nbk` 個 forget gate units 不一定要同時關閉或開啟
 
 .. note::
 
@@ -500,55 +500,55 @@ Forget Gate Units
 
   \[
     \begin{align*}
-      & \algoProc{\operatorname{LSTM1997}}(\vx, \vWopfg, \vWopig, \vWopog, \vWopblk{1}, \dots, \vWopblk{\nblk}, \vWopout) \\
+      & \algoProc{\operatorname{LSTM1997}}(\x, \Wfg, \Wig, \Wog, \Wbk{1}, \dots, \Wbk{\nbk}, \Wout) \\
       & \indent{1} \algoCmt{Initialize activations with zeros.} \\
-      & \indent{1} \cT \algoEq \oplen(\vx) \\
-      & \indent{1} \vyopfg(0) \algoEq \zv \\
-      & \indent{1} \vyopig(0) \algoEq \zv \\
-      & \indent{1} \vyopog(0) \algoEq \zv \\
-      & \indent{1} \algoFor{k \in \Set{1, \dots, \nblk}} \\
-      & \indent{2}   \vsopblk{k}(0) \algoEq \zv \\
-      & \indent{2}   \vyopblk{k}(0) \algoEq \zv \\
+      & \indent{1} \cT \algoEq \oplen(\x) \\
+      & \indent{1} \yfg(0) \algoEq \zv \\
+      & \indent{1} \yig(0) \algoEq \zv \\
+      & \indent{1} \yog(0) \algoEq \zv \\
+      & \indent{1} \algoFor{k \in \Set{1, \dots, \nbk}} \\
+      & \indent{2}   \sbk{k}(0) \algoEq \zv \\
+      & \indent{2}   \ybk{k}(0) \algoEq \zv \\
       & \indent{1} \algoEndFor \\
       & \indent{1} \algoCmt{Do forward pass.} \\
       & \indent{1} \algoFor{t \in \Set{0, \dots, \cT - 1}} \\
       & \indent{2}   \algoCmt{Concatenate input units with activations.} \\
-      & \indent{2}   \vxt(t) \algoEq \begin{pmatrix}
-                                       \vx(t) \\
-                                       \vyopfg(t) \\
-                                       \vyopig(t) \\
-                                       \vyopog(t) \\
-                                       \vyopblk{1}(t) \\
-                                       \vdots \\
-                                       \vyopblk{\nblk}(t)
-                                     \end{pmatrix} \\
+      & \indent{2}   \xt(t) \algoEq \begin{pmatrix}
+                                      \x(t) \\
+                                      \yfg(t) \\
+                                      \yig(t) \\
+                                      \yog(t) \\
+                                      \ybk{1}(t) \\
+                                      \vdots \\
+                                      \ybk{\nbk}(t)
+                                    \end{pmatrix} \\
       & \indent{2}   \algoCmt{Compute forget gate units' activations.} \\
-      & \indent{2}   \vzopfg(t + 1) \algoEq \vWopfg \cdot \vxt(t) \\
-      & \indent{2}   \vyopfg(t + 1) \algoEq f^\opfg\qty(\vzopfg(t + 1)) \\
+      & \indent{2}   \zfg(t + 1) \algoEq \Wfg \cdot \xt(t) \\
+      & \indent{2}   \yfg(t + 1) \algoEq f^\opfg\qty(\zfg(t + 1)) \\
       & \indent{2}   \algoCmt{Compute input gate units' activations.} \\
-      & \indent{2}   \vzopig(t + 1) \algoEq \vWopig \cdot \vxt(t) \\
-      & \indent{2}   \vyopig(t + 1) \algoEq f^\opig\qty(\vzopig(t + 1)) \\
+      & \indent{2}   \zig(t + 1) \algoEq \Wig \cdot \xt(t) \\
+      & \indent{2}   \yig(t + 1) \algoEq f^\opig\qty(\zig(t + 1)) \\
       & \indent{2}   \algoCmt{Compute output gate units' activations.} \\
-      & \indent{2}   \vzopog(t + 1) \algoEq \vWopog \cdot \vxt(t) \\
-      & \indent{2}   \vyopog(t + 1) \algoEq f^\opog\qty(\vzopog(t + 1)) \\
+      & \indent{2}   \zog(t + 1) \algoEq \Wog \cdot \xt(t) \\
+      & \indent{2}   \yog(t + 1) \algoEq f^\opog\qty(\zog(t + 1)) \\
       & \indent{2}   \algoCmt{Compute the k-th memory cell block's activations.} \\
-      & \indent{2}   \algoFor{k \in \Set{1, \dots, \nblk}} \\
-      & \indent{3}     \vzopblk{k}(t + 1) \algoEq \vWopblk{k} \cdot \vxt(t) \\
-      & \indent{3}     \vsopblk{k}(t + 1) \algoEq \vyopfg_k(t + 1) \cdot \vsopblk{k}(t) + \vyopig_k(t + 1) \cdot g\qty(\vzopblk{k}(t + 1)) \\
-      & \indent{3}     \vyopblk{k}(t + 1) \algoEq \vyopog_k(t + 1) \cdot h\qty(\vsopblk{k}(t + 1)) \\
+      & \indent{2}   \algoFor{k \in \Set{1, \dots, \nbk}} \\
+      & \indent{3}     \zbk{k}(t + 1) \algoEq \Wbk{k} \cdot \xt(t) \\
+      & \indent{3}     \sbk{k}(t + 1) \algoEq \yfg_k(t + 1) \cdot \sbk{k}(t) + \yig_k(t + 1) \cdot g\qty(\zbk{k}(t + 1)) \\
+      & \indent{3}     \ybk{k}(t + 1) \algoEq \yog_k(t + 1) \cdot h\qty(\sbk{k}(t + 1)) \\
       & \indent{2}   \algoEndFor \\
       & \indent{2}   \algoCmt{Concatenate input units with new activations.} \\
-      & \indent{2}   \vxopout(t + 1) \algoEq \begin{pmatrix}
-                                               \vx(t) \\
-                                               \vyopblk{1}(t + 1) \\
-                                               \vdots \\
-                                               \vyopblk{\nblk}(t + 1) \\
-                                             \end{pmatrix} \\
+      & \indent{2}   \xout(t + 1) \algoEq \begin{pmatrix}
+                                            \x(t) \\
+                                            \ybk{1}(t + 1) \\
+                                            \vdots \\
+                                            \ybk{\nbk}(t + 1) \\
+                                          \end{pmatrix} \\
       & \indent{2}   \algoCmt{Compute outputs.} \\
-      & \indent{2}   \vzopout(t + 1) \algoEq \vWopout \cdot \vxopout(t + 1) \\
-      & \indent{2}   \vy(t + 1) \algoEq f^\opout\qty(\vzopout(t + 1)) \\
+      & \indent{2}   \zout(t + 1) \algoEq \Wout \cdot \xout(t + 1) \\
+      & \indent{2}   \y(t + 1) \algoEq f^\opout\qty(\zout(t + 1)) \\
       & \indent{1} \algoEndFor \\
-      & \indent{1} \algoReturn \vy(1), \dots, \vy(\cT) \\
+      & \indent{1} \algoReturn \y(1), \dots, \y(\cT) \\
       & \algoEndProc
     \end{align*}
   \]
@@ -571,70 +571,70 @@ Bias Terms
 
     \[
       \begin{align*}
-                 & b_k^\opfg \gg 0 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
-        \implies & \vzopfg_k(1) \gg 0 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
-        \implies & \vyopfg_k(1) \approx 1 \qqtext{where} k \in \Set{1, \dots, \nblk} \\
-        \implies & \vyopfg_k(1) \cdot \vsopblk{k}_i(0) \approx \vsopblk{k}_i(0) = 0 \qqtext{where} \begin{dcases}
-                                                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                                                     k \in \Set{1, \dots, \nblk}
-                                                                                                   \end{dcases} \\
-        \implies & \vsopblk{k}_i(1) = \vyopfg_k(1) \cdot \vsopblk{k}_i(0) + \vyopfg_k(1) \cdot g\qty(\vzopblk{k}_i(1)) \approx \vyopfg_k(1) \cdot g\qty(\vzopblk{k}_i(1)) \qqtext{where} \begin{dcases}
-                                                                                                                                                                                           i \in \Set{1, \dots, \dblk} \\
-                                                                                                                                                                                           k \in \Set{1, \dots, \nblk}
-                                                                                                                                                                                         \end{dcases}.
+                 & b_k^\opfg \gg 0 \qqtext{where} k \in \Set{1, \dots, \nbk} \\
+        \implies & \zfg_k(1) \gg 0 \qqtext{where} k \in \Set{1, \dots, \nbk} \\
+        \implies & \yfg_k(1) \approx 1 \qqtext{where} k \in \Set{1, \dots, \nbk} \\
+        \implies & \yfg_k(1) \cdot \sbk{k}_i(0) \approx \sbk{k}_i(0) = 0 \qqtext{where} \begin{dcases}
+                                                                                          i \in \Set{1, \dots, \dbk} \\
+                                                                                          k \in \Set{1, \dots, \nbk}
+                                                                                        \end{dcases} \\
+        \implies & \sbk{k}_i(1) = \yfg_k(1) \cdot \sbk{k}_i(0) + \yfg_k(1) \cdot g\qty(\zbk{k}_i(1)) \approx \yfg_k(1) \cdot g\qty(\zbk{k}_i(1)) \qqtext{where} \begin{dcases}
+                                                                                                                                                                  i \in \Set{1, \dots, \dbk} \\
+                                                                                                                                                                  k \in \Set{1, \dots, \nbk}
+                                                                                                                                                                \end{dcases}.
       \end{align*}
     \]
 
 最佳化
 ------
 
-此篇論文採用與原始 LSTM :footcite:`hochreiter-etal-1997-long` 相同的最佳化演算法，只是因為架構上多了 LSTM，因此需要對式子 :math:`\eqref{2} \eqref{3} \eqref{4}` 做一些修正，並新增 :math:`\vWopfg` 相對於誤差的微分近似值。
+此篇論文採用與原始 LSTM :footcite:`hochreiter-etal-1997-long` 相同的最佳化演算法，只是因為架構上多了 LSTM，因此需要對式子 :math:`\eqref{2} \eqref{3} \eqref{4}` 做一些修正，並新增 :math:`\Wfg` 相對於誤差的微分近似值。
 以下我使用 :math:`\aptr` 代表微分近似的結果，符號與功能均遵循原版 LSTM 論文。
 由於此篇論文不再使用 conventional hidden units，因此我將所有相關的公式都省略。
 
 丟棄微分值
 ~~~~~~~~~~
-同原始 LSTM 論文，此論文將所有與 **hidden units** 相連的節點 :math:`\vxt(t)` 產生的微分值一律\ **丟棄**，公式如下：
+同原始 LSTM 論文，此論文將所有與 **hidden units** 相連的節點 :math:`\xt(t)` 產生的微分值一律\ **丟棄**，公式如下：
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      \dv{\vzopfg_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}. \\
-      \dv{\vzopig_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}. \\
-      \dv{\vzopog_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}. \\
-      \dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      i \in \Set{1, \dots, \dblk} \\
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}. \\
-      \dv{\vsopblk{k}_i(t)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      i \in \Set{1, \dots, \dblk} \\
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}.
+      \dv{\zfg_k(t + 1)}{\xt_j(t)}    & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}. \\
+      \dv{\zig_k(t + 1)}{\xt_j(t)}    & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}. \\
+      \dv{\zog_k(t + 1)}{\xt_j(t)}    & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}. \\
+      \dv{\zbk{k}_i(t + 1)}{\xt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 i \in \Set{1, \dots, \dbk} \\
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}. \\
+      \dv{\sbk{k}_i(t)}{\xt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 i \in \Set{1, \dots, \dbk} \\
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}.
     \end{align*}
     \tag{10}\label{10}
   \]
 
 .. note::
 
-  上述公式與原版 LSTM 論文中所使用的公式多了 forget gate units，並增加了 :math:`\vxt(t)` 的 shape（從 :math:`2 + \dblk` 變成 :math:`3 + \dblk`）。
+  上述公式與原版 LSTM 論文中所使用的公式多了 forget gate units，並增加了 :math:`\xt(t)` 的 shape（從 :math:`2 + \dbk` 變成 :math:`3 + \dbk`）。
 
 根據 :math:`\eqref{10}` 我們可以進一步推得以下微分近似值：
 
@@ -643,33 +643,33 @@ Bias Terms
 
   \[
     \begin{align*}
-      \dv{\vyopfg_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}. \\
-      \dv{\vyopig_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}. \\
-      \dv{\vyopog_k(t + 1)}{\vxt_j(t)}     & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}. \\
-      \dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      i \in \Set{1, \dots, \dblk} \\
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}. \\
-      \dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                      i \in \Set{1, \dots, \dblk} \\
-                                                                      j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                      k \in \Set{1, \dots, \nblk} \\
-                                                                      t \in \Set{0, \dots, \cT - 1}
-                                                                    \end{dcases}.
+      \dv{\yfg_k(t + 1)}{\xt_j(t)}    & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}. \\
+      \dv{\yig_k(t + 1)}{\xt_j(t)}    & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}. \\
+      \dv{\yog_k(t + 1)}{\xt_j(t)}    & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}. \\
+      \dv{\sbk{k}_i(t + 1)}{\xt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 i \in \Set{1, \dots, \dbk} \\
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}. \\
+      \dv{\ybk{k}_i(t + 1)}{\xt_j(t)} & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                 i \in \Set{1, \dots, \dbk} \\
+                                                                 j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                 k \in \Set{1, \dots, \nbk} \\
+                                                                 t \in \Set{0, \dots, \cT - 1}
+                                                               \end{dcases}.
     \end{align*}
     \tag{11}\label{11}
   \]
@@ -683,80 +683,80 @@ Bias Terms
 
     \[
       \begin{align*}
-        \dv{\vyopfg_k(t + 1)}{\vxt_j(t)} & = \dv{\vyopfg_k(t + 1)}{\vzopfg_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzopfg_k(t + 1)}{\vxt_j(t)}} \\
-                                         & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                    j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                    k \in \Set{1, \dots, \nblk} \\
-                                                                    t \in \Set{0, \dots, \cT - 1}
-                                                                  \end{dcases}. \\
-        \dv{\vyopig_k(t + 1)}{\vxt_j(t)} & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzopig_k(t + 1)}{\vxt_j(t)}} \\
-                                         & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                    j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                    k \in \Set{1, \dots, \nblk} \\
-                                                                    t \in \Set{0, \dots, \cT - 1}
-                                                                  \end{dcases}. \\
-        \dv{\vyopog_k(t + 1)}{\vxt_j(t)} & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzopog_k(t + 1)}{\vxt_j(t)}} \\
-                                         & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                    j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                    k \in \Set{1, \dots, \nblk} \\
-                                                                    t \in \Set{0, \dots, \cT - 1}
-                                                                  \end{dcases}.
+        \dv{\yfg_k(t + 1)}{\xt_j(t)} & = \dv{\yfg_k(t + 1)}{\zfg_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\zfg_k(t + 1)}{\xt_j(t)}} \\
+                                     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                k \in \Set{1, \dots, \nbk} \\
+                                                                t \in \Set{0, \dots, \cT - 1}
+                                                              \end{dcases}. \\
+        \dv{\yig_k(t + 1)}{\xt_j(t)} & = \dv{\yig_k(t + 1)}{\zig_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\zig_k(t + 1)}{\xt_j(t)}} \\
+                                     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                k \in \Set{1, \dots, \nbk} \\
+                                                                t \in \Set{0, \dots, \cT - 1}
+                                                              \end{dcases}. \\
+        \dv{\yog_k(t + 1)}{\xt_j(t)} & = \dv{\yog_k(t + 1)}{\zog_k(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\zog_k(t + 1)}{\xt_j(t)}} \\
+                                     & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                k \in \Set{1, \dots, \nbk} \\
+                                                                t \in \Set{0, \dots, \cT - 1}
+                                                              \end{dcases}.
       \end{align*}
     \]
 
-  接著利用上述的結果結合 :math:`\eqref{10}` 推導出 :math:`\vxt(t)` 對於 memory cell internal states 的微分近似值：
+  接著利用上述的結果結合 :math:`\eqref{10}` 推導出 :math:`\xt(t)` 對於 memory cell internal states 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{\aptr 0}{\dv{\vyopfg_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vsopblk{k}_i(t)}{\vxt_j(t)} + \dv{\vyopfg_k(t + 1)}{\vxt_j(t)} \cdot \cancelto{\aptr 0}{\dv{\vsopblk{k}_i(t)}{\vxt_j(t)}} + \cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vxt_j(t)}} \cdot g\qty(\vzopblk{k}_i(t + 1)) + \vyopig_k(t + 1) \cdot \dv{g\qty(\vzopblk{k}_i(t + 1))}{\vzopblk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
-                                             & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                        i \in \Set{1, \dots, \dblk} \\
-                                                                        j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                        k \in \Set{1, \dots, \nblk} \\
-                                                                        t \in \Set{0, \dots, \cT - 1}
-                                                                      \end{dcases}.
+        \dv{\sbk{k}_i(t + 1)}{\xt_j(t)} & = \cancelto{\aptr 0}{\dv{\yfg_k(t + 1)}{\xt_j(t)}} \cdot \dv{\sbk{k}_i(t)}{\xt_j(t)} + \dv{\yfg_k(t + 1)}{\xt_j(t)} \cdot \cancelto{\aptr 0}{\dv{\sbk{k}_i(t)}{\xt_j(t)}} + \cancelto{\aptr 0}{\dv{\yig_k(t + 1)}{\xt_j(t)}} \cdot g\qty(\zbk{k}_i(t + 1)) + \yig_k(t + 1) \cdot \dv{g\qty(\zbk{k}_i(t + 1))}{\zbk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\zbk{k}_i(t + 1)}{\xt_j(t)}} \\
+                                        & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                   i \in \Set{1, \dots, \dbk} \\
+                                                                   j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                   k \in \Set{1, \dots, \nbk} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}.
       \end{align*}
     \]
 
-  最後總和上述推論得出 :math:`\vxt(t)` 對於 memory cell block activations 的微分近似結果：
+  最後總和上述推論得出 :math:`\xt(t)` 對於 memory cell block activations 的微分近似結果：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopblk{k}_i(t + 1)}{\vxt_j(t)} & = \cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vxt_j(t)}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vsopblk{k}_i(t + 1)}{\vxt_j(t)}} \\
-                                             & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                        i \in \Set{1, \dots, \dblk} \\
-                                                                        j \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                        k \in \Set{1, \dots, \nblk} \\
-                                                                        t \in \Set{0, \dots, \cT - 1}
-                                                                      \end{dcases}.
+        \dv{\ybk{k}_i(t + 1)}{\xt_j(t)} & = \cancelto{\aptr 0}{\dv{\yog_k(t + 1)}{\xt_j(t)}} \cdot h\qty(\sbk{k}_i(t + 1)) + \yog_k(t + 1) \cdot \dv{h\qty(\sbk{k}_i(t + 1))}{\sbk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\sbk{k}_i(t + 1)}{\xt_j(t)}} \\
+                                        & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                   i \in \Set{1, \dots, \dbk} \\
+                                                                   j \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                   k \in \Set{1, \dots, \nbk} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}.
       \end{align*}
     \]
 
-:math:`\vWopout` 相對於誤差的微分
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wout` 相對於誤差的微分
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 因為架構的修改並沒有影響輸出的\ **計算方式**，因此微分求法與式子 :math:`\eqref{1}` 相同。
 
-:math:`\vWopog` 相對於誤差的微分近似值
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wog` 相對於誤差的微分近似值
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-由於架構中新增了 forget gate units，因此影響了 :math:`\vxt(t)` 的結構，導致式子 :math:`\eqref{2}` 與式子 :math:`\eqref{12}` 的公式相同，只是 :math:`q` 的範圍不同。
+由於架構中新增了 forget gate units，因此影響了 :math:`\xt(t)` 的結構，導致式子 :math:`\eqref{2}` 與式子 :math:`\eqref{12}` 的公式相同，只是 :math:`q` 的範圍不同。
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopog_{p, q}} \aptr \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
+      & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wog_{p, q}} \aptr \qty(\sum_{j = 1}^\dbk \qty[\sum_{i = 1}^\dout \qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \Wout_{i, \din + (p - 1) \times \dbk + j}] \cdot h\qty(\sbk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\zog_p(t + 1)) \cdot \xt_q(t) \\
       & \qqtext{where} \begin{dcases}
-                         p \in \Set{1, \dots, \nblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                         p \in \Set{1, \dots, \nbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
@@ -765,152 +765,152 @@ Bias Terms
 
 .. dropdown:: 推導式子 :math:`\eqref{12}`
 
-  根據式子 :math:`\eqref{10}`，在丟棄部份微分後 :math:`\vWopog` 將\ **無法**\透過 forget/input gate units 取得資訊：
+  根據式子 :math:`\eqref{10}`，在丟棄部份微分後 :math:`\Wog` 將\ **無法**\透過 forget/input gate units 取得資訊：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopfg_k(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopfg_k(t + 1)}{\vzopfg_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopfg_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}] \\
-                                              & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                         k \in \Set{1, \dots, \nblk} \\
-                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                         t \in \Set{0, \dots, \cT - 1}
-                                                                       \end{dcases}. \\
-        \dv{\vyopig_k(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}] \\
-                                              & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                         k \in \Set{1, \dots, \nblk} \\
-                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                         t \in \Set{0, \dots, \cT - 1}
-                                                                       \end{dcases}.
+        \dv{\yfg_k(t + 1)}{\Wog_{p, q}} & = \dv{\yfg_k(t + 1)}{\zfg_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zfg_k(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wog_{p, q}}] \\
+                                        & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                   k \in \Set{1, \dots, \nbk} \\
+                                                                   p \in \Set{1, \dots, \nbk} \\
+                                                                   q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}. \\
+        \dv{\yig_k(t + 1)}{\Wog_{p, q}} & = \dv{\yig_k(t + 1)}{\zig_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zig_k(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wog_{p, q}}] \\
+                                        & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                   k \in \Set{1, \dots, \nbk} \\
+                                                                   p \in \Set{1, \dots, \nbk} \\
+                                                                   q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}.
       \end{align*}
     \]
 
-  結合式子 :math:`\eqref{10}` 與上式我們可以得出 :math:`\vWopog` 相對於 memory cell internal states 的微分近似值：
+  結合式子 :math:`\eqref{10}` 與上式我們可以得出 :math:`\Wog` 相對於 memory cell internal states 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vWopog_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopfg_k(t + 1)}{\vWopog_{p, q}}} \cdot \vsopblk{k}_i(t) + \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopog_{p, q}} + \cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vWopog_{p, q}}} \cdot g\qty(\vzopblk{k}_i(t + 1)) + \vyopig_k(t + 1) \cdot \dv{g\qty(\vzopblk{k}_i(t + 1))}{\vzopblk{k}_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}] \\
-                                                  & \aptr \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopog_{p, q}} \\
-                                                  & \aptr \qty[\prod_{t^\star = t}^{t + 1} \vyopfg_k(t^\star)] \cdot \dv{\vsopblk{k}_i(t - 1)}{\vWopog_{p, q}} \\
-                                                  & \vdots \\
-                                                  & \aptr \qty[\prod_{t^\star = 1}^{t + 1} \vyopfg_k(t^\star)] \cdot \cancelto{0}{\dv{\vsopblk{k}_i(0)}{\vWopog_{p, q}}} \\
-                                                  & = 0 \qqtext{where} \begin{dcases}
-                                                                         i \in \Set{1, \dots, \dblk} \\
-                                                                         k \in \Set{1, \dots, \nblk} \\
-                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                         t \in \Set{0, \dots, \cT - 1}
-                                                                       \end{dcases}.
+        \dv{\sbk{k}_i(t + 1)}{\Wog_{p, q}} & = \cancelto{\aptr 0}{\dv{\yfg_k(t + 1)}{\Wog_{p, q}}} \cdot \sbk{k}_i(t) + \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wog_{p, q}} + \cancelto{\aptr 0}{\dv{\yig_k(t + 1)}{\Wog_{p, q}}} \cdot g\qty(\zbk{k}_i(t + 1)) + \yig_k(t + 1) \cdot \dv{g\qty(\zbk{k}_i(t + 1))}{\zbk{k}_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zbk{k}_i(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wog_{p, q}}] \\
+                                           & \aptr \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wog_{p, q}} \\
+                                           & \aptr \qty[\prod_{t^\star = t}^{t + 1} \yfg_k(t^\star)] \cdot \dv{\sbk{k}_i(t - 1)}{\Wog_{p, q}} \\
+                                           & \vdots \\
+                                           & \aptr \qty[\prod_{t^\star = 1}^{t + 1} \yfg_k(t^\star)] \cdot \cancelto{0}{\dv{\sbk{k}_i(0)}{\Wog_{p, q}}} \\
+                                           & = 0 \qqtext{where} \begin{dcases}
+                                                                  i \in \Set{1, \dots, \dbk} \\
+                                                                  k \in \Set{1, \dots, \nbk} \\
+                                                                  p \in \Set{1, \dots, \nbk} \\
+                                                                  q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                  t \in \Set{0, \dots, \cT - 1}
+                                                                \end{dcases}.
       \end{align*}
     \]
 
-  上式告訴我們，在丟棄部份微分後 :math:`\vWopog` 將\ **無法**\透過 memory cell internal states 取得資訊。
-  直覺上 :math:`\vWopog` 唯一能夠取得資訊的管道只有 output gate units。
-  所以接下來我們推導 :math:`\vWopog` 相對於 output gate units 的微分近似值：
+  上式告訴我們，在丟棄部份微分後 :math:`\Wog` 將\ **無法**\透過 memory cell internal states 取得資訊。
+  直覺上 :math:`\Wog` 唯一能夠取得資訊的管道只有 output gate units。
+  所以接下來我們推導 :math:`\Wog` 相對於 output gate units 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \dv{\vzopog_k(t + 1)}{\vWopog_{p, q}} \\
-                                              & = {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopog_{k, j} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}]] \\
-                                              & \qqtext{where} \begin{dcases}
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \nblk} \\
-                                                                 q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                 t \in \Set{0, \dots, \cT - 1}
-                                                               \end{dcases}.
+        \dv{\yog_k(t + 1)}{\Wog_{p, q}} & = \dv{\yog_k(t + 1)}{\zog_k(t + 1)} \cdot \dv{\zog_k(t + 1)}{\Wog_{p, q}} \\
+                                        & = {f^\opog}'\qty(\zog_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \xt_q(t) + \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wog_{k, j} \cdot \dv{\xt_j(t)}{\Wog_{p, q}}]] \\
+                                        & \qqtext{where} \begin{dcases}
+                                                           k \in \Set{1, \dots, \nbk} \\
+                                                           p \in \Set{1, \dots, \nbk} \\
+                                                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                           t \in \Set{0, \dots, \cT - 1}
+                                                         \end{dcases}.
       \end{align*}
     \]
 
-  可以發現 :math:`\vWopog` 對於 output gate units 的全微分會有 BPTT 的問題，因此原始 LSTM 論文中提出額外丟棄 output gate units 的部份微分，結果如下：
+  可以發現 :math:`\Wog` 對於 output gate units 的全微分會有 BPTT 的問題，因此原始 LSTM 論文中提出額外丟棄 output gate units 的部份微分，結果如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} & = {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopog_{k, j} \cdot \dv{\vxt_j(t)}{\vWopog_{p, q}}]}] \\
-                                              & \aptr {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \\
-                                              & \qqtext{where} \begin{dcases}
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \nblk} \\
-                                                                 q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                 t \in \Set{0, \dots, \cT - 1}
-                                                               \end{dcases}.
+        \dv{\yog_k(t + 1)}{\Wog_{p, q}} & = {f^\opog}'\qty(\zog_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \xt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wog_{k, j} \cdot \dv{\xt_j(t)}{\Wog_{p, q}}]}] \\
+                                        & \aptr {f^\opog}'\qty(\zog_k(t + 1)) \cdot \delta_{k, p} \cdot \xt_q(t) \\
+                                        & \qqtext{where} \begin{dcases}
+                                                           k \in \Set{1, \dots, \nbk} \\
+                                                           p \in \Set{1, \dots, \nbk} \\
+                                                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                           t \in \Set{0, \dots, \cT - 1}
+                                                         \end{dcases}.
       \end{align*}
     \]
 
-  使用前述推導結果可以幫助我們推得 :math:`\vWopog` 相對於 memory cell activation blocks 的微分近似值：
+  使用前述推導結果可以幫助我們推得 :math:`\Wog` 相對於 memory cell activation blocks 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopblk{k}_i(t + 1)}{\vWopog_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vWopog_{p, q}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vsopblk{k}_i(t + 1)}{\vWopog_{p, q}}} \\
-                                                  & \aptr {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot h\qty(\vsopblk{k}_i(t + 1)) \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\ybk{k}_i(t + 1)}{\Wog_{p, q}} & = \dv{\yog_k(t + 1)}{\Wog_{p, q}} \cdot h\qty(\sbk{k}_i(t + 1)) + \yog_k(t + 1) \cdot \dv{h\qty(\sbk{k}_i(t + 1))}{\sbk{k}_i(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\sbk{k}_i(t + 1)}{\Wog_{p, q}}} \\
+                                           & \aptr {f^\opog}'\qty(\zog_k(t + 1)) \cdot \delta_{k, p} \cdot \xt_q(t) \cdot h\qty(\sbk{k}_i(t + 1)) \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
-  最後我們推得 :math:`\vWopog` 相對於誤差的微分近似值：
+  最後我們推得 :math:`\Wog` 相對於誤差的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopog_{p, q}} \\
-        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopog_{p, q}} \\
-        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopog_{p, q}}}]] \\
-        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopog_{p, q}}]] \\
-        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (k - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot h\qty(\vsopblk{k}_j(t + 1))]] \\
-        & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (p - 1) \times \dblk + j} \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \cdot h\qty(\vsopblk{p}_j(t + 1))]] \\
-        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (p - 1) \times \dblk + j} \cdot h\qty(\vsopblk{p}_j(t + 1))]]) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
-        & = \qty(\sum_{j = 1}^\dblk \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + (p - 1) \times \dblk + j}] \cdot h\qty(\vsopblk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\vzopog_p(t + 1)) \cdot \vxt_q(t) \\
+        & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wog_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\y_i(t + 1) - \yh_i(t + 1))^2}{\Wog_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\y_i(t + 1) - \yh_i(t + 1))^2}{\y_i(t + 1)} \cdot \dv{\y_i(t + 1)}{\zout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times \dbk} \qty[\dv{\zout_i(t + 1)}{\xout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\xout_j(t + 1)}{\Wog_{p, q}}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{k = 1}^\nbk \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (k - 1) \times \dbk + j} \cdot \dv{\ybk{k}_j(t + 1)}{\Wog_{p, q}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{k = 1}^\nbk \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (k - 1) \times \dbk + j} \cdot {f^\opog}'\qty(\zog_k(t + 1)) \cdot \delta_{k, p} \cdot \xt_q(t) \cdot h\qty(\sbk{k}_j(t + 1))]] \\
+        & = \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (p - 1) \times \dbk + j} \cdot {f^\opog}'\qty(\zog_p(t + 1)) \cdot \xt_q(t) \cdot h\qty(\sbk{p}_j(t + 1))]] \\
+        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (p - 1) \times \dbk + j} \cdot h\qty(\sbk{p}_j(t + 1))]]) \cdot {f^\opog}'\qty(\zog_p(t + 1)) \cdot \xt_q(t) \\
+        & = \qty(\sum_{j = 1}^\dbk \qty[\sum_{i = 1}^\dout \qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \Wout_{i, \din + (p - 1) \times \dbk + j}] \cdot h\qty(\sbk{p}_j(t + 1))) \cdot {f^\opog}'\qty(\zog_p(t + 1)) \cdot \xt_q(t) \\
         & \qqtext{where} \begin{dcases}
-                           p \in \Set{1, \dots, \nblk} \\
-                           q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                           p \in \Set{1, \dots, \nbk} \\
+                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                            t \in \Set{0, \dots, \cT - 1}
                          \end{dcases}.
       \end{align*}
     \]
 
-:math:`\vWopfg` 相對於誤差的微分近似值
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wfg` 相對於誤差的微分近似值
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. math::
   :nowrap:
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopfg_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (p - 1) \times \dblk + j} \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopfg_{p, q}}]]) \cdot \vyopog_p(t + 1) \\
+      & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wfg_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (p - 1) \times \dbk + j} \cdot h'\qty(\sbk{p}_j(t + 1)) \cdot \dv{\sbk{p}_j(t + 1)}{\Wfg_{p, q}}]]) \cdot \yog_p(t + 1) \\
       & \qqtext{where} \begin{dcases}
-                         p \in \Set{1, \dots, \nblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                         p \in \Set{1, \dots, \nbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}. \\
-      & \dv{\vsopblk{k}_j(t + 1)}{\vWopfg_{p, q}} \aptr \delta_{k, p} \cdot \qty[{f^\opfg}'\qty(\vzopfg_p(t + 1)) \cdot \vxt_q(t) \cdot \vsopblk{p}_j(t) + \vyopfg_p(t + 1) \cdot \dv{\vsopblk{p}_j(t)}{\vWopfg_{p, q}}] \\
+      & \dv{\sbk{k}_j(t + 1)}{\Wfg_{p, q}} \aptr \delta_{k, p} \cdot \qty[{f^\opfg}'\qty(\zfg_p(t + 1)) \cdot \xt_q(t) \cdot \sbk{p}_j(t) + \yfg_p(t + 1) \cdot \dv{\sbk{p}_j(t)}{\Wfg_{p, q}}] \\
       & \qqtext{where} \begin{dcases}
-                         j \in \Set{1, \dots, \dblk} \\
-                         k \in \Set{1, \dots, \nblk} \\
-                         p \in \Set{1, \dots, \nblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                         j \in \Set{1, \dots, \dbk} \\
+                         k \in \Set{1, \dots, \nbk} \\
+                         p \in \Set{1, \dots, \nbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
@@ -919,84 +919,84 @@ Bias Terms
 
 .. dropdown:: 推導式子 :math:`\eqref{13}`
 
-  根據式子 :math:`\eqref{10}` 我們可以求得 :math:`\vWopfg` 相對於 input/output gate units 的微分近似值：
+  根據式子 :math:`\eqref{10}` 我們可以求得 :math:`\Wfg` 相對於 input/output gate units 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopig_k(t + 1)}{\vWopfg_{p, q}} & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopig_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopfg_{p, q}}] \\
-                                              & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                         k \in \Set{1, \dots, \nblk} \\
-                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                         t \in \Set{0, \dots, \cT - 1}
-                                                                       \end{dcases}. \\
-        \dv{\vyopog_k(t + 1)}{\vWopfg_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopfg_{p, q}}] \\
-                                              & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                         k \in \Set{1, \dots, \nblk} \\
-                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                         t \in \Set{0, \dots, \cT - 1}
-                                                                       \end{dcases}.
+        \dv{\yig_k(t + 1)}{\Wfg_{p, q}} & = \dv{\yig_k(t + 1)}{\zig_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zig_k(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wfg_{p, q}}] \\
+                                        & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                   k \in \Set{1, \dots, \nbk} \\
+                                                                   p \in \Set{1, \dots, \nbk} \\
+                                                                   q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}. \\
+        \dv{\yog_k(t + 1)}{\Wfg_{p, q}} & = \dv{\yog_k(t + 1)}{\zog_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zog_k(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wfg_{p, q}}] \\
+                                        & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                   k \in \Set{1, \dots, \nbk} \\
+                                                                   p \in \Set{1, \dots, \nbk} \\
+                                                                   q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}.
       \end{align*}
     \]
 
-  在丟棄部份微分後 :math:`\vWopfg` 將\ **無法**\透過 input/output gate units 取得資訊。
-  直覺上我們認為 :math:`\vWopfg` 應該可以透過 forget gate units 取得資訊。
-  所以接下來我們推導 :math:`\vWopfg` 相對於 forget gate units 的微分近似值：
+  在丟棄部份微分後 :math:`\Wfg` 將\ **無法**\透過 input/output gate units 取得資訊。
+  直覺上我們認為 :math:`\Wfg` 應該可以透過 forget gate units 取得資訊。
+  所以接下來我們推導 :math:`\Wfg` 相對於 forget gate units 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopfg_k(t + 1)}{\vWopfg_{p, q}} & = \dv{\vyopfg_k(t + 1)}{\vzopfg_k(t + 1)} \cdot \dv{\vzopfg_k(t + 1)}{\vWopfg_{p, q}} \\
-                                              & = {f^\opfg}'\qty(\vzopfg_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopfg_{k, j} \cdot \dv{\vxt_j(t)}{\vWopfg_{p, q}}]] \\
-                                              & \qqtext{where} \begin{dcases}
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \nblk} \\
-                                                                 q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                 t \in \Set{0, \dots, \cT - 1}
-                                                               \end{dcases}.
+        \dv{\yfg_k(t + 1)}{\Wfg_{p, q}} & = \dv{\yfg_k(t + 1)}{\zfg_k(t + 1)} \cdot \dv{\zfg_k(t + 1)}{\Wfg_{p, q}} \\
+                                        & = {f^\opfg}'\qty(\zfg_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \xt_q(t) + \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wfg_{k, j} \cdot \dv{\xt_j(t)}{\Wfg_{p, q}}]] \\
+                                        & \qqtext{where} \begin{dcases}
+                                                           k \in \Set{1, \dots, \nbk} \\
+                                                           p \in \Set{1, \dots, \nbk} \\
+                                                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                           t \in \Set{0, \dots, \cT - 1}
+                                                         \end{dcases}.
       \end{align*}
     \]
 
-  可以發現 :math:`\vWopfg` 對於 forget gate units 的全微分會有 BPTT 的問題，因此原始 LSTM 論文中提出額外丟棄 forget gate units 的部份微分，結果如下：
+  可以發現 :math:`\Wfg` 對於 forget gate units 的全微分會有 BPTT 的問題，因此原始 LSTM 論文中提出額外丟棄 forget gate units 的部份微分，結果如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopfg_k(t + 1)}{\vWopfg_{p, q}} & = {f^\opfg}'\qty(\vzopfg_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopfg_{k, j} \cdot \dv{\vxt_j(t)}{\vWopfg_{p, q}}]}] \\
-                                              & \aptr {f^\opfg}'\qty(\vzopfg_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \\
-                                              & \qqtext{where} \begin{dcases}
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \nblk} \\
-                                                                 q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                 t \in \Set{0, \dots, \cT - 1}
-                                                               \end{dcases}.
+        \dv{\yfg_k(t + 1)}{\Wfg_{p, q}} & = {f^\opfg}'\qty(\zfg_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \xt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wfg_{k, j} \cdot \dv{\xt_j(t)}{\Wfg_{p, q}}]}] \\
+                                        & \aptr {f^\opfg}'\qty(\zfg_k(t + 1)) \cdot \delta_{k, p} \cdot \xt_q(t) \\
+                                        & \qqtext{where} \begin{dcases}
+                                                           k \in \Set{1, \dots, \nbk} \\
+                                                           p \in \Set{1, \dots, \nbk} \\
+                                                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                           t \in \Set{0, \dots, \cT - 1}
+                                                         \end{dcases}.
       \end{align*}
     \]
 
-  結合式子 :math:`\eqref{10}` 與前面的推導，我們可以得出 :math:`\vWopfg` 相對於 memory cell internal states 的微分近似值：
+  結合式子 :math:`\eqref{10}` 與前面的推導，我們可以得出 :math:`\Wfg` 相對於 memory cell internal states 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vWopfg_{p, q}} & = \dv{\vyopfg_k(t + 1)}{\vWopfg_{p, q}} \cdot \vsopblk{k}_i(t) + \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopfg_{p, q}} + \cancelto{\aptr 0}{\dv{\vyopig_k(t + 1)}{\vWopfg_{p, q}}} \cdot g\qty(\vzopblk{k}_i(t + 1)) + \vyopig_k(t + 1) \cdot \dv{g\qty(\vzopblk{k}_i(t + 1))}{\vzopblk{k}_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopfg_{p, q}}] \\
-                                                  & \aptr {f^\opfg}'\qty(\vzopfg_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot \vsopblk{k}_i(t) + \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopfg_{p, q}} \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\sbk{k}_i(t + 1)}{\Wfg_{p, q}} & = \dv{\yfg_k(t + 1)}{\Wfg_{p, q}} \cdot \sbk{k}_i(t) + \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wfg_{p, q}} + \cancelto{\aptr 0}{\dv{\yig_k(t + 1)}{\Wfg_{p, q}}} \cdot g\qty(\zbk{k}_i(t + 1)) + \yig_k(t + 1) \cdot \dv{g\qty(\zbk{k}_i(t + 1))}{\zbk{k}_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zbk{k}_i(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wfg_{p, q}}] \\
+                                           & \aptr {f^\opfg}'\qty(\zfg_k(t + 1)) \cdot \delta_{k, p} \cdot \xt_q(t) \cdot \sbk{k}_i(t) + \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wfg_{p, q}} \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
@@ -1007,38 +1007,38 @@ Bias Terms
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vWopfg_{p, q}} & \aptr {f^\opfg}'\qty(\vzopfg_k(t + 1)) \cdot \cancelto{0}{\delta_{k, p}} \cdot \vxt_q(t) \cdot \vsopblk{k}_i(t) + \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopfg_{p, q}} \\
-                                                  & = \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopfg_{p, q}} \\
-                                                  & \aptr \qty[\prod_{t^\star = t}^{t + 1} \vyopfg_k(t^\star)] \cdot \dv{\vsopblk{k}_i(t - 1)}{\vWopfg_{p, q}} \\
-                                                  & \vdots \\
-                                                  & \aptr \qty[\prod_{t^\star = 1}^{t + 1} \vyopfg_k(t^\star)] \cdot \cancelto{0}{\dv{\vsopblk{k}_i(0)}{\vWopfg_{p, q}}} \\
-                                                  & = 0 \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\sbk{k}_i(t + 1)}{\Wfg_{p, q}} & \aptr {f^\opfg}'\qty(\zfg_k(t + 1)) \cdot \cancelto{0}{\delta_{k, p}} \cdot \xt_q(t) \cdot \sbk{k}_i(t) + \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wfg_{p, q}} \\
+                                           & = \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wfg_{p, q}} \\
+                                           & \aptr \qty[\prod_{t^\star = t}^{t + 1} \yfg_k(t^\star)] \cdot \dv{\sbk{k}_i(t - 1)}{\Wfg_{p, q}} \\
+                                           & \vdots \\
+                                           & \aptr \qty[\prod_{t^\star = 1}^{t + 1} \yfg_k(t^\star)] \cdot \cancelto{0}{\dv{\sbk{k}_i(0)}{\Wfg_{p, q}}} \\
+                                           & = 0 \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
-  因此我們將 :math:`\vWopfg` 相對於 memory cell internal states 的微分近似值改寫如下：
+  因此我們將 :math:`\Wfg` 相對於 memory cell internal states 的微分近似值改寫如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vWopfg_{p, q}} & \aptr \delta_{k, p} \cdot \dv{\vsopblk{p}_i(t + 1)}{\vWopfg_{p, q}} \\
-                                                  & \aptr \delta_{k, p} \cdot \qty[{f^\opfg}'\qty(\vzopfg_p(t + 1)) \cdot \vxt_q(t) \cdot \vsopblk{k}_i(t) + \vyopfg_p(t + 1) \cdot \dv{\vsopblk{p}_i(t)}{\vWopfg_{p, q}}] \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\sbk{k}_i(t + 1)}{\Wfg_{p, q}} & \aptr \delta_{k, p} \cdot \dv{\sbk{p}_i(t + 1)}{\Wfg_{p, q}} \\
+                                           & \aptr \delta_{k, p} \cdot \qty[{f^\opfg}'\qty(\zfg_p(t + 1)) \cdot \xt_q(t) \cdot \sbk{k}_i(t) + \yfg_p(t + 1) \cdot \dv{\sbk{p}_i(t)}{\Wfg_{p, q}}] \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
@@ -1046,52 +1046,52 @@ Bias Terms
 
     上式就是論文的 3.12 式。
 
-  可以發現 :math:`\vWopfg` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
+  可以發現 :math:`\Wfg` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
   實際上在執行參數更新演算法時只需要儲存過去累加而得的結果再結合當前計算結果，就可以得到最新的參數更新方向。
-  使用前述推導結果我們可以得到 :math:`\vWopfg` 相對於 memory cell activation blocks 的微分近似值：
+  使用前述推導結果我們可以得到 :math:`\Wfg` 相對於 memory cell activation blocks 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopblk{k}_i(t + 1)}{\vWopfg_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vWopfg_{p, q}}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \dv{\vsopblk{k}_i(t + 1)}{\vWopfg_{p, q}} \\
-                                                  & \aptr \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_i(t + 1)) \cdot \delta_{k, p} \cdot \dv{\vsopblk{p}_i(t + 1)}{\vWopfg_{p, q}} \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\ybk{k}_i(t + 1)}{\Wfg_{p, q}} & = \cancelto{\aptr 0}{\dv{\yog_k(t + 1)}{\Wfg_{p, q}}} \cdot h\qty(\sbk{k}_i(t + 1)) + \yog_k(t + 1) \cdot \dv{h\qty(\sbk{k}_i(t + 1))}{\sbk{k}_i(t + 1)} \cdot \dv{\sbk{k}_i(t + 1)}{\Wfg_{p, q}} \\
+                                           & \aptr \yog_k(t + 1) \cdot h'\qty(\sbk{k}_i(t + 1)) \cdot \delta_{k, p} \cdot \dv{\sbk{p}_i(t + 1)}{\Wfg_{p, q}} \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
   同前述結論，只需要儲存過去計算而得的結果，最後乘上一些當前的計算狀態，就可以得到最新的參數更新方向。
-  最後我們推得 :math:`\vWopfg` 相對於誤差的微分近似值：
+  最後我們推得 :math:`\Wfg` 相對於誤差的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopfg_{p, q}} \\
-        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopfg_{p, q}} \\
-        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopfg_{p, q}}}]] \\
-        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopfg_{p, q}}]] \\
-        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (k - 1) \times \dblk + j} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_j(t + 1)) \cdot \delta_{k, p} \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopfg_{p, q}}]] \\
-        & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (p - 1) \times \dblk + j} \cdot \vyopog_p(t + 1) \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopfg_{p, q}}]] \\
-        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (p - 1) \times \dblk + j} \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopfg_{p, q}}]]) \cdot \vyopog_p(t + 1) \\
+        & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wfg_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\y_i(t + 1) - \yh_i(t + 1))^2}{\Wfg_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\y_i(t + 1) - \yh_i(t + 1))^2}{\y_i(t + 1)} \cdot \dv{\y_i(t + 1)}{\zout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times \dbk} \qty[\dv{\zout_i(t + 1)}{\xout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\xout_j(t + 1)}{\Wfg_{p, q}}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{k = 1}^\nbk \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (k - 1) \times \dbk + j} \cdot \dv{\ybk{k}_j(t + 1)}{\Wfg_{p, q}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{k = 1}^\nbk \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (k - 1) \times \dbk + j} \cdot \yog_k(t + 1) \cdot h'\qty(\sbk{k}_j(t + 1)) \cdot \delta_{k, p} \cdot \dv{\sbk{p}_j(t + 1)}{\Wfg_{p, q}}]] \\
+        & = \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (p - 1) \times \dbk + j} \cdot \yog_p(t + 1) \cdot h'\qty(\sbk{p}_j(t + 1)) \cdot \dv{\sbk{p}_j(t + 1)}{\Wfg_{p, q}}]] \\
+        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (p - 1) \times \dbk + j} \cdot h'\qty(\sbk{p}_j(t + 1)) \cdot \dv{\sbk{p}_j(t + 1)}{\Wfg_{p, q}}]]) \cdot \yog_p(t + 1) \\
         & \qqtext{where} \begin{dcases}
-                           p \in \Set{1, \dots, \nblk} \\
-                           q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                           p \in \Set{1, \dots, \nbk} \\
+                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                            t \in \Set{0, \dots, \cT - 1}
                          \end{dcases}.
       \end{align*}
     \]
 
-:math:`\vWopig` 相對於誤差的微分近似值
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wig` 相對於誤差的微分近似值
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 由於架構中新增了 forget gate units，因此影響了 memory cell internal states 的結構，所以推導結果 :math:`\eqref{14}` 與原始 LSTM 論文推得的式子 :math:`\eqref{3}` 不同。
 
@@ -1100,18 +1100,18 @@ Bias Terms
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopig_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (p - 1) \times \dblk + j} \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}}]]) \cdot \vyopog_p(t + 1) \\
+      & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wig_{p, q}} \aptr \qty(\sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (p - 1) \times \dbk + j} \cdot h'\qty(\sbk{p}_j(t + 1)) \cdot \dv{\sbk{p}_j(t + 1)}{\Wig_{p, q}}]]) \cdot \yog_p(t + 1) \\
       & \qqtext{where} \begin{dcases}
-                         p \in \Set{1, \dots, \nblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                         p \in \Set{1, \dots, \nbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}. \\
-      & \dv{\vsopblk{k}_j(t + 1)}{\vWopig_{p, q}} \aptr \delta_{k, p} \cdot \qty[\vyopfg_p(t + 1) \cdot \dv{\vsopblk{p}_j(t)}{\vWopig_{p, q}} + {f^\opig}'\qty(\vzopig_p(t + 1)) \cdot \vxt_q(t) \cdot g\qty(\vzopblk{p}_j(t + 1))] \\
+      & \dv{\sbk{k}_j(t + 1)}{\Wig_{p, q}} \aptr \delta_{k, p} \cdot \qty[\yfg_p(t + 1) \cdot \dv{\sbk{p}_j(t)}{\Wig_{p, q}} + {f^\opig}'\qty(\zig_p(t + 1)) \cdot \xt_q(t) \cdot g\qty(\zbk{p}_j(t + 1))] \\
       & \qqtext{where} \begin{dcases}
-                         j \in \Set{1, \dots, \dblk} \\
-                         k \in \Set{1, \dots, \nblk} \\
-                         p \in \Set{1, \dots, \nblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                         j \in \Set{1, \dots, \dbk} \\
+                         k \in \Set{1, \dots, \nbk} \\
+                         p \in \Set{1, \dots, \nbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
@@ -1120,84 +1120,84 @@ Bias Terms
 
 .. dropdown:: 推導式子 :math:`\eqref{14}`
 
-  根據式子 :math:`\eqref{10}` 我們可以求得 :math:`\vWopig` 相對於 forget/output gate units 的微分近似值：
+  根據式子 :math:`\eqref{10}` 我們可以求得 :math:`\Wig` 相對於 forget/output gate units 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopfg_k(t + 1)}{\vWopig_{p, q}} & = \dv{\vyopfg_k(t + 1)}{\vzopfg_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopfg_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopig_{p, q}}] \\
-                                              & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                         k \in \Set{1, \dots, \nblk} \\
-                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                         t \in \Set{0, \dots, \cT - 1}
-                                                                       \end{dcases}. \\
-        \dv{\vyopog_k(t + 1)}{\vWopig_{p, q}} & = \dv{\vyopog_k(t + 1)}{\vzopog_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopog_k(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopig_{p, q}}] \\
-                                              & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                         k \in \Set{1, \dots, \nblk} \\
-                                                                         p \in \Set{1, \dots, \nblk} \\
-                                                                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                         t \in \Set{0, \dots, \cT - 1}
-                                                                       \end{dcases}.
+        \dv{\yfg_k(t + 1)}{\Wig_{p, q}} & = \dv{\yfg_k(t + 1)}{\zfg_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zfg_k(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wig_{p, q}}] \\
+                                        & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                   k \in \Set{1, \dots, \nbk} \\
+                                                                   p \in \Set{1, \dots, \nbk} \\
+                                                                   q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}. \\
+        \dv{\yog_k(t + 1)}{\Wig_{p, q}} & = \dv{\yog_k(t + 1)}{\zog_k(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zog_k(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wig_{p, q}}] \\
+                                        & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                   k \in \Set{1, \dots, \nbk} \\
+                                                                   p \in \Set{1, \dots, \nbk} \\
+                                                                   q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                   t \in \Set{0, \dots, \cT - 1}
+                                                                 \end{dcases}.
       \end{align*}
     \]
 
-  在丟棄部份微分後 :math:`\vWopig` 將\ **無法**\透過 forget/output gate units 取得資訊。
-  直覺上我們認為 :math:`\vWopig` 應該可以透過 input gate units 取得資訊。
-  所以接下來我們推導 :math:`\vWopig` 相對於 input gate units 的微分近似值：
+  在丟棄部份微分後 :math:`\Wig` 將\ **無法**\透過 forget/output gate units 取得資訊。
+  直覺上我們認為 :math:`\Wig` 應該可以透過 input gate units 取得資訊。
+  所以接下來我們推導 :math:`\Wig` 相對於 input gate units 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopig_k(t + 1)}{\vWopig_{p, q}} & = \dv{\vyopig_k(t + 1)}{\vzopig_k(t + 1)} \cdot \dv{\vzopig_k(t + 1)}{\vWopig_{p, q}} \\
-                                              & = {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopig_{k, j} \cdot \dv{\vxt_j(t)}{\vWopig_{p, q}}]] \\
-                                              & \qqtext{where} \begin{dcases}
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \nblk} \\
-                                                                 q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                 t \in \Set{0, \dots, \cT - 1}
-                                                               \end{dcases}.
+        \dv{\yig_k(t + 1)}{\Wig_{p, q}} & = \dv{\yig_k(t + 1)}{\zig_k(t + 1)} \cdot \dv{\zig_k(t + 1)}{\Wig_{p, q}} \\
+                                        & = {f^\opig}'\qty(\zig_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \xt_q(t) + \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wig_{k, j} \cdot \dv{\xt_j(t)}{\Wig_{p, q}}]] \\
+                                        & \qqtext{where} \begin{dcases}
+                                                           k \in \Set{1, \dots, \nbk} \\
+                                                           p \in \Set{1, \dots, \nbk} \\
+                                                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                           t \in \Set{0, \dots, \cT - 1}
+                                                         \end{dcases}.
       \end{align*}
     \]
 
-  可以發現 :math:`\vWopig` 對於 input gate units 的全微分會有 BPTT 的問題，因此原始 LSTM 論文中提出額外丟棄 input gate units 的部份微分，結果如下：
+  可以發現 :math:`\Wig` 對於 input gate units 的全微分會有 BPTT 的問題，因此原始 LSTM 論文中提出額外丟棄 input gate units 的部份微分，結果如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopig_k(t + 1)}{\vWopig_{p, q}} & = {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \vxt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopig_{k, j} \cdot \dv{\vxt_j(t)}{\vWopig_{p, q}}]}] \\
-                                              & \aptr {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \\
-                                              & \qqtext{where} \begin{dcases}
-                                                                 k \in \Set{1, \dots, \nblk} \\
-                                                                 p \in \Set{1, \dots, \nblk} \\
-                                                                 q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                 t \in \Set{0, \dots, \cT - 1}
-                                                               \end{dcases}.
+        \dv{\yig_k(t + 1)}{\Wig_{p, q}} & = {f^\opig}'\qty(\zig_k(t + 1)) \cdot \qty[\delta_{k, p} \cdot \xt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wig_{k, j} \cdot \dv{\xt_j(t)}{\Wig_{p, q}}]}] \\
+                                        & \aptr {f^\opig}'\qty(\zig_k(t + 1)) \cdot \delta_{k, p} \cdot \xt_q(t) \\
+                                        & \qqtext{where} \begin{dcases}
+                                                           k \in \Set{1, \dots, \nbk} \\
+                                                           p \in \Set{1, \dots, \nbk} \\
+                                                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                           t \in \Set{0, \dots, \cT - 1}
+                                                         \end{dcases}.
       \end{align*}
     \]
 
-  結合式子 :math:`\eqref{10}` 與前面的推導，我們可以得出 :math:`\vWopig` 相對於 memory cell internal states 的微分近似值：
+  結合式子 :math:`\eqref{10}` 與前面的推導，我們可以得出 :math:`\Wig` 相對於 memory cell internal states 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vWopig_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopfg_k(t + 1)}{\vWopig_{p, q}}} \cdot \vsopblk{k}_i(t) + \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopig_{p, q}} + \dv{\vyopig_k(t + 1)}{\vWopig_{p, q}} \cdot g\qty(\vzopblk{k}_i(t + 1)) + \vyopig_k(t + 1) \cdot \dv{g\qty(\vzopblk{k}_i(t + 1))}{\vzopblk{k}_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopblk{k}_i(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopig_{p, q}}] \\
-                                                  & \aptr \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopig_{p, q}} + {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \delta_{k, p} \cdot \vxt_q(t) \cdot g\qty(\vzopblk{k}_i(t + 1)) \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\sbk{k}_i(t + 1)}{\Wig_{p, q}} & = \cancelto{\aptr 0}{\dv{\yfg_k(t + 1)}{\Wig_{p, q}}} \cdot \sbk{k}_i(t) + \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wig_{p, q}} + \dv{\yig_k(t + 1)}{\Wig_{p, q}} \cdot g\qty(\zbk{k}_i(t + 1)) + \yig_k(t + 1) \cdot \dv{g\qty(\zbk{k}_i(t + 1))}{\zbk{k}_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zbk{k}_i(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wig_{p, q}}] \\
+                                           & \aptr \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wig_{p, q}} + {f^\opig}'\qty(\zig_k(t + 1)) \cdot \delta_{k, p} \cdot \xt_q(t) \cdot g\qty(\zbk{k}_i(t + 1)) \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
@@ -1208,38 +1208,38 @@ Bias Terms
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vWopig_{p, q}} & \aptr \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopig_{p, q}} + {f^\opig}'\qty(\vzopig_k(t + 1)) \cdot \cancelto{0}{\delta_{k, p}} \cdot \vxt_q(t) \cdot g\qty(\vzopblk{k}_i(t + 1)) \\
-                                                  & = \vyopfg_k(t + 1) \cdot \dv{\vsopblk{k}_i(t)}{\vWopig_{p, q}} \\
-                                                  & \aptr \qty[\prod_{t^\star = t}^{t + 1} \vyopfg_k(t^\star)] \cdot \dv{\vsopblk{k}_i(t - 1)}{\vWopig_{p, q}} \\
-                                                  & \vdots \\
-                                                  & \aptr \qty[\prod_{t^\star = 1}^{t + 1} \vyopfg_k(t^\star)] \cdot \cancelto{0}{\dv{\vsopblk{k}_i(0)}{\vWopig_{p, q}}} \\
-                                                  & = 0 \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\sbk{k}_i(t + 1)}{\Wig_{p, q}} & \aptr \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wig_{p, q}} + {f^\opig}'\qty(\zig_k(t + 1)) \cdot \cancelto{0}{\delta_{k, p}} \cdot \xt_q(t) \cdot g\qty(\zbk{k}_i(t + 1)) \\
+                                           & = \yfg_k(t + 1) \cdot \dv{\sbk{k}_i(t)}{\Wig_{p, q}} \\
+                                           & \aptr \qty[\prod_{t^\star = t}^{t + 1} \yfg_k(t^\star)] \cdot \dv{\sbk{k}_i(t - 1)}{\Wig_{p, q}} \\
+                                           & \vdots \\
+                                           & \aptr \qty[\prod_{t^\star = 1}^{t + 1} \yfg_k(t^\star)] \cdot \cancelto{0}{\dv{\sbk{k}_i(0)}{\Wig_{p, q}}} \\
+                                           & = 0 \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
-  因此我們將 :math:`\vWopig` 相對於 memory cell internal states 的微分近似值改寫如下：
+  因此我們將 :math:`\Wig` 相對於 memory cell internal states 的微分近似值改寫如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k}_i(t + 1)}{\vWopig_{p, q}} & \aptr \delta_{k, p} \cdot \dv{\vsopblk{p}_i(t + 1)}{\vWopig_{p, q}} \\
-                                                  & \aptr \delta_{k, p} \cdot \qty[\vyopfg_p(t + 1) \cdot \dv{\vsopblk{p}_i(t)}{\vWopig_{p, q}} + {f^\opig}'\qty(\vzopig_p(t + 1)) \cdot \vxt_q(t) \cdot g\qty(\vzopblk{p}_i(t + 1))] \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\sbk{k}_i(t + 1)}{\Wig_{p, q}} & \aptr \delta_{k, p} \cdot \dv{\sbk{p}_i(t + 1)}{\Wig_{p, q}} \\
+                                           & \aptr \delta_{k, p} \cdot \qty[\yfg_p(t + 1) \cdot \dv{\sbk{p}_i(t)}{\Wig_{p, q}} + {f^\opig}'\qty(\zig_p(t + 1)) \cdot \xt_q(t) \cdot g\qty(\zbk{p}_i(t + 1))] \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
@@ -1247,52 +1247,52 @@ Bias Terms
 
     上式就是論文的 3.11 式。
 
-  可以發現 :math:`\vWopig` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
+  可以發現 :math:`\Wig` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
   實際上在執行參數更新演算法時只需要儲存過去累加而得的結果再結合當前計算結果，就可以得到最新的參數更新方向。
-  使用前述推導結果我們可以得到 :math:`\vWopig` 相對於 memory cell activation blocks 的微分近似值：
+  使用前述推導結果我們可以得到 :math:`\Wig` 相對於 memory cell activation blocks 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopblk{k}_i(t + 1)}{\vWopig_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopog_k(t + 1)}{\vWopig_{p, q}}} \cdot h\qty(\vsopblk{k}_i(t + 1)) + \vyopog_k(t + 1) \cdot \dv{h\qty(\vsopblk{k}_i(t + 1))}{\vsopblk{k}_i(t + 1)} \cdot \dv{\vsopblk{k}_i(t + 1)}{\vWopig_{p, q}} \\
-                                                  & \aptr \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_i(t + 1)) \cdot \delta_{k, p} \cdot \dv{\vsopblk{p}_i(t + 1)}{\vWopig_{p, q}} \\
-                                                  & \qqtext{where} \begin{dcases}
-                                                                     i \in \Set{1, \dots, \dblk} \\
-                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                     p \in \Set{1, \dots, \nblk} \\
-                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                   \end{dcases}.
+        \dv{\ybk{k}_i(t + 1)}{\Wig_{p, q}} & = \cancelto{\aptr 0}{\dv{\yog_k(t + 1)}{\Wig_{p, q}}} \cdot h\qty(\sbk{k}_i(t + 1)) + \yog_k(t + 1) \cdot \dv{h\qty(\sbk{k}_i(t + 1))}{\sbk{k}_i(t + 1)} \cdot \dv{\sbk{k}_i(t + 1)}{\Wig_{p, q}} \\
+                                           & \aptr \yog_k(t + 1) \cdot h'\qty(\sbk{k}_i(t + 1)) \cdot \delta_{k, p} \cdot \dv{\sbk{p}_i(t + 1)}{\Wig_{p, q}} \\
+                                           & \qqtext{where} \begin{dcases}
+                                                              i \in \Set{1, \dots, \dbk} \\
+                                                              k \in \Set{1, \dots, \nbk} \\
+                                                              p \in \Set{1, \dots, \nbk} \\
+                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                              t \in \Set{0, \dots, \cT - 1}
+                                                            \end{dcases}.
       \end{align*}
     \]
 
   同前述結論，只需要儲存過去計算而得的結果，最後乘上一些當前的計算狀態，就可以得到最新的參數更新方向。
-  最後我們推得 :math:`\vWopig` 相對於誤差的微分近似值：
+  最後我們推得 :math:`\Wig` 相對於誤差的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopig_{p, q}} \\
-        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopig_{p, q}} \\
-        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopig_{p, q}}}]] \\
-        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (k - 1) \times \dblk + j} \cdot \dv{\vyopblk{k}_j(t + 1)}{\vWopig_{p, q}}]] \\
-        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (k - 1) \times \dblk + j} \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_j(t + 1)) \cdot \delta_{k, p} \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}}]] \\
-        & = \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (p - 1) \times \dblk + j} \cdot \vyopog_p(t + 1) \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}}]] \\
-        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (p - 1) \times \dblk + j} \cdot h'\qty(\vsopblk{p}_j(t + 1)) \cdot \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}}]]) \cdot \vyopog_p(t + 1) \\
+        & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wig_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\y_i(t + 1) - \yh_i(t + 1))^2}{\Wig_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\y_i(t + 1) - \yh_i(t + 1))^2}{\y_i(t + 1)} \cdot \dv{\y_i(t + 1)}{\zout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times \dbk} \qty[\dv{\zout_i(t + 1)}{\xout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\xout_j(t + 1)}{\Wig_{p, q}}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{k = 1}^\nbk \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (k - 1) \times \dbk + j} \cdot \dv{\ybk{k}_j(t + 1)}{\Wig_{p, q}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{k = 1}^\nbk \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (k - 1) \times \dbk + j} \cdot \yog_k(t + 1) \cdot h'\qty(\sbk{k}_j(t + 1)) \cdot \delta_{k, p} \cdot \dv{\sbk{p}_j(t + 1)}{\Wig_{p, q}}]] \\
+        & = \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (p - 1) \times \dbk + j} \cdot \yog_p(t + 1) \cdot h'\qty(\sbk{p}_j(t + 1)) \cdot \dv{\sbk{p}_j(t + 1)}{\Wig_{p, q}}]] \\
+        & = \qty(\sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (p - 1) \times \dbk + j} \cdot h'\qty(\sbk{p}_j(t + 1)) \cdot \dv{\sbk{p}_j(t + 1)}{\Wig_{p, q}}]]) \cdot \yog_p(t + 1) \\
         & \qqtext{where} \begin{dcases}
-                           p \in \Set{1, \dots, \nblk} \\
-                           q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                           p \in \Set{1, \dots, \nbk} \\
+                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                            t \in \Set{0, \dots, \cT - 1}
                          \end{dcases}.
       \end{align*}
     \]
 
-:math:`\vWopblk{k}` 相對於誤差的微分近似值
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:math:`\Wbk{k}` 相對於誤差的微分近似值
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 由於架構中新增了 forget gate units，因此影響了 memory cell internal states 的結構，所以推導結果 :math:`\eqref{15}` 與原始 LSTM 論文推得的式子 :math:`\eqref{4}` 不同。
 
@@ -1301,19 +1301,19 @@ Bias Terms
 
   \[
     \begin{align*}
-      & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopblk{k}_{p, q}} \aptr \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + (k - 1) \times \dblk + p}] \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \cdot \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
+      & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wbk{k}_{p, q}} \aptr \qty[\sum_{i = 1}^\dout \qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \Wout_{i, \din + (k - 1) \times \dbk + p}] \cdot \yog_k(t + 1) \cdot h'\qty(\sbk{k}_p(t + 1)) \cdot \dv{\sbk{k}_p(t + 1)}{\Wbk{k}_{p, q}} \\
       & \qqtext{where} \begin{dcases}
-                         k \in \Set{1, \dots, \nblk} \\
-                         p \in \Set{1, \dots, \dblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                         k \in \Set{1, \dots, \nbk} \\
+                         p \in \Set{1, \dots, \dbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}. \\
-      & \dv{\vsopblk{k^\star}_j(t + 1)}{\vWopblk{k}_{p, q}} \aptr \delta_{k^\star, k} \cdot \delta_{j, p} \cdot \qty[\vyopfg_{k}(t + 1) \cdot \dv{\vsopblk{k}_p(t)}{\vWopblk{k}_{p, q}} + \vyopig_{k}(t + 1) \cdot g'\qty(\vzopblk{k}_p(t + 1)) \cdot \vxt_q(t)] \\
+      & \dv{\sbk{k^\star}_j(t + 1)}{\Wbk{k}_{p, q}} \aptr \delta_{k^\star, k} \cdot \delta_{j, p} \cdot \qty[\yfg_{k}(t + 1) \cdot \dv{\sbk{k}_p(t)}{\Wbk{k}_{p, q}} + \yig_{k}(t + 1) \cdot g'\qty(\zbk{k}_p(t + 1)) \cdot \xt_q(t)] \\
       & \qqtext{where} \begin{dcases}
-                         j \in \Set{1, \dots, \dblk} \\
-                         k \in \Set{1, \dots, \nblk} \\
-                         p \in \Set{1, \dots, \nblk} \\
-                         q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                         j \in \Set{1, \dots, \dbk} \\
+                         k \in \Set{1, \dots, \nbk} \\
+                         p \in \Set{1, \dots, \nbk} \\
+                         q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                          t \in \Set{0, \dots, \cT - 1}
                        \end{dcases}.
     \end{align*}
@@ -1322,79 +1322,79 @@ Bias Terms
 
 .. dropdown:: 推導式子 :math:`\eqref{15}`
 
-  根據式子 :math:`\eqref{10}` 我們可以求得 :math:`\vWopblk{k}` 相對於 forget/input/output gate units 的微分近似值：
+  根據式子 :math:`\eqref{10}` 我們可以求得 :math:`\Wbk{k}` 相對於 forget/input/output gate units 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopfg_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyopfg_{k^\star}(t + 1)}{\vzopfg_{k^\star}(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopfg_{k^\star}(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
-                                                          & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                                     k^\star \in \Set{1, \dots, \nblk} \\
-                                                                                     p \in \Set{1, \dots, \dblk} \\
-                                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                                   \end{dcases}. \\
-        \dv{\vyopig_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyopig_{k^\star}(t + 1)}{\vzopig_{k^\star}(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopig_{k^\star}(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
-                                                          & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                                     k^\star \in \Set{1, \dots, \nblk} \\
-                                                                                     p \in \Set{1, \dots, \dblk} \\
-                                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                                   \end{dcases}. \\
-        \dv{\vyopog_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}} & = \dv{\vyopog_{k^\star}(t + 1)}{\vzopog_{k^\star}(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\cancelto{\aptr 0}{\dv{\vzopog_{k^\star}(t + 1)}{\vxt_j(t)}} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}] \\
-                                                          & \aptr 0 \qqtext{where} \begin{dcases}
-                                                                                     k \in \Set{1, \dots, \nblk} \\
-                                                                                     k^\star \in \Set{1, \dots, \nblk} \\
-                                                                                     p \in \Set{1, \dots, \dblk} \\
-                                                                                     q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                                     t \in \Set{0, \dots, \cT - 1}
-                                                                                   \end{dcases}.
+        \dv{\yfg_{k^\star}(t + 1)}{\Wbk{k}_{p, q}} & = \dv{\yfg_{k^\star}(t + 1)}{\zfg_{k^\star}(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zfg_{k^\star}(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wbk{k}_{p, q}}] \\
+                                                   & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                              k \in \Set{1, \dots, \nbk} \\
+                                                                              k^\star \in \Set{1, \dots, \nbk} \\
+                                                                              p \in \Set{1, \dots, \dbk} \\
+                                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                            \end{dcases}. \\
+        \dv{\yig_{k^\star}(t + 1)}{\Wbk{k}_{p, q}} & = \dv{\yig_{k^\star}(t + 1)}{\zig_{k^\star}(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zig_{k^\star}(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wbk{k}_{p, q}}] \\
+                                                   & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                              k \in \Set{1, \dots, \nbk} \\
+                                                                              k^\star \in \Set{1, \dots, \nbk} \\
+                                                                              p \in \Set{1, \dots, \dbk} \\
+                                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                            \end{dcases}. \\
+        \dv{\yog_{k^\star}(t + 1)}{\Wbk{k}_{p, q}} & = \dv{\yog_{k^\star}(t + 1)}{\zog_{k^\star}(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\cancelto{\aptr 0}{\dv{\zog_{k^\star}(t + 1)}{\xt_j(t)}} \cdot \dv{\xt_j(t)}{\Wbk{k}_{p, q}}] \\
+                                                   & \aptr 0 \qqtext{where} \begin{dcases}
+                                                                              k \in \Set{1, \dots, \nbk} \\
+                                                                              k^\star \in \Set{1, \dots, \nbk} \\
+                                                                              p \in \Set{1, \dots, \dbk} \\
+                                                                              q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                            \end{dcases}.
       \end{align*}
     \]
 
-  在丟棄部份微分後 :math:`\vWopblk{k}` 將\ **無法**\透過 forget/input/output gate units 取得資訊。
-  直覺上我們認為 :math:`\vWopblk{k}` 應該可以透過 memory cell internal states 取得資訊。
-  所以接下來我們推導 :math:`\vWopblk{k}` 相對於 memory cell internal states 的微分近似值：
+  在丟棄部份微分後 :math:`\Wbk{k}` 將\ **無法**\透過 forget/input/output gate units 取得資訊。
+  直覺上我們認為 :math:`\Wbk{k}` 應該可以透過 memory cell internal states 取得資訊。
+  所以接下來我們推導 :math:`\Wbk{k}` 相對於 memory cell internal states 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopfg_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}}} \cdot \vsopblk{k^\star}_i(t) + \vyopfg_{k^\star}(t + 1) \cdot \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} + \cancelto{\aptr 0}{\dv{\vyopig_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}}} \cdot g\qty(\vzopblk{k^\star}_i(t + 1)) + \vyopig_{k^\star}(t + 1) \cdot \dv{g\qty(\vzopblk{k^\star}_i(t + 1))}{\vzopblk{k^\star}_i(t + 1)} \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}]] \\
-                                                            & \aptr \vyopfg_{k^\star}(t + 1) \cdot \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} + \vyopig_{k^\star}(t + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t) + \sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}]] \\
-                                                            & \qqtext{where} \begin{dcases}
-                                                                               i \in \Set{1, \dots, \dblk} \\
-                                                                               k \in \Set{1, \dots, \nblk} \\
-                                                                               k^\star \in \Set{1, \dots, \nblk} \\
-                                                                               p \in \Set{1, \dots, \dblk} \\
-                                                                               q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                               t \in \Set{0, \dots, \cT - 1}
-                                                                             \end{dcases}.
+        \dv{\sbk{k^\star}_i(t + 1)}{\Wbk{k}_{p, q}} & = \cancelto{\aptr 0}{\dv{\yfg_{k^\star}(t + 1)}{\Wbk{k}_{p, q}}} \cdot \sbk{k^\star}_i(t) + \yfg_{k^\star}(t + 1) \cdot \dv{\sbk{k^\star}_i(t)}{\Wbk{k}_{p, q}} + \cancelto{\aptr 0}{\dv{\yig_{k^\star}(t + 1)}{\Wbk{k}_{p, q}}} \cdot g\qty(\zbk{k^\star}_i(t + 1)) + \yig_{k^\star}(t + 1) \cdot \dv{g\qty(\zbk{k^\star}_i(t + 1))}{\zbk{k^\star}_i(t + 1)} \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \xt_q(t) + \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wbk{k^\star}_{i, j} \cdot \dv{\xt_j(t)}{\Wbk{k}_{p, q}}]] \\
+                                                    & \aptr \yfg_{k^\star}(t + 1) \cdot \dv{\sbk{k^\star}_i(t)}{\Wbk{k}_{p, q}} + \yig_{k^\star}(t + 1) \cdot g'\qty(\zbk{k^\star}_i(t + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \xt_q(t) + \sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wbk{k^\star}_{i, j} \cdot \dv{\xt_j(t)}{\Wbk{k}_{p, q}}]] \\
+                                                    & \qqtext{where} \begin{dcases}
+                                                                       i \in \Set{1, \dots, \dbk} \\
+                                                                       k \in \Set{1, \dots, \nbk} \\
+                                                                       k^\star \in \Set{1, \dots, \nbk} \\
+                                                                       p \in \Set{1, \dots, \dbk} \\
+                                                                       q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                       t \in \Set{0, \dots, \cT - 1}
+                                                                     \end{dcases}.
       \end{align*}
     \]
 
-  可以發現 :math:`\vWopblk{k}` 對於 memory cell internal states 的全微分會有 BPTT 的問題，因此原始 LSTM 論文中提出額外丟棄 memory cell internal states 的部份微分，結果如下：
+  可以發現 :math:`\Wbk{k}` 對於 memory cell internal states 的全微分會有 BPTT 的問題，因此原始 LSTM 論文中提出額外丟棄 memory cell internal states 的部份微分，結果如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & \aptr \vyopfg_{k^\star}(t + 1) \cdot \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} + \vyopig_{k^\star}(t + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \nblk \times (3 + \dblk)} \qty[\vWopblk{k^\star}_{i, j} \cdot \dv{\vxt_j(t)}{\vWopblk{k}_{p, q}}]}] \\
-                                                            & \aptr \vyopfg_{k^\star}(t + 1) \cdot \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} + \vyopig_{k^\star}(t + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \vxt_q(t) \\
-                                                            & \qqtext{where} \begin{dcases}
-                                                                               i \in \Set{1, \dots, \dblk} \\
-                                                                               k \in \Set{1, \dots, \nblk} \\
-                                                                               k^\star \in \Set{1, \dots, \nblk} \\
-                                                                               p \in \Set{1, \dots, \dblk} \\
-                                                                               q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                               t \in \Set{0, \dots, \cT - 1}
-                                                                             \end{dcases}.
+        \dv{\sbk{k^\star}_i(t + 1)}{\Wbk{k}_{p, q}} & \aptr \yfg_{k^\star}(t + 1) \cdot \dv{\sbk{k^\star}_i(t)}{\Wbk{k}_{p, q}} + \yig_{k^\star}(t + 1) \cdot g'\qty(\zbk{k^\star}_i(t + 1)) \cdot \qty[\delta_{k^\star, k} \cdot \delta_{i, p} \cdot \xt_q(t) + \cancelto{\aptr 0}{\sum_{j = 1}^{\din + \nbk \times (3 + \dbk)} \qty[\Wbk{k^\star}_{i, j} \cdot \dv{\xt_j(t)}{\Wbk{k}_{p, q}}]}] \\
+                                                    & \aptr \yfg_{k^\star}(t + 1) \cdot \dv{\sbk{k^\star}_i(t)}{\Wbk{k}_{p, q}} + \yig_{k^\star}(t + 1) \cdot g'\qty(\zbk{k^\star}_i(t + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \xt_q(t) \\
+                                                    & \qqtext{where} \begin{dcases}
+                                                                       i \in \Set{1, \dots, \dbk} \\
+                                                                       k \in \Set{1, \dots, \nbk} \\
+                                                                       k^\star \in \Set{1, \dots, \nbk} \\
+                                                                       p \in \Set{1, \dots, \dbk} \\
+                                                                       q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                       t \in \Set{0, \dots, \cT - 1}
+                                                                     \end{dcases}.
       \end{align*}
     \]
 
@@ -1405,38 +1405,38 @@ Bias Terms
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & \aptr \vyopfg_{k^\star}(t + 1) \cdot \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} + \vyopig_{k^\star}(t + 1) \cdot g'\qty(\vzopblk{k^\star}_i(t + 1)) \cdot \cancelto{0}{\delta_{k^\star, k} \cdot \delta_{i, p}} \cdot \vxt_q(t) \\
-                                                            & = \vyopfg_{k^\star}(t + 1) \cdot \dv{\vsopblk{k^\star}_i(t)}{\vWopblk{k}_{p, q}} \\
-                                                            & \aptr \qty[\prod_{t^\star = t}^{t + 1} \vyopfg_{k^\star}(t^\star)] \cdot \dv{\vsopblk{k^\star}_i(t - 1)}{\vWopblk{k}_{p, q}} \\
-                                                            & \vdots \\
-                                                            & \aptr \qty[\prod_{t^\star = 1}^{t + 1} \vyopfg_{k^\star}(t^\star)] \cdot \cancelto{0}{\dv{\vsopblk{k^\star}_i(0)}{\vWopblk{k}_{p, q}}} \\
-                                                            & = 0 \\
-                                                            & \qqtext{where} \begin{dcases}
-                                                                               i \in \Set{1, \dots, \dblk} \\
-                                                                               k \in \Set{1, \dots, \nblk} \\
-                                                                               p \in \Set{1, \dots, \nblk} \\
-                                                                               q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                               t \in \Set{0, \dots, \cT - 1}
-                                                                             \end{dcases}.
+        \dv{\sbk{k^\star}_i(t + 1)}{\Wbk{k}_{p, q}} & \aptr \yfg_{k^\star}(t + 1) \cdot \dv{\sbk{k^\star}_i(t)}{\Wbk{k}_{p, q}} + \yig_{k^\star}(t + 1) \cdot g'\qty(\zbk{k^\star}_i(t + 1)) \cdot \cancelto{0}{\delta_{k^\star, k} \cdot \delta_{i, p}} \cdot \xt_q(t) \\
+                                                    & = \yfg_{k^\star}(t + 1) \cdot \dv{\sbk{k^\star}_i(t)}{\Wbk{k}_{p, q}} \\
+                                                    & \aptr \qty[\prod_{t^\star = t}^{t + 1} \yfg_{k^\star}(t^\star)] \cdot \dv{\sbk{k^\star}_i(t - 1)}{\Wbk{k}_{p, q}} \\
+                                                    & \vdots \\
+                                                    & \aptr \qty[\prod_{t^\star = 1}^{t + 1} \yfg_{k^\star}(t^\star)] \cdot \cancelto{0}{\dv{\sbk{k^\star}_i(0)}{\Wbk{k}_{p, q}}} \\
+                                                    & = 0 \\
+                                                    & \qqtext{where} \begin{dcases}
+                                                                       i \in \Set{1, \dots, \dbk} \\
+                                                                       k \in \Set{1, \dots, \nbk} \\
+                                                                       p \in \Set{1, \dots, \nbk} \\
+                                                                       q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                       t \in \Set{0, \dots, \cT - 1}
+                                                                     \end{dcases}.
       \end{align*}
     \]
 
-  因此我們將 :math:`\vWopblk{k}` 相對於 memory cell internal states 的微分近似值改寫如下：
+  因此我們將 :math:`\Wbk{k}` 相對於 memory cell internal states 的微分近似值改寫如下：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & \aptr \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
-                                                            & \aptr \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \qty[\vyopfg_{k}(t + 1) \cdot \dv{\vsopblk{k}_p(t)}{\vWopblk{k}_{p, q}} + \vyopig_{k}(t + 1) \cdot g'\qty(\vzopblk{k}_p(t + 1)) \cdot \vxt_q(t)] \\
-                                                            & \qqtext{where} \begin{dcases}
-                                                                               i \in \Set{1, \dots, \dblk} \\
-                                                                               k \in \Set{1, \dots, \nblk} \\
-                                                                               p \in \Set{1, \dots, \nblk} \\
-                                                                               q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                               t \in \Set{0, \dots, \cT - 1}
-                                                                             \end{dcases}.
+        \dv{\sbk{k^\star}_i(t + 1)}{\Wbk{k}_{p, q}} & \aptr \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \dv{\sbk{k}_p(t + 1)}{\Wbk{k}_{p, q}} \\
+                                                    & \aptr \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \qty[\yfg_{k}(t + 1) \cdot \dv{\sbk{k}_p(t)}{\Wbk{k}_{p, q}} + \yig_{k}(t + 1) \cdot g'\qty(\zbk{k}_p(t + 1)) \cdot \xt_q(t)] \\
+                                                    & \qqtext{where} \begin{dcases}
+                                                                       i \in \Set{1, \dots, \dbk} \\
+                                                                       k \in \Set{1, \dots, \nbk} \\
+                                                                       p \in \Set{1, \dots, \nbk} \\
+                                                                       q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                       t \in \Set{0, \dots, \cT - 1}
+                                                                     \end{dcases}.
       \end{align*}
     \]
 
@@ -1444,46 +1444,46 @@ Bias Terms
 
     上式就是論文的 3.10 式。
 
-  可以發現 :math:`\vWopblk{k}` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
+  可以發現 :math:`\Wbk{k}` 透過 memory cell internal states 得到的資訊其實都是來自於過去微分近似值的累加結果。
   實際上在執行參數更新演算法時只需要儲存過去累加而得的結果再結合當前計算結果，就可以得到最新的參數更新方向。
-  使用前述推導結果我們可以得到 :math:`\vWopblk{k}` 相對於 memory cell activation blocks 的微分近似值：
+  使用前述推導結果我們可以得到 :math:`\Wbk{k}` 相對於 memory cell activation blocks 的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        \dv{\vyopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} & = \cancelto{\aptr 0}{\dv{\vyopog_{k^\star}(t + 1)}{\vWopblk{k}_{p, q}}} \cdot h\qty(\vsopblk{k^\star}_i(t + 1)) + \vyopog_{k^\star}(t + 1) \cdot \dv{h\qty(\vsopblk{k^\star}_i(t + 1))}{\vsopblk{k^\star}_i(t + 1)} \cdot \dv{\vsopblk{k^\star}_i(t + 1)}{\vWopblk{k}_{p, q}} \\
-                                                            & \aptr \vyopog_{k^\star}(t + 1) \cdot h'\qty(\vsopblk{k^\star}_i(t + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
-                                                            & \qqtext{where} \begin{dcases}
-                                                                               i \in \Set{1, \dots, \dblk} \\
-                                                                               k \in \Set{1, \dots, \nblk} \\
-                                                                               k^\star \in \Set{1, \dots, \nblk} \\
-                                                                               p \in \Set{1, \dots, \dblk} \\
-                                                                               q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                               t \in \Set{0, \dots, \cT - 1}
-                                                                             \end{dcases}.
+        \dv{\ybk{k^\star}_i(t + 1)}{\Wbk{k}_{p, q}} & = \cancelto{\aptr 0}{\dv{\yog_{k^\star}(t + 1)}{\Wbk{k}_{p, q}}} \cdot h\qty(\sbk{k^\star}_i(t + 1)) + \yog_{k^\star}(t + 1) \cdot \dv{h\qty(\sbk{k^\star}_i(t + 1))}{\sbk{k^\star}_i(t + 1)} \cdot \dv{\sbk{k^\star}_i(t + 1)}{\Wbk{k}_{p, q}} \\
+                                                    & \aptr \yog_{k^\star}(t + 1) \cdot h'\qty(\sbk{k^\star}_i(t + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{i, p} \cdot \dv{\sbk{k}_p(t + 1)}{\Wbk{k}_{p, q}} \\
+                                                    & \qqtext{where} \begin{dcases}
+                                                                       i \in \Set{1, \dots, \dbk} \\
+                                                                       k \in \Set{1, \dots, \nbk} \\
+                                                                       k^\star \in \Set{1, \dots, \nbk} \\
+                                                                       p \in \Set{1, \dots, \dbk} \\
+                                                                       q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                       t \in \Set{0, \dots, \cT - 1}
+                                                                     \end{dcases}.
       \end{align*}
     \]
 
   同前述結論，只需要儲存過去計算而得的結果，最後乘上一些當前的計算狀態，就可以得到最新的參數更新方向。
-  最後我們推得 :math:`\vWopblk{k}` 相對於誤差的微分近似值：
+  最後我們推得 :math:`\Wbk{k}` 相對於誤差的微分近似值：
 
   .. math::
     :nowrap:
 
     \[
       \begin{align*}
-        & \dv{\cL\qty(\vy(t + 1) - \vyh(t + 1))}{\vWopblk{k}_{p, q}} \\
-        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vWopblk{k}_{p, q}} \\
-        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\vy_i(t + 1) - \vyh_i(t + 1))^2}{\vy_i(t + 1)} \cdot \dv{\vy_i(t + 1)}{\vzopout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nblk \times \dblk} \qty[\dv{\vzopout_i(t + 1)}{\vxopout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\vxopout_j(t + 1)}{\vWopblk{k}_{p, q}}}]] \\
-        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (k^\star - 1) \times \dblk + j} \cdot \dv{\vyopblk{k^\star}_j(t + 1)}{\vWopblk{k}_{p, q}}]] \\
-        & \aptr \sum_{i = 1}^\dout \qty[\qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nblk \sum_{j = 1}^\dblk \qty[\vWopout_{i, \din + (k^\star - 1) \times \dblk + j} \cdot \vyopog_{k^\star}(t + 1) \cdot h'\qty(\vsopblk{k^\star}_j(t + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{j, p} \cdot \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}}]] \\
-        & = \qty[\sum_{i = 1}^\dout \qty(\vy_i(t + 1) - \vyh_i(t + 1)) \cdot {f^\opout}'\qty(\vzopout_i(t + 1)) \cdot \vWopout_{i, \din + (k - 1) \times \dblk + p}] \cdot \vyopog_k(t + 1) \cdot h'\qty(\vsopblk{k}_p(t + 1)) \cdot \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} \\
+        & \dv{\cL\qty(\y(t + 1) - \yh(t + 1))}{\Wbk{k}_{p, q}} \\
+        & = \sum_{i = 1}^\dout \dv{\frac{1}{2} \qty(\y_i(t + 1) - \yh_i(t + 1))^2}{\Wbk{k}_{p, q}} \\
+        & = \sum_{i = 1}^\dout \qty[\dv{\frac{1}{2} \qty(\y_i(t + 1) - \yh_i(t + 1))^2}{\y_i(t + 1)} \cdot \dv{\y_i(t + 1)}{\zout_i(t + 1)} \cdot \sum_{j = 1}^{\din + \nbk \times \dbk} \qty[\dv{\zout_i(t + 1)}{\xout_j(t + 1)} \cdot \cancelto{\aptr 0}{\dv{\xout_j(t + 1)}{\Wbk{k}_{p, q}}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nbk \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (k^\star - 1) \times \dbk + j} \cdot \dv{\ybk{k^\star}_j(t + 1)}{\Wbk{k}_{p, q}}]] \\
+        & \aptr \sum_{i = 1}^\dout \qty[\qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \sum_{k^\star = 1}^\nbk \sum_{j = 1}^\dbk \qty[\Wout_{i, \din + (k^\star - 1) \times \dbk + j} \cdot \yog_{k^\star}(t + 1) \cdot h'\qty(\sbk{k^\star}_j(t + 1)) \cdot \delta_{k^\star, k} \cdot \delta_{j, p} \cdot \dv{\sbk{k}_p(t + 1)}{\Wbk{k}_{p, q}}]] \\
+        & = \qty[\sum_{i = 1}^\dout \qty(\y_i(t + 1) - \yh_i(t + 1)) \cdot {f^\opout}'\qty(\zout_i(t + 1)) \cdot \Wout_{i, \din + (k - 1) \times \dbk + p}] \cdot \yog_k(t + 1) \cdot h'\qty(\sbk{k}_p(t + 1)) \cdot \dv{\sbk{k}_p(t + 1)}{\Wbk{k}_{p, q}} \\
         & \qqtext{where} \begin{dcases}
-                           k \in \Set{1, \dots, \nblk} \\
-                           p \in \Set{1, \dots, \dblk} \\
-                           q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
+                           k \in \Set{1, \dots, \nbk} \\
+                           p \in \Set{1, \dots, \dbk} \\
+                           q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
                            t \in \Set{0, \dots, \cT - 1}
                          \end{dcases}.
       \end{align*}
@@ -1501,32 +1501,32 @@ Bias Terms
 
   \[
     \begin{align*}
-      \vWopout_{p, q}    & \algoEq \vWopout_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopout_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                          p \in \Set{1, \dots, \dout} \\
-                                                                                                                                          q \in \Set{1, \dots, \din + \nblk \times \dblk} \\
-                                                                                                                                          t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                        \end{dcases}. \\
-      \vWopog_{p, q}     & \algoEq \vWopog_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopog_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                        p \in \Set{1, \dots, \nblk} \\
-                                                                                                                                        q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                                                                                        t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                      \end{dcases}. \\
-      \vWopfg_{p, q}     & \algoEq \vWopfg_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopfg_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                        p \in \Set{1, \dots, \nblk} \\
-                                                                                                                                        q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                                                                                        t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                      \end{dcases}. \\
-      \vWopig_{p, q}     & \algoEq \vWopig_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopig_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                        p \in \Set{1, \dots, \nblk} \\
-                                                                                                                                        q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                                                                                        t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                      \end{dcases}. \\
-      \vWopblk{k}_{p, q} & \algoEq \vWopblk{k}_{p, q} - \alpha \cdot \dv{\cL\qty(\vy(t + 1), \vyh(t + 1))}{\vWopblk{k}_{p, q}} \qqtext{where} \begin{dcases}
-                                                                                                                                                k \in \Set{1, \dots, \nblk} \\
-                                                                                                                                                p \in \Set{1, \dots, \dblk} \\
-                                                                                                                                                q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                                                                                                t \in \Set{0, \dots, \cT - 1}
-                                                                                                                                              \end{dcases}.
+      \Wout_{p, q}   & \algoEq \Wout_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wout_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                              p \in \Set{1, \dots, \dout} \\
+                                                                                                                              q \in \Set{1, \dots, \din + \nbk \times \dbk} \\
+                                                                                                                              t \in \Set{0, \dots, \cT - 1}
+                                                                                                                            \end{dcases}. \\
+      \Wog_{p, q}    & \algoEq \Wog_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wog_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                            p \in \Set{1, \dots, \nbk} \\
+                                                                                                                            q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                                                                            t \in \Set{0, \dots, \cT - 1}
+                                                                                                                          \end{dcases}. \\
+      \Wfg_{p, q}    & \algoEq \Wfg_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wfg_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                            p \in \Set{1, \dots, \nbk} \\
+                                                                                                                            q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                                                                            t \in \Set{0, \dots, \cT - 1}
+                                                                                                                          \end{dcases}. \\
+      \Wig_{p, q}    & \algoEq \Wig_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wig_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                            p \in \Set{1, \dots, \nbk} \\
+                                                                                                                            q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                                                                            t \in \Set{0, \dots, \cT - 1}
+                                                                                                                          \end{dcases}. \\
+      \Wbk{k}_{p, q} & \algoEq \Wbk{k}_{p, q} - \alpha \cdot \dv{\cL\qty(\y(t + 1), \yh(t + 1))}{\Wbk{k}_{p, q}} \qqtext{where} \begin{dcases}
+                                                                                                                                  k \in \Set{1, \dots, \nbk} \\
+                                                                                                                                  p \in \Set{1, \dots, \dbk} \\
+                                                                                                                                  q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                                                                                                  t \in \Set{0, \dots, \cT - 1}
+                                                                                                                                \end{dcases}.
     \end{align*}
     \tag{16}\label{16}
   \]
@@ -1537,7 +1537,7 @@ Bias Terms
   :nowrap:
 
   \[
-    \order{\dim(\vWopout) + \dim(\vWopog) + \dim(\vWopig) \times \dblk + \nblk \times \dim(\vWopblk{1})}
+    \order{\dim(\Wout) + \dim(\Wog) + \dim(\Wig) \times \dbk + \nbk \times \dim(\Wbk{1})}
     \tag{17}\label{17}
   \]
 
@@ -1551,24 +1551,24 @@ Bias Terms
 
   \[
     \begin{align*}
-      \dv{\vsopblk{p}_j(t + 1)}{\vWopfg_{p, q}}     & \qqtext{where} \begin{dcases}
-                                                                       j \in \Set{1, \dots, \dblk} \\
-                                                                       p \in \Set{1, \dots, \nblk} \\
-                                                                       q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                       t \in \Set{0, \dots, \cT - 1}
-                                                                     \end{dcases}. \\
-      \dv{\vsopblk{p}_j(t + 1)}{\vWopig_{p, q}}     & \qqtext{where} \begin{dcases}
-                                                                       j \in \Set{1, \dots, \dblk} \\
-                                                                       p \in \Set{1, \dots, \nblk} \\
-                                                                       q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                       t \in \Set{0, \dots, \cT - 1}
-                                                                     \end{dcases}. \\
-      \dv{\vsopblk{k}_p(t + 1)}{\vWopblk{k}_{p, q}} & \qqtext{where} \begin{dcases}
-                                                                       k \in \Set{1, \dots, \nblk} \\
-                                                                       p \in \Set{1, \dots, \dblk} \\
-                                                                       q \in \Set{1, \dots, \din + \nblk \times (3 + \dblk)} \\
-                                                                       t \in \Set{0, \dots, \cT - 1}
-                                                                     \end{dcases}.
+      \dv{\sbk{p}_j(t + 1)}{\Wfg_{p, q}}    & \qqtext{where} \begin{dcases}
+                                                               j \in \Set{1, \dots, \dbk} \\
+                                                               p \in \Set{1, \dots, \nbk} \\
+                                                               q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                               t \in \Set{0, \dots, \cT - 1}
+                                                             \end{dcases}. \\
+      \dv{\sbk{p}_j(t + 1)}{\Wig_{p, q}}    & \qqtext{where} \begin{dcases}
+                                                               j \in \Set{1, \dots, \dbk} \\
+                                                               p \in \Set{1, \dots, \nbk} \\
+                                                               q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                               t \in \Set{0, \dots, \cT - 1}
+                                                             \end{dcases}. \\
+      \dv{\sbk{k}_p(t + 1)}{\Wbk{k}_{p, q}} & \qqtext{where} \begin{dcases}
+                                                               k \in \Set{1, \dots, \nbk} \\
+                                                               p \in \Set{1, \dots, \dbk} \\
+                                                               q \in \Set{1, \dots, \din + \nbk \times (3 + \dbk)} \\
+                                                               t \in \Set{0, \dots, \cT - 1}
+                                                             \end{dcases}.
     \end{align*}
     \tag{18}\label{18}
   \]
@@ -1580,7 +1580,7 @@ Bias Terms
   :nowrap:
 
   \[
-    \order{\dim(\vWopout) + \dim(\vWopog) + \dim(\vWopig) \times \dblk + \nblk \times \dim(\vWopblk{1})}.
+    \order{\dim(\Wout) + \dim(\Wog) + \dim(\Wig) \times \dbk + \nbk \times \dim(\Wbk{1})}.
     \tag{19}\label{19}
   \]
 
@@ -1628,41 +1628,41 @@ LSTM 架構
 
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Hyperparameters                       | Value or Range                                              | Notes                                                                          |
-+=======================================+=============================================================+================================================================================+
-| :math:`\din`                          | :math:`7`                                                   | ``BEPSTVX``                                                                    |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dblk`                         | :math:`2`                                                   |                                                                                |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\nblk`                         | :math:`4`                                                   |                                                                                |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dout`                         | :math:`7`                                                   | ``BEPSTVX``                                                                    |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| :math:`\dim(\vWopblk{k})`             | :math:`\dblk \times (\din + \nblk \times \dblk)`            | The seven input units are fully connected to a hidden layer consisting of four |
-+---------------------------------------+-------------------------------------------------------------+ memory blocks with 2 cells each (8 cells and 12 gates in total). The cell      |
-| :math:`\dim(\vWopfg)`                 | :math:`\nblk \times (\din + \nblk \times \dblk + 1)`        | outputs are fully connected to the cell inputs, all gates, and the seven       |
-+---------------------------------------+-------------------------------------------------------------+ output units. The output units have additional "shortcut" connection from the  |
-| :math:`\dim(\vWopig)`                 | :math:`\nblk \times (\din + \nblk \times \dblk + 1)`        | input units (see Figure 3). All gates and output units are biased.             |
-+---------------------------------------+-------------------------------------------------------------+                                                                                |
-| :math:`\dim(\vWopog)`                 | :math:`\nblk \times (\din + \nblk \times \dblk + 1)`        |                                                                                |
-+---------------------------------------+-------------------------------------------------------------+                                                                                |
-| :math:`\dim(\vWopout)`                | :math:`\dout \times (\din + \nblk \times \dblk + 1)`        |                                                                                |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Total number of parameters            | :math:`424`                                                 |                                                                                |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Weight initalization range            | :math:`[-0.2, 0.2]`                                         | Bias weights to input and output gates are initialized blockwise: :math:`-0.5` |
-+---------------------------------------+-------------------------------------------------------------+ for the first block, :math:`-1.0` for the second, :math:`-1.5` for the third,  |
-| Forget gate bias initialization range | :math:`\Set{0.5, 1.0, 1.5, 2.0}`                            | and so forth. ... Forget gates are initialized with symmetric positive values: |
-+---------------------------------------+-------------------------------------------------------------+ :math:`+0.5` for the first block, :math:`+1` for the second block, and so on.  |
-| Input gate bias initialization range  | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`                        | Precise bias initialization is not critical, though; other values work just as |
-+---------------------------------------+-------------------------------------------------------------+ well. All other weights including the output bias are initialized randomly in  |
-| Output gate bias initialization range | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`                        | the range :math:`[-0.2, 0.2]`.                                                 |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
-| Learning rate                         | :math:`0.5`                                                 | At the beginning of each training stream, the learning rate :math:`\alpha` is  |
-|                                       |                                                             | initialized with :math:`0.5`. It either remains fixed or decays by a factor of |
-|                                       |                                                             | :math:`0.99` per time step (LSTM with :math:`\alpha`-decay).                   |
-+---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
+| Hyperparameters                       | Value or Range                                     | Notes                                                                          |
++=======================================+====================================================+================================================================================+
+| :math:`\din`                          | :math:`7`                                          | ``BEPSTVX``                                                                    |
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dbk`                          | :math:`2`                                          |                                                                                |
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\nbk`                          | :math:`4`                                          |                                                                                |
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dout`                         | :math:`7`                                          | ``BEPSTVX``                                                                    |
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
+| :math:`\dim(\Wbk{k})`                 | :math:`\dbk \times (\din + \nbk \times \dbk)`      | The seven input units are fully connected to a hidden layer consisting of four |
++---------------------------------------+----------------------------------------------------+ memory blocks with 2 cells each (8 cells and 12 gates in total). The cell      |
+| :math:`\dim(\Wfg)`                    | :math:`\nbk \times (\din + \nbk \times \dbk + 1)`  | outputs are fully connected to the cell inputs, all gates, and the seven       |
++---------------------------------------+----------------------------------------------------+ output units. The output units have additional "shortcut" connection from the  |
+| :math:`\dim(\Wig)`                    | :math:`\nbk \times (\din + \nbk \times \dbk + 1)`  | input units (see Figure 3). All gates and output units are biased.             |
++---------------------------------------+----------------------------------------------------+                                                                                |
+| :math:`\dim(\Wog)`                    | :math:`\nbk \times (\din + \nbk \times \dbk + 1)`  |                                                                                |
++---------------------------------------+----------------------------------------------------+                                                                                |
+| :math:`\dim(\Wout)`                   | :math:`\dout \times (\din + \nbk \times \dbk + 1)` |                                                                                |
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
+| Total number of parameters            | :math:`424`                                        |                                                                                |
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
+| Weight initalization range            | :math:`[-0.2, 0.2]`                                | Bias weights to input and output gates are initialized blockwise: :math:`-0.5` |
++---------------------------------------+----------------------------------------------------+ for the first block, :math:`-1.0` for the second, :math:`-1.5` for the third,  |
+| Forget gate bias initialization range | :math:`\Set{0.5, 1.0, 1.5, 2.0}`                   | and so forth. ... Forget gates are initialized with symmetric positive values: |
++---------------------------------------+----------------------------------------------------+ :math:`+0.5` for the first block, :math:`+1` for the second block, and so on.  |
+| Input gate bias initialization range  | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`               | Precise bias initialization is not critical, though; other values work just as |
++---------------------------------------+----------------------------------------------------+ well. All other weights including the output bias are initialized randomly in  |
+| Output gate bias initialization range | :math:`\Set{-0.5, -1.0, -1.5, -2.0}`               | the range :math:`[-0.2, 0.2]`.                                                 |
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
+| Learning rate                         | :math:`0.5`                                        | At the beginning of each training stream, the learning rate :math:`\alpha` is  |
+|                                       |                                                    | initialized with :math:`0.5`. It either remains fixed or decays by a factor of |
+|                                       |                                                    | :math:`0.99` per time step (LSTM with :math:`\alpha`-decay).                   |
++---------------------------------------+----------------------------------------------------+--------------------------------------------------------------------------------+
 
 實驗結果
 --------
