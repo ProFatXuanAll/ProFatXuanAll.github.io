@@ -2760,6 +2760,7 @@ LSTM 架構
   :name: paper-table-2
 
   表格 2：無雜訊長時間差任務實驗結果。
+
   表格來源：:footcite:`hochreiter-etal-1997-long`。
 
 
@@ -2912,6 +2913,7 @@ LSTM 架構
   :name: paper-table-3
 
   表格 3：有雜訊超長時間差任務實驗結果。
+
   表格來源：:footcite:`hochreiter-etal-1997-long`。
 
 - 其他方法沒有辦法完成任務，因此不列入表格比較
@@ -2991,6 +2993,7 @@ LSTM 架構
   :name: paper-table-4
 
   表格 4：Two-Sequence Problem 實驗結果。
+
   表格來源：:footcite:`hochreiter-etal-1997-long`。
 
 - LSTM 能夠快速解決任務，但沒辦法比 random weight guessing 快
@@ -3005,6 +3008,7 @@ LSTM 架構
   :name: paper-table-5
 
   表格 5：Two-Sequence Problem + 雜訊實驗結果。
+
   表格來源：:footcite:`hochreiter-etal-1997-long`。
 
 實驗設計與 LSTM 完全與實驗 3a 相同，但對於序列 :math:`\opseq` 前 :math:`N` 個實數加上雜訊（與實驗 2a 相同的高斯分佈）。
@@ -3027,6 +3031,7 @@ LSTM 架構
   :name: paper-table-6
 
   表格 6：強化版 Two-Sequence Problem 實驗結果。
+
   表格來源：:footcite:`hochreiter-etal-1997-long`。
 
 實驗設計與 LSTM 完全與實驗 3b 相同，但進行以下修改
@@ -3144,6 +3149,7 @@ LSTM 架構
   :name: paper-table-7
 
   表格 7：Adding Problem 實驗結果。
+
   表格來源：:footcite:`hochreiter-etal-1997-long`。
 
 - LSTM 能夠在不預測錯誤 :math:`3` 筆以上資料的狀況下達成任務目標，平均誤差永遠低於 :math:`0.01`
@@ -3192,6 +3198,7 @@ LSTM 架構
   :name: paper-table-8
 
   表格 8：Multiplication Problem 實驗結果。
+
   表格來源：:footcite:`hochreiter-etal-1997-long`。
 
 - LSTM 能夠達成任務目標
@@ -3269,6 +3276,7 @@ LSTM 架構
   :name: paper-table-9
 
   表格 9：Temporal Order with 4 Classes 任務實驗結果。
+
   表格來源：:footcite:`hochreiter-etal-1997-long`。
 
 - LSTM 的平均誤差總是低於 :math:`0.1`，且沒有超過 :math:`3` 筆以上的預測錯誤

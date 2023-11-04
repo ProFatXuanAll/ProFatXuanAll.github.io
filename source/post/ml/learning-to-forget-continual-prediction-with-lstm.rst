@@ -83,10 +83,8 @@ Learning to Forget: Continual Prediction with LSTM
         \newcommand{\opig}{\operatorname{ig}}
         \newcommand{\opin}{\operatorname{in}}
         \newcommand{\oplen}{\operatorname{len}}
-        \newcommand{\opnet}{\operatorname{net}}
         \newcommand{\opog}{\operatorname{og}}
         \newcommand{\opout}{\operatorname{out}}
-        \newcommand{\opseq}{\operatorname{seq}}
 
         % Memory cell blocks.
         \newcommand{\blk}[1]{{\opblk^{#1}}}
@@ -122,24 +120,11 @@ Learning to Forget: Continual Prediction with LSTM
         \newcommand{\cL}{\mathcal{L}}
         \newcommand{\cT}{\mathcal{T}}
 
-        % Vectors with subscript.
-        \newcommand{\vxj}{{\vx_j}}
-        \newcommand{\vyi}{{\vy_i}}
-        \newcommand{\vyj}{{\vy_j}}
-        \newcommand{\vzi}{{\vz_i}}
-
-        % Matrixs with subscripts.
-        \newcommand{\vWii}{{\vW_{i, i}}}
-        \newcommand{\vWij}{{\vW_{i, j}}}
-
         % Dimensions.
         \newcommand{\din}{{d_\opin}}
         \newcommand{\dout}{{d_\opout}}
         \newcommand{\dblk}{{d_\opblk}}
         \newcommand{\nblk}{{n_\opblk}}
-
-        % Derivative of loss(#2) with respect to net input #1 at time #3.
-        \newcommand{\vth}[2]{{\vartheta_{#1}^{#2}}}
 
         % Gradient approximation by truncating gradient.
         \newcommand{\aptr}{\approx_{\operatorname{tr}}}
@@ -149,18 +134,16 @@ Learning to Forget: Continual Prediction with LSTM
 ====
 
 - 此篇論文 :footcite:`gers-etal-2000-learning` 與原版 LSTM :footcite:`hochreiter-etal-1997-long` 都寫錯自己的數學公式，但我的筆記內容主要以正確版本為主，原版 LSTM 可以參考\ :doc:`我的筆記 </post/ml/long-short-term-memory>`
-- 原版 LSTM 沒有 forget gate ，現今常用的 LSTM 都有 forget gate ，概念由此篇論文提出
-- 包含多個子序列的\ **連續輸入**\會讓 LSTM 的 memory cell internal states 沒有上下界
+- 原版 LSTM 沒有 forget gate units，現今常用的 LSTM 都有 forget gate units，概念由此篇論文提出
+- 包含多個子序列的\ **連續輸入**\會讓原版 LSTM 的 memory cell internal states 累加成極正或極負
 
   - 現實中的大多數資料並不存在好的分割序列演算法，導致輸入給模型的資料通常都包含多個子序列
-  - 根據實驗 1 的分析發現 memory cell internal states 的累積導致預測結果完全錯誤
+  - 根據實驗 1 的分析發現 memory cell internal states 的累加導致預測結果完全錯誤
 
-- 使用 forget gate 讓模型學會適當的忘記已經處理過的子序列資訊
-
-  - 當 forget gate 的 **bias term** 初始化為 **正數** 時會保持 memory cell internal states，等同於使用原版的 LSTM
-  - 因此使用 forget gate 的 LSTM 能夠達成原版 LSTM 的功能，並額外擁有自動重設 memory cells 的機制
-
-- 這篇模型的理論背景較少，實驗為主的描述居多
+- 使用 forget gate units 讓模型學會適當的忘記已經處理過的子序列資訊
+- 當 forget gate units 的 **bias term** 初始化為\ **正數**\時會記住 memory cell internal states，等同於使用原版的 LSTM
+- 因此使用 forget gate units 的 LSTM 能夠達成原版 LSTM 的功能，並額外擁有自動重設 memory cells 的機制
+- 這篇論文的理論背景較少，實驗為主的描述居多
 
 原始 LSTM
 =========
@@ -445,7 +428,7 @@ Forget Gate Units
   :alt: 在原始 LSTM 架構上增加 forget gate units
   :name: paper-fig-1
 
-  圖 1：在原始 LSTM 架構上增加 forget gate 。
+  圖 1：在原始 LSTM 架構上增加 forget gate。
 
   表格來源：:footcite:`gers-etal-2000-learning`。
 
@@ -1609,6 +1592,7 @@ Bias Terms
   :name: paper-fig-2
 
   圖 2：Continual Embedded Reber Grammar。
+
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
 任務定義
@@ -1641,6 +1625,7 @@ LSTM 架構
   :name: paper-fig-3
 
   圖 3：LSTM 架構。
+
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
 +---------------------------------------+-------------------------------------------------------------+--------------------------------------------------------------------------------+
@@ -1687,6 +1672,7 @@ LSTM 架構
   :name: paper-fig-4
 
   圖 4：Continual Embedded Reber Grammar 實驗結果。
+
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
 - 原始 LSTM :footcite:`hochreiter-etal-1997-long` 在有手動進行計算狀態的重置時表現非常好，但當沒有手動重置時完全無法執行任務
@@ -1699,86 +1685,121 @@ LSTM 架構
   - 因為沒有了開頭與結尾的輸入提示，模型變得更難判斷一個序列的斷點
   - 實驗證實使用 forget gate units 的 LSTM 仍然可以達成 perfect solution，只是達成的比例下降
 
-..
-  ### 分析
+分析
+----
 
-  <a name="paper-fig-5"></a>
+.. figure:: https://i.imgur.com/qwU4pnG.png
+  :alt: 原版 LSTM memory cell internal states 的累加值。
+  :name: paper-fig-5
 
-  圖 5：[原版 LSTM][LSTM1997]  memory cell internal states 的累加值。
+  圖 5：原版 LSTM memory cell internal states 的累加值。
+
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
-  ![圖 5](https://i.imgur.com/qwU4pnG.png)
+.. figure:: https://i.imgur.com/jtLnfu2.png
+  :alt: Forget gate units 重設 memory cell internal states。
+  :name: paper-fig-6
 
-  <a name="paper-fig-6"></a>
+  圖 6：Forget gate units 重設 memory cell internal states。
 
-  圖 6：LSTM 加上 forget gate 後第三個 memory cell internal states 。
+  作者在第三個 memory cell block 觀察到 memory cell internal states 的重設現象，而 forget gate units 也在 memory cell internal states 重設時數值為 :math:`0`，證實 forget gate units 的效用。
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
-  ![圖 6](https://i.imgur.com/jtLnfu2.png)
+.. figure:: https://i.imgur.com/K1mp9rg.png
+  :alt: LSTM 加上 forget gate units 後第一個 memory cell internal states。
+  :name: paper-fig-7
 
-  <a name="paper-fig-7"></a>
+  圖 7：LSTM 加上 forget gate units 後第一個 memory cell internal states。
 
-  圖 7：LSTM 加上 forget gate 後第一個 memory cell internal states 。
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
-  ![圖 7](https://i.imgur.com/K1mp9rg.png)
+- 觀察原版 LSTM :footcite:`hochreiter-etal-1997-long` 的 memory cell internal states
 
-  - 觀察[原版 LSTM][LSTM1997] 的 memory cell internal states ，可以發現在不進行手動重設的狀態下， memory cell internal states 的數值只會不斷的累加（朝向極正或極負前進）
-  - 觀察架上 forget gate 後 LSTM 的 memory cell internal states ，可以發現模型學會自動重設
-    - 在第三個 memory cells 中展現了長期記憶重設的能力
-    - 在第一個 memory cells 中展現了短期記憶重設的能力
+  - 實驗結果請見 :ref:`paper-fig-5`
+  - 發現在不進行手動重設的狀態下，memory cell internal states 的數值只會不斷的累加（朝向極正或極負前進）
+  - 發現增加的程度成線性增長，與 memory cell internal states 的計算機制相符
 
-  ## 實驗 2：Noisy Temporal Order Problem
+- 觀察加上 forget gate units 後 LSTM 的 memory cell internal states
 
-  ### 任務定義
+  - 實驗結果請見 :ref:`paper-fig-6`
+  - 發現模型學會自動重設 memory cell internal states，且 forget gate units 也在對應重設的時間點為 :math:`0`，以此證實 forget gate units 真的達成設計的目的
+  - 發現 forget gate units 長時間維持在 :math:`1` 的狀態，只在真的需要重設 memory cell internal states 時轉為 :math:`0`
 
-  - 就是[原始 LSTM 論文][LSTM1997]中的實驗 6b，細節可以看 :doc:`我的筆記 </post/ml/long-short-term-memory>`
-  - 由於此任務需要讓記憶維持一段不短的時間，因此遺忘資訊對於這個任務可能有害，透過這個任務想要驗證是否有任務是只能使用原版 LSTM 可以解決但增加 forget gate 後不能解決
+- 觀察只發現第三個 memory cell block 直接符合作者對 forget gate units 的預期
 
-  ### LSTM 架構
+  - 比較 :ref:`paper-fig-6` 與 :ref:`paper-fig-7`
+  - 作者宣稱此實驗中 LSTM 的第三個 memory cell block 負責決定輸入的斷點，展現了重設長期記憶的能力
+  - 作者宣稱此實驗中 LSTM 的第一個 memory cell block 負責決定預測 Reber grammar 的字元，展現了重設短期記憶的能力
+  - 雖然沒有畫圖，但作者說其他 memory cell blocks 也有展現重設 memory cell internal states 的現象
 
-  與實驗 1 大致相同，只做以下修改
+實驗 2：Noisy Temporal Order Problem
+====================================
 
-  - :math:`\din = \dout = 8`
-  - 將 forget gate 的bias term初始化成較大的正數（論文使用 :math:`5`），讓 forget gate 很難被關閉，藉此達到跟原本 LSTM 幾乎相同的計算能力
+任務定義
+--------
 
-  ### 實驗結果
+- 作者想要驗證是否有任務是只能使用原版 LSTM 可以解決但增加 forget gate units 後不能解決
+- 此任務就是原始 LSTM 論文 :footcite:`hochreiter-etal-1997-long` 中的實驗 6b（細節可以看\ :doc:`我的筆記 </post/ml/long-short-term-memory>`）
+- 此任務的 minimal time lag 為 :math:`80`
+- 由於此任務需要讓記憶維持一段不短的時間，因此遺忘資訊對於這個任務可能有害
 
-  - 使用 forget gate 的 LSTM 仍然能夠解決 Noisy Temporal Order Problem
-    - 當bias term初始化成較大的正數（例如 :math:`5`）時，收斂速度與原版 LSTM 一樣快
-    - 當bias term初始化成較小的正數（例如 :math:`1`）時，收斂速度約為原版 LSTM 的 :math:`3` 倍
-  - 因此根據實驗沒有什麼任務是原版 LSTM 可以解決但加上 forget gate 後不能解決的
+LSTM 架構
+---------
 
-  ## 實驗 3：Continual Noisy Temporal Order Problem
+與實驗 1 大致相同，只做以下修改
 
-  ### 任務定義
+- :math:`\din = \dout = 8`
+- 將 forget gate units 的 bias term 初始化成較大的正數（論文使用 :math:`5`），讓 forget gate units 很難被關閉，藉此達到跟原本 LSTM 幾乎相同的計算能力
 
-  - 根據[原始 LSTM 論文][LSTM1997]中的實驗 6b 進行修改，輸入為連續序列，連續序列的定義是由 :math:`100` 筆 Noisy Temporal Order 序列所組成
-  - 在一次的訓練過程中，給予模型的輸入只會在以下兩種狀況之一發生時停止
-    - 當模型產生一次的預測錯誤
-    - 模型連續接收 :math:`100` 個 Noisy Temporal Order 序列
-  - 每次訓練停止就進行一次測試
-    - 一次測試會執行 :math:`10` 次的連續輸入
-    - 評估結果是 :math:`10` 次連續輸入中預測正確的序列個數平均值
-  - 論文沒有講怎麼計算誤差與更新，我猜變成每個非預測時間點必須輸出 :math:`0`，預測時間點時輸出預測結果
-  - 訓練最多執行 :math:`10^5` 次，實驗結果由 :math:`100` 個訓練模型實驗進行平均
+實驗結果
+--------
 
-  ### LSTM 架構
+- 使用 forget gate units 的 LSTM 仍然能夠解決 Noisy Temporal Order Problem
 
-  與實驗 2 相同。
+  - 當 bias term 初始化成較大的正數（例如 :math:`5`）時，訓練成功所需時間與原版 LSTM 相同
+  - 當 bias term 初始化成較小的正數（例如 :math:`1`）時，訓練成功所需時間約為原版 LSTM 的 :math:`3` 倍，作者認為速度變慢是因為模型必須學會不能忘記資訊
 
-  ### 實驗結果
+- 根據實驗結果，原版 LSTM 可以解決的任務，在加上 forget gate units 後仍然可以解決
 
-  <a name="paper-fig-8"></a>
+實驗 3：Continual Noisy Temporal Order Problem
+==============================================
+
+任務定義
+--------
+
+- 此任務是根據原始 LSTM 論文 :footcite:`hochreiter-etal-1997-long` 中的實驗 6b 進行修改
+
+  - 輸入改為如同實驗 1 的 input stream
+  - 每個 input stream 由 :math:`100` 筆 Noisy Temporal Order 序列所組成
+
+- 每次 training 停止就進行一次 test
+
+  - 一次 training 會給予 :math:`1` 個 training stream
+  - 一次 test 會給予 :math:`10` 個 test stream
+  - 當模型連續預測 :math:`100` 個 input stream 稱為 perfect solution
+  - 當模型在 :math:`10` 個 test stream 上平均連續成功預測 :math:`\le 100` 個結果稱為 partial solution
+
+- 訓練最多執行 :math:`10^5` 次，實驗結果由 :math:`100` 個訓練模型實驗進行平均
+- 論文沒有講怎麼計算誤差與更新，我猜變成每個非預測時間點必須輸出 :math:`0`，預測時間點時輸出預測結果
+
+LSTM 架構
+---------
+
+與實驗 2 相同。
+
+實驗結果
+--------
+
+.. figure:: https://i.imgur.com/VV5wQVG.png
+  :alt: Continual Noisy Temporal Order Problem 實驗結果。
+  :name: paper-fig-8
 
   圖 8：Continual Noisy Temporal Order Problem 實驗結果。
+
   圖片來源：:footcite:`gers-etal-2000-learning`。
 
-  ![圖 8](https://i.imgur.com/VV5wQVG.png)
-
-  - [圖 8](#paper-fig-8) 中的註解 a 應該寫錯了，應該改為 correct classification of 100 successive NTO sequences
-  - 實驗再次驗證原版 LSTM 無法解決連續輸入，但使用input gate units後就能夠解決問題
-  - 將 learning rate 使用 decay factor :math:`0.9` 逐漸下降可以讓模型表現變更好，但作者認為這不重要
+- 實驗再次驗證原版 LSTM 無法解決連續輸入，但使用 forget gate units 後就能夠解決問題
+- 將 learning rate 使用 decay factor :math:`0.9` 逐漸下降可以讓模型表現變更好，但作者認為這不重要
 
 .. footbibliography::
 
