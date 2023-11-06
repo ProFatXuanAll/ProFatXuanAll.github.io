@@ -18,73 +18,43 @@ readme = "README.md"
 license = { text = "MIT" }
 
 [tool.pdm.dev-dependencies]
-lint = [
-  "flake8>=6.1.0",
-  "isort>=5.12.0",
-  "nbqa>=1.7.0",
-  "ruff>=0.0.283",
-  "yapf>=0.40.1",
-]
+lint = ["nbqa>=1.7.0", "ruff>=0.1.4"]
 
 
 [tool.pdm.scripts]
 lint = { composite = ["py.lint", "ipynb.lint"] }
-"py.lint" = { composite = ["py.lint.ruff", "py.lint.yapf"] }
-"py.lint.ruff" = "ruff check --fix source"
-"py.lint.yapf" = "yapf -i -r source"
-"ipynb.lint" = { composite = ["ipynb.lint.ruff", "ipynb.lint.yapf"] }
-"ipynb.lint.ruff" = "nbqa ruff --fix . --ignore T201"
-"ipynb.lint.yapf" = "nbqa yapf -i -r ."
+"py.lint" = "ruff check --fix source"
+"ipynb.lint" = "nbqa ruff --fix . --ignore T201"
 build = "sphinx-build -b html source build"
 build-coverage = "sphinx-build -b coverage source build"
 dev = "sphinx-autobuild --watch . --open-browser source build"
 
 [tool.ruff]
-allowed-confusables = []
-builtins = []
-cache-dir = ".ruff_cache"
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-exclude = [
-  ".bzr",
-  ".direnv",
-  ".eggs",
-  ".git",
-  ".hg",
-  ".mypy_cache",
-  ".nox",
-  ".pants.d",
-  ".pytype",
-  ".ruff_cache",
-  ".svn",
-  ".tox",
-  ".venv",
-  "__pypackages__",
-  "_build",
-  "buck-out",
-  "build",
-  "dist",
-  "node_modules",
-  "venv",
+ignore = [
+  "ANN101",
+  "ANN102",
+  "COM819",
+  "CPY",
+  "D203",
+  "D213",
+  "D413",
+  "D416",
+  "E111",
+  "E114",
+  "FA",
+  "W191",
+  "W505",
 ]
-extend-exclude = []
-extend-include = []
-extend-select = []
-external = []
-fix = false
-fix-only = false
-force-exclude = false
-format = "text"
-ignore = ["COM818", "COM819", "D203", "D213"]
-ignore-init-module-imports = false
+ignore-init-module-imports = true
 include = ["*.py", "*.pyi"]
+indent-width = 2
 line-length = 120
-namespace-packages = []
-required-version = "0.0.283"
-respect-gitignore = true
 select = [
   "A",
+  "AIR",
   "ANN",
   "ARG",
+  "ASYNC",
   "B",
   "BLE",
   "C4",
@@ -99,15 +69,20 @@ select = [
   "EXE",
   "F",
   "FBT",
+  "FIX",
+  "FLY",
+  "FURB",
   "G",
   "I",
   "ICN",
   "INP",
   "INT",
   "ISC",
+  "LOG",
   "N",
   "NPY",
   "PD",
+  "PERF",
   "PGH",
   "PIE",
   "PL",
@@ -121,179 +96,47 @@ select = [
   "S",
   "SIM",
   "SLF",
+  "SLOT",
   "T10",
   "T20",
   "TCH",
+  "TD",
   "TID",
   "TRY",
   "UP",
   "W",
   "YTT",
 ]
-show-fixes = false
-show-source = false
-src = ["."]
 target-version = "py39"
 task-tags = ["TODO", "FIXME"]
-typing-modules = []
-unfixable = ["ERA"]
+unfixable = ["B007", "ERA", "F401", "F841"]
 
 [tool.ruff.flake8-annotations]
-allow-star-arg-any = false
-ignore-fully-untyped = false
-mypy-init-return = false
 suppress-dummy-args = true
-suppress-none-returning = false
-
-[tool.ruff.flake8-bandit]
-check-typed-exception = false
-hardcoded-tmp-directory = ["/tmp", "/var/tmp", "/dev/shm"]
-hardcoded-tmp-directory-extend = []
-
-[tool.ruff.flake8-bugbear]
-extend-immutable-calls = []
-
-[tool.ruff.flake8-builtins]
-builtins-ignorelist = []
-
-[tool.ruff.flake8-comprehensions]
-allow-dict-calls-with-keyword-arguments = false
-
-[tool.ruff.flake8-errmsg]
-max-string-length = 0
-
-[tool.ruff.flake8-gettext]
-extend-function-names = []
-function-names = ["_", "gettext", "ngettext"]
-
-[tool.ruff.flake8-implicit-str-concat]
-allow-multiline = true
-
-[tool.ruff.flake8-import-conventions]
-banned-from = []
-
-[tool.ruff.flake8-import-conventions.aliases]
-altair = "alt"
-matplotlib = "mpl"
-"matplotlib.pyplot" = "plt"
-numpy = "np"
-pandas = "pd"
-seaborn = "sns"
-tensorflow = "tf"
-holoviews = "hv"
-panel = "pn"
-"plotly.express" = "px"
-polars = "pl"
-pyarrow = "pa"
-
-[tool.ruff.flake8-pytest-style]
-fixture-parentheses = true
-mark-parentheses = true
-parametrize-names-type = "tuple"
-parametrize-values-row-type = "tuple"
-parametrize-values-type = "list"
-raises-extend-require-match-for = []
-raises-require-match-for = [
-  "BaseException",
-  "Exception",
-  "ValueError",
-  "OSError",
-  "IOError",
-  "EnvironmentError",
-  "socket.error",
-]
 
 [tool.ruff.flake8-quotes]
-avoid-escape = true
-docstring-quotes = "double"
 inline-quotes = "single"
-multiline-quotes = "single"
-
-[tool.ruff.flake8-self]
-ignore-names = ["_make", "_asdict", "_replace", "_fields", "_field_defaults"]
 
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
 
 [tool.ruff.flake8-tidy-imports.banned-api]
-"typing.Dict" = { msg = "Use dict instead." }
-"typing.List" = { msg = "Use list instead." }
+"typing.Dict".msg = "Use dict instead."
+"typing.List".msg = "Use list instead."
 
 [tool.ruff.flake8-type-checking]
 exempt-modules = ["typing", "typing_extensions"]
-runtime-evaluated-base-classes = []
-runtime-evaluated-decorators = []
-strict = false
 
-[tool.ruff.flake8-unused-arguments]
-ignore-variadic-names = false
+[tool.ruff.format]
+line-ending = "lf"
+quote-style = "single"
 
 [tool.ruff.isort]
-classes = []
-combine-as-imports = false
-constants = []
-extra-standard-library = []
-force-single-line = false
-force-sort-within-sections = false
-force-to-top = []
-force-wrap-aliases = false
-forced-separate = []
-known-first-party = []
-known-local-folder = []
-known-third-party = []
-lines-after-imports = -1
-lines-between-types = 0
-no-lines-before = []
-order-by-type = true
-relative-imports-order = "furthest-to-closest"
-required-imports = []
-section-order = [
-  "future",
-  "standard-library",
-  "third-party",
-  "first-party",
-  "local-folder",
-]
-single-line-exclusions = []
-split-on-trailing-comma = true
-variables = []
-
-[tool.ruff.mccabe]
-max-complexity = 10
-
-[tool.ruff.pep8-naming]
-classmethod-decorators = []
-ignore-names = [
-  "asyncSetUp",
-  "asyncTearDown",
-  "failureException",
-  "longMessage",
-  "maxDiff",
-  "setUp",
-  "setUpClass",
-  "setUpModule",
-  "setUpTestData",
-  "tearDown",
-  "tearDownClass",
-  "tearDownModule",
-]
-staticmethod-decorators = []
-
-[tool.ruff.pycodestyle]
-ignore-overlong-task-comments = false
-# max-doc-length = 0
+case-sensitive = true
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
-ignore-decorators = []
-property-decorators = []
 
 [tool.ruff.pylint]
-allow-magic-value-types = ["str", "bytes"]
 max-args = 20
-max-branches = 12
-max-returns = 6
 max-statements = 100
-
-[tool.ruff.pyupgrade]
-keep-runtime-typing = false
