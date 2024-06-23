@@ -51,6 +51,7 @@ Long Short-Term Memory
 
   .. tab-item:: Tags
 
+    :bdg-primary:`Neural Computation`
     :bdg-secondary:`BPTT`
     :bdg-secondary:`Sequence Model`
     :bdg-secondary:`Gradient Descent`
@@ -61,7 +62,6 @@ Long Short-Term Memory
     :bdg-secondary:`Model Architecture`
     :bdg-secondary:`RNN`
     :bdg-secondary:`RTRL`
-    :bdg-primary:`Neural Computation`
 
   .. tab-item:: Authors
 
@@ -230,7 +230,7 @@ Long Short-Term Memory
 
   - 本篇論文的架構定義更為\ **廣義**
   - 本篇論文只有 input/output gate units，並沒有使用 forget gate units :footcite:`gers-etal-2000-learning`
-  - 很常看到近年論文引用此篇 LSTM，這是不對的行為
+  - 近年論文引用此篇 LSTM 卻描述不同的架構（例如架構中含有 forget gate），應為錯誤引用
 
 - Alex Graves 的 LSTM 教學：https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4
 
@@ -253,7 +253,7 @@ Long Short-Term Memory
 - 常用於 RNN 模型的最佳化演算法 :term:`BPTT` 與 :term:`RTRL` 都會遇到\ **梯度爆炸**\（:term:`gradient explosion`）或\ **梯度消失**\（:term:`gradient vanishing`）的問題
 
   - 梯度爆炸造成神經網路的\ **參數數值劇烈振盪**\（**oscillating weights**）
-  - 梯度消失造成\ **訓練時間慢長**
+  - 梯度消失造成\ **訓練時間冗長**
 
 - 關鍵輸入資訊\ **時間差較短**\（**short time lags**）的任務可以使用 time-delay neural network :footcite:`lang-etal-1990-a` 解決，但關鍵輸入資訊\ **時間差較長**\（**long time lags**）的任務並沒有好的解決方案
 
@@ -696,7 +696,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/uhS4AgH.png
   :alt: memory cell 內部架構
-  :name: paper-fig-1
+  :name: long-short-term-memory:paper-fig-1
 
   圖 1：memory cell 內部架構。
 
@@ -705,7 +705,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/UQ5LAu8.png
   :alt: LSTM 連接架構範例
-  :name: paper-fig-2
+  :name: long-short-term-memory:paper-fig-2
 
   圖 2：LSTM 連接架構範例。
 
@@ -820,7 +820,7 @@ Memory cells 的主要功能為記憶過去的輸入資訊。
 
 - 在 :math:`t` 時間點時，一個 LSTM 模型有 :math:`\nbk` 個 memory cell blocks
 - 在 :math:`t` 時間點時，第 :math:`k` 個 memory cell block 內有 :math:`\dbk` 個 memory cells
-- 例如：:ref:`paper-fig-2`
+- 例如：:ref:`long-short-term-memory:paper-fig-2`
 
   - 共有 :math:`2` 個不同的 memory cell blocks
   - 每個 memory cell block 中包含 :math:`2` 個 memory cells
@@ -847,7 +847,7 @@ Input gate units 決定與控制計算資訊是否需要流入 memory cells，LS
   - 關閉 :math:`\yig_k(t + 1)` 時會得到 :math:`\sbk{k}(t + 1) = \sbk{k}(t)`，達成 CEC（見 :math:`\eqref{11}`），藉此保障\ **梯度不會消失**
 
 - 當模型認為 :math:`g\qty(\zbk{k}(t + 1))` **重要**\時，模型應該要\ **開啟**\第 :math:`k` 個 input gate unit
-- 例如：:ref:`paper-fig-2`
+- 例如：:ref:`long-short-term-memory:paper-fig-2`
 
   - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 1`` 共享 input gate unit ``in 1``
   - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 2`` 共享 input gate unit ``in 2``
@@ -899,7 +899,7 @@ Output gate units 決定與控制 memory cell block activations 是否需要用�
   - 在 :math:`\yig_k(t + 1)` **關閉**\的狀況下，**開啟** :math:`\yog_k(t + 1)` 代表不讓 :math:`\xt(t)` 影響當前計算
 
 - `PyTorch 實作的 LSTM <Pytorch-LSTM_>`_ 中 :math:`h(t)` 表達的意思是 memory cell block activation :math:`\ybk{k}(t)`
-- 例如：:ref:`paper-fig-2`
+- 例如：:ref:`long-short-term-memory:paper-fig-2`
 
   - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 1`` 共享 output gate unit ``out 1``
   - Memory cells ``cell 1`` and ``cell 2`` in memory cell block ``block 2`` 共享 output gate unit ``out 2``
@@ -2568,7 +2568,7 @@ Scaling Down Error
 
 .. figure:: https://i.imgur.com/frOl0Tf.png
   :alt: Reber Grammar
-  :name: paper-fig-3
+  :name: long-short-term-memory:paper-fig-3
 
   圖 3：Reber Grammar。
 
@@ -2577,7 +2577,7 @@ Scaling Down Error
 
 .. figure:: https://i.imgur.com/SVfVbJN.png
   :alt: Embedded Reber Grammar。
-  :name: paper-fig-4
+  :name: long-short-term-memory:paper-fig-4
 
   圖 4：Embedded Reber Grammar。
 
@@ -2595,7 +2595,7 @@ Scaling Down Error
   - 如果一個字串前兩個字母生成 BT，則該字串結尾一定會生成 TE
   - 如果一個字串前兩個字母生成 BP，則該字串結尾一定會生成 PE
   - 字串中間由 Reber Grammar 生成，能夠生成的字母包含 BEPSTVX
-  - 由於 Reber Grammar 有限狀態機中有 loop（見 :ref:`paper-fig-3`），因此 Reber Grammar 有可能產生\ **任意長度**\的文字
+  - 由於 Reber Grammar 有限狀態機中有 loop（見 :ref:`long-short-term-memory:paper-fig-3`），因此 Reber Grammar 有可能產生\ **任意長度**\的文字
 
 - 訓練任務設定為\ **每輸入一個字母就預測下一個字母**
 
@@ -2659,7 +2659,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/51yPwmH.png
   :alt: Embedded Reber Grammar 實驗結果
-  :name: paper-table-1
+  :name: long-short-term-memory:paper-table-1
 
   表格 1：Embedded Reber Grammar 實驗結果。
 
@@ -2757,7 +2757,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/638FPkg.png
   :alt: 無雜訊長時間差任務實驗結果
-  :name: paper-table-2
+  :name: long-short-term-memory:paper-table-2
 
   表格 2：無雜訊長時間差任務實驗結果。
 
@@ -2910,7 +2910,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/j8e0W2U.png
   :alt: 有雜訊超長時間差任務實驗結果。
-  :name: paper-table-3
+  :name: long-short-term-memory:paper-table-3
 
   表格 3：有雜訊超長時間差任務實驗結果。
 
@@ -2990,7 +2990,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/e1OKDP5.png
   :alt: Two-Sequence Problem 實驗結果。
-  :name: paper-table-4
+  :name: long-short-term-memory:paper-table-4
 
   表格 4：Two-Sequence Problem 實驗結果。
 
@@ -3005,7 +3005,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/DEkS8ST.png
   :alt: Two-Sequence Problem + 雜訊實驗結果
-  :name: paper-table-5
+  :name: long-short-term-memory:paper-table-5
 
   表格 5：Two-Sequence Problem + 雜訊實驗結果。
 
@@ -3028,7 +3028,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/1eXhAr4.png
   :alt: 強化版 Two-Sequence Problem 實驗結果
-  :name: paper-table-6
+  :name: long-short-term-memory:paper-table-6
 
   表格 6：強化版 Two-Sequence Problem 實驗結果。
 
@@ -3146,7 +3146,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/pGuMKyt.png
   :alt: Adding Problem 實驗結果
-  :name: paper-table-7
+  :name: long-short-term-memory:paper-table-7
 
   表格 7：Adding Problem 實驗結果。
 
@@ -3195,7 +3195,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/bi9jJ3W.png
   :alt: Multiplication Problem 實驗結果
-  :name: paper-table-8
+  :name: long-short-term-memory:paper-table-8
 
   表格 8：Multiplication Problem 實驗結果。
 
@@ -3273,7 +3273,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/ucyQoeQ.png
   :alt: Temporal Order with 4 Classes 任務實驗結果
-  :name: paper-table-9
+  :name: long-short-term-memory:paper-table-9
 
   表格 9：Temporal Order with 4 Classes 任務實驗結果。
 
@@ -3343,7 +3343,7 @@ LSTM 架構
 實驗結果
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-見 :ref:`paper-table-9`。
+見 :ref:`long-short-term-memory:paper-table-9`。
 
 .. footbibliography::
 
@@ -3352,4 +3352,3 @@ LSTM 架構
 .. =====================================================================================================================
 
 .. _Pytorch-LSTM: https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html?highlight=lstm#torch.nn.LSTM
-

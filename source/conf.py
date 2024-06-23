@@ -86,6 +86,7 @@ html_title = "ProFatXuanAll's blog"
 # See https://www.sphinx-doc.org/en/master/usage/extensions/autosectionlabel.html for details.
 ########################################################################################################################
 autosectionlabel_prefix_document = True
+autosectionlabel_maxdepth = 1
 
 ########################################################################################################################
 # Configuration for `sphinx.ext.extlinks`.

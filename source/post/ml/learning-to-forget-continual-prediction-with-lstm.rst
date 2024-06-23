@@ -36,6 +36,7 @@ Learning to Forget: Continual Prediction with LSTM
     LSTM,
     RNN,
     Sequence Model,
+    forget gate
     model architecture,
     neural network
 
@@ -47,11 +48,12 @@ Learning to Forget: Continual Prediction with LSTM
 
   .. tab-item:: Tags
 
+    :bdg-primary:`Neural Computation`
+    :bdg-secondary:`Forget Gate`
     :bdg-secondary:`LSTM`
     :bdg-secondary:`Model Architecture`
     :bdg-secondary:`RNN`
     :bdg-secondary:`Sequence Model`
-    :bdg-primary:`Neural Computation`
 
   .. tab-item:: Authors
 
@@ -426,7 +428,7 @@ Forget Gate Units
 
 .. figure:: https://i.imgur.com/ILRsaEU.png
   :alt: 在原始 LSTM 架構上增加 forget gate units
-  :name: paper-fig-1
+  :name: learning-to-forget-continual-prediction-with-lstm:paper-fig-1
 
   圖 1：在原始 LSTM 架構上增加 forget gate。
 
@@ -1589,7 +1591,7 @@ Bias Terms
 
 .. figure:: https://i.imgur.com/rhHtVRN.png
   :alt: Continual Embedded Reber Grammar。
-  :name: paper-fig-2
+  :name: learning-to-forget-continual-prediction-with-lstm:paper-fig-2
 
   圖 2：Continual Embedded Reber Grammar。
 
@@ -1622,7 +1624,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/uUJjmSz.png
   :alt: LSTM 架構。
-  :name: paper-fig-3
+  :name: learning-to-forget-continual-prediction-with-lstm:paper-fig-3
 
   圖 3：LSTM 架構。
 
@@ -1669,7 +1671,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/uu9Nccj.png
   :alt: Continual Embedded Reber Grammar 實驗結果。
-  :name: paper-fig-4
+  :name: learning-to-forget-continual-prediction-with-lstm:paper-fig-4
 
   圖 4：Continual Embedded Reber Grammar 實驗結果。
 
@@ -1690,7 +1692,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/qwU4pnG.png
   :alt: 原版 LSTM memory cell internal states 的累加值。
-  :name: paper-fig-5
+  :name: learning-to-forget-continual-prediction-with-lstm:paper-fig-5
 
   圖 5：原版 LSTM memory cell internal states 的累加值。
 
@@ -1698,7 +1700,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/jtLnfu2.png
   :alt: Forget gate units 重設 memory cell internal states。
-  :name: paper-fig-6
+  :name: learning-to-forget-continual-prediction-with-lstm:paper-fig-6
 
   圖 6：Forget gate units 重設 memory cell internal states。
 
@@ -1707,7 +1709,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/K1mp9rg.png
   :alt: LSTM 加上 forget gate units 後第一個 memory cell internal states。
-  :name: paper-fig-7
+  :name: learning-to-forget-continual-prediction-with-lstm:paper-fig-7
 
   圖 7：LSTM 加上 forget gate units 後第一個 memory cell internal states。
 
@@ -1715,19 +1717,19 @@ LSTM 架構
 
 - 觀察原版 LSTM :footcite:`hochreiter-etal-1997-long` 的 memory cell internal states
 
-  - 實驗結果請見 :ref:`paper-fig-5`
+  - 實驗結果請見 :ref:`learning-to-forget-continual-prediction-with-lstm:paper-fig-5`
   - 發現在不進行手動重設的狀態下，memory cell internal states 的數值只會不斷的累加（朝向極正或極負前進）
   - 發現增加的程度成線性增長，與 memory cell internal states 的計算機制相符
 
 - 觀察加上 forget gate units 後 LSTM 的 memory cell internal states
 
-  - 實驗結果請見 :ref:`paper-fig-6`
+  - 實驗結果請見 :ref:`learning-to-forget-continual-prediction-with-lstm:paper-fig-6`
   - 發現模型學會自動重設 memory cell internal states，且 forget gate units 也在對應重設的時間點為 :math:`0`，以此證實 forget gate units 真的達成設計的目的
   - 發現 forget gate units 長時間維持在 :math:`1` 的狀態，只在真的需要重設 memory cell internal states 時轉為 :math:`0`
 
 - 觀察只發現第三個 memory cell block 直接符合作者對 forget gate units 的預期
 
-  - 比較 :ref:`paper-fig-6` 與 :ref:`paper-fig-7`
+  - 比較 :ref:`learning-to-forget-continual-prediction-with-lstm:paper-fig-6` 與 :ref:`learning-to-forget-continual-prediction-with-lstm:paper-fig-7`
   - 作者宣稱此實驗中 LSTM 的第三個 memory cell block 負責決定輸入的斷點，展現了重設長期記憶的能力
   - 作者宣稱此實驗中 LSTM 的第一個 memory cell block 負責決定預測 Reber grammar 的字元，展現了重設短期記憶的能力
   - 雖然沒有畫圖，但作者說其他 memory cell blocks 也有展現重設 memory cell internal states 的現象
@@ -1792,7 +1794,7 @@ LSTM 架構
 
 .. figure:: https://i.imgur.com/VV5wQVG.png
   :alt: Continual Noisy Temporal Order Problem 實驗結果。
-  :name: paper-fig-8
+  :name: learning-to-forget-continual-prediction-with-lstm:paper-fig-8
 
   圖 8：Continual Noisy Temporal Order Problem 實驗結果。
 
