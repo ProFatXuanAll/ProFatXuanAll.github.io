@@ -50,6 +50,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+report.xml
 
 # Translations
 *.mo
@@ -106,7 +107,7 @@ ipython_config.py
 #pdm.lock
 #   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
 #   in version control.
-#   https://pdm.fming.dev/#use-with-ide
+#   https://pdm-project.org/#use-with-ide
 .pdm.toml
 .pdm-python
 .pdm-build/
@@ -161,5 +162,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# editor configs.
+# Editor settings.
 .vscode
+
+# asdf settings.
+.tool-versions

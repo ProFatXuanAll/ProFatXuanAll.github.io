@@ -1,33 +1,59 @@
+[dependency-groups]
+auto-test = [{ include-group = "test" }, "tox>=4.23.2"]
+dev = [
+  { include-group = "auto-test" },
+  { include-group = "lint" },
+  { include-group = "manual-test" },
+  { include-group = "test" },
+  { include-group = "type" },
+]
+lint = ["ruff>=0.11.13"]
+manual-test = [{ include-group = "test" }, "pytest-sugar>=1.0.0"]
+test = ["pre-commit>=4.0.1", "pytest>=8.4.0", "pytest-cov>=6.0.0"]
+type = [{ include-group = "test" }, "mypy>=1.16.0"]
+
 [project]
-name = "ProFatXuanAll.github.io"
-version = "0.0.0"
-description = "ProFatXuanAll.github.io"
 authors = [{ name = "ProFatXuanAll", email = "ProFatXuanAll@gmail.com" }]
+description = "ProFatXuanAll.github.io"
 dependencies = [
-  "furo>=2024.5.6",
-  "pip>=24.2",
-  "setuptools>=74.0.0",
-  "sphinx>=8.0.2",
-  "sphinx-autobuild>=2024.4.16",
+  "furo>=2024.8.6",
+  "sphinx>=8.2.3",
+  "sphinx-autobuild>=2024.10.3",
   "sphinx-copybutton>=0.5.2",
   "sphinx-design>=0.6.1",
-  "sphinxcontrib-bibtex>=2.6.2",
-  "sphinxcontrib-mermaid>=0.9.2",
+  "sphinxcontrib-bibtex>=2.6.3",
+  "sphinxcontrib-mermaid>=1.0.0",
 ]
-requires-python = ">=3.12"
-readme = "README.md"
 license = { text = "MIT" }
+name = "ProFatXuanAll.github.io"
+readme = "README.md"
+requires-python = ">=3.12"
+version = "0.0.0"
 
-[tool.pdm.dev-dependencies]
-lint = ["ruff>=0.6.3"]
-test = ["mypy>=1.11.2", "pytest>=8.3.2"]
+[tool.coverage.run]
+branch = true
+source = ["src"]
 
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.mypy]
+enable_incomplete_feature = ["NewGenericSyntax", "Unpack"]
+python_version = "3.12"
+
+[tool.pdm]
+distribution = false
 
 [tool.pdm.scripts]
-lint = "ruff check --fix source"
-build = "sphinx-build -b html source build"
-build-coverage = "sphinx-build -b coverage source build"
-dev = "sphinx-autobuild --watch . --open-browser source build"
+lint = "ruff --config pyproject.toml check --fix src tests"
+doc-build = "sphinx-build -E -b html doc/source doc/build"
+doc-build-coverage = "sphinx-build -E -b coverage doc/source doc/build"
+doc-dev = "sphinx-autobuild --host 0.0.0.0 --port 8000 --watch . --open-browser doc/source doc/build"
+test = "pytest --config-file=pyproject.toml"
+type = "mypy --config-file=pyproject.toml src tests"
+
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-config=pyproject.toml --cov-report term --cov-report xml --junit-xml=report.xml tests"
 
 [tool.ruff]
 include = ["*.py", "*.pyi"]
@@ -43,8 +69,6 @@ quote-style = "single"
 
 [tool.ruff.lint]
 ignore = [
-  "ANN101",
-  "ANN102",
   "COM819",
   "CPY",
   "D203",
@@ -107,7 +131,6 @@ select = [
   "SLOT",
   "T10",
   "T20",
-  "TCH",
   "TD",
   "TID",
   "TRY",
@@ -137,9 +160,43 @@ exempt-modules = ["typing", "typing_extensions"]
 [tool.ruff.lint.isort]
 case-sensitive = true
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
 [tool.ruff.lint.pylint]
 max-args = 20
 max-statements = 100
+
+[tool.tox]
+env_list = ["lint", "type", "py312"]
+requires = ["tox>=4"]
+skip_missing_interpreters = true
+
+[tool.tox.env.doc]
+commands = [["sphinx-build", "-E", "-b", "html", "doc/source", "doc/build"]]
+dependency_groups = ["doc"]
+description = "build documents"
+
+[tool.tox.env.lint]
+commands = [
+  [
+    "ruff",
+    "--config",
+    "pyproject.toml",
+    "check",
+    "--fix",
+    "src",
+    "tests",
+  ],
+]
+dependency_groups = ["lint"]
+description = "run linters"
+skip_install = true
+
+[tool.tox.env.type]
+commands = [["mypy", "--config-file=pyproject.toml", "src", "tests"]]
+dependency_groups = ["type"]
+description = "run static type checks"
